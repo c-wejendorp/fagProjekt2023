@@ -48,6 +48,6 @@ for idx,distribution in enumerate(distributions,oldIdx+1):
 ax1.set_title('Archetypes and their convex hull')
 ax2.legend()
 
-fig1.savefig('toyData/plots/convexHulss.png')   
+fig2.savefig('toyData/plots/convexHulls.png')   
 plt.show()
 
