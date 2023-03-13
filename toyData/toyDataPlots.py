@@ -39,14 +39,14 @@ for idx,archeTypes in enumerate(archeTypesList):
     points=archeTypes.T    
     hull = ConvexHull(points)    
     for simplex in hull.simplices:        
-        ax2.plot(archeTypes[0,:], archeTypes[1,:], 'x', color=matplotlibStandardcolors[idx], alpha=1,label=f'Convex hull with {idx} archetypes')
         ax2.plot(points[simplex, 0], points[simplex, 1],'k-',color=matplotlibStandardcolors[idx])   
+    ax2.plot(archeTypes[0,:], archeTypes[1,:], 'x', color=matplotlibStandardcolors[idx], alpha=1,label=f'{numArchetypes[idx]} archetypes')
 oldIdx=idx
 for idx,distribution in enumerate(distributions,oldIdx+1):
     ax2.plot(distribution[0,:], distribution[1,:], '.', color=matplotlibStandardcolors[idx], alpha=0.5)
 
-ax1.set_title('Archetypes and their convex hull')
-ax2.legend()
+ax2.set_title('Archetypes and their convex hull')
+ax2.legend(loc='upper left', borderaxespad=0)
 
 fig2.savefig('toyData/plots/convexHulls.png')   
 plt.show()
