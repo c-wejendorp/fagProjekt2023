@@ -12,7 +12,14 @@ class MMAA(torch.nn.Module):
         #C is universal for all subjects/modalities. S(ms) and A(ms) are unique though
         #so we need to create a list for each subject's data for each modality
         self.C = torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((V, k), dtype=torch.double))) #softmax upon initialization
-        self.Sms = [[torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((k, V), dtype=torch.double)))]*numSubjects for m in range(numModalities)] #-||-
+
+        # here Sms has the shape of (numModalities, numSubjects, k, V)
+        self.Sms = [[torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((k, V), dtype=torch.double)))]*numSubjects for m in range(numModalities)]
+        # as a parameterlist 
+        
+        #should maybe change above to something called PARAMETERLIST 
+        #self.Sms = torch.nn.ParameterList([[torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((k, V), dtype=torch.double)))]*numSubjects for m in range(numModalities)])
+
         self.A = 0
         self.Xms = Xms
         
@@ -104,20 +111,12 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
         # store loss into list
         loss_Adam.append(loss.item())
 
+    print("loss list ", loss_Adam) 
     print("final loss: ", loss_Adam[-1])
+         
 
-    if plotDistributions: 
-        #plot archetype points as x's
-        A = model.A.detach().numpy()
-        print("archetype coordinates: \n", A)
-        plt.plot(A[0,:], A[1,:], 'x', alpha=1)
-        plt.fill(A[0,:], A[1,:], facecolor='none', edgecolor='purple', linewidth=1)
-        plt.show()
-    
-    data=np.vstack([norm1, norm2, norm3]).T
-    archeTypes = model.A.detach().numpy()    
-
-    return data,archeTypes,loss_Adam
+    #return data,archeTypes,loss_Adam
 
 if __name__ == "__main__":
     toyDataAA(numIterations=2000)
+    
