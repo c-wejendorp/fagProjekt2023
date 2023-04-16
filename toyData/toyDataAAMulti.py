@@ -49,6 +49,10 @@ class MMAA(torch.nn.Module):
         
         #XCSms is a list of list of tensors. Here we convert everything to tensors
         XCSms = torch.stack([torch.stack(XCSms[i]) for i in range(len(XCSms))])
+
+        # i think we also need to save the reconstruction
+        self.XCSms = XCSms
+
         return XCSms
     
     
