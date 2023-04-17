@@ -11,49 +11,36 @@ class MMAA(torch.nn.Module):
         
         #C is universal for all subjects/modalities. S(ms) and A(ms) are unique though
         #so we need to create a list for each subject's data for each modality
-        self.C = torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((V, k), dtype=torch.double))) #softmax upon initialization
+        self.C = torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((V, k), dtype=torch.float))) #softmax upon initialization
 
-        # here Sms has the shape of (numModalities, numSubjects, k, V)
-        self.Sms = torch.nn.Parameter(torch.nn.Parameter(torch.rand(numModalities, numSubjects, T, )))
-        # as a parameterlist 
-        #remove list of list since T is not in here
-        
-        #should maybe change above to something called PARAMETERLIST 
-        #self.Sms = torch.nn.ParameterList([[torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((k, V), dtype=torch.double)))]*numSubjects for m in range(numModalities)])
+        # here Sms has the shape of (m, s, k, V)
+        self.Sms = torch.nn.Parameter(torch.nn.Softmax(dim = -2)(torch.rand((numModalities, numSubjects, k, V), dtype = torch.float)))
 
         self.A = 0
-        self.Xms = Xms
         
         self.numModalities = numModalities
         self.numSubjects = numSubjects
         self.T = T
         self.V = V
-    
-    def soft_fun(self, M):
-        """Implements softmax along columns to respect matrix constraints"""
-        
-        softmax = torch.nn.Softmax(dim = 0)
-        softM = softmax(M)
-        return softM
 
     def forward(self, X):
         #vectorize it later
         XCSms = [[0]*self.numSubjects for modality in range(self.numModalities)]
         
         #find the unique reconstruction for each modality for each subject
-        #loss = 0
-        for m in range(self.numModalities):
-            XC = torch.matmul(self.Xms[m], self.soft_fun(self.C))
-            self.A = XC
-            XCS = torch.matmul(XC, self.soft_fun(self.Sms[m]))
-            XCSms[m] = XCS
-            #update loss as Xms - XCms
-        
+        loss = 0
+        for m in range(self.numModalities):            
+            #X - Xrecon (via MMAA)
+            # A = XC
+            self.A = X[m]@torch.nn.functional.softmax(self.C, dim = 0, dtype = torch.double)
+            loss_per_sub = torch.linalg.matrix_norm(X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
+            loss += torch.sum(loss_per_sub)
+            
         #XCSms is a list of list of tensors. Here we convert everything to tensors
-        XCSms = torch.stack([torch.stack(XCSms[i]) for i in range(len(XCSms))])
+        # XCSms = torch.stack([torch.stack(XCSms[i]) for i in range(len(XCSms))])
 
-        # i think we also need to save the reconstruction
-        self.XCSms = XCSms
+        # # i think we also need to save the reconstruction
+        # self.XCSms = XCSms
 
         return loss
     
@@ -70,7 +57,8 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
     
     #voxel distribution follows certain archetypes
     vox1, vox2 = np.random.normal(0.25, 0.01, size = T), np.random.normal(0.25, 0.01, size = T)
-    vox3 = np.random.normal(0.5, 0.01, size = T)
+    vox3 = np.random.normal(0.9, 0.01, size = T)
+    #vox3, vox6 = np.random.normal(0.5, 0.01, size = T), np.random.normal(0.5, 0.01, size = T)
     vox4, vox5 = np.random.normal(0.75, 0.01, size = T), np.random.normal(0.75, 0.01, size = T)
 
     voxels = [vox1, vox2, vox3, vox4, vox5]
@@ -97,7 +85,7 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
     for idx_modality, data in enumerate(mod_list):        
         Xms[idx_modality, :, :, :] = data #This works but if time: just concanate it all along some axis
 
-    Xms = torch.tensor(Xms)
+    Xms = torch.tensor(Xms, dtype = torch.double)
 
     #hyperparameters
     lr = learningRate
@@ -114,9 +102,7 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
         # zeroing gradients after each iteration
         optimizer.zero_grad()
         # making a prediction in forward pass
-        Xrecon = model.forward()
-        # calculating the loss between original and predicted data points
-        loss = lossCriterion(Xrecon, Xms)
+        loss = model.forward(Xms)
         # backward pass for computing the gradients of the loss w.r.t to learnable parameters
         loss.backward()
         # updating the parameters after each iteration
@@ -126,10 +112,17 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
 
     print("loss list ", loss_Adam) 
     print("final loss: ", loss_Adam[-1])
+    
+    _, ax = plt.subplots(3)
+    archetypes = np.mean(model.A.detach().numpy(), axis = 1)
+    for m in range(3): #for all modalities
+        for arch in range(k):
+            ax[m].plot(np.arange(T), archetypes[m, :, arch], '-', alpha=0.5)
+    plt.show()
          
 
     #return data,archeTypes,loss_Adam
 
 if __name__ == "__main__":
-    toyDataAA(numIterations=5000, numArchetypes=3)
+    toyDataAA(numIterations=5000, numArchetypes=5)
     
