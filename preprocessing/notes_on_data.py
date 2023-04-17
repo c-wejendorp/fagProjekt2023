@@ -3,11 +3,11 @@ import mne
 
 #path to the freesurfer directory
 #fs_dir = Path("/mrhome/jesperdn/INN_JESPER/projects/facerecognition/freesurfer")
-fs_dir = Path("data/freesurfer")
+fs_dir = Path("fagProjekt2023/data/freesurfer")
 
 #path to the data directory (JespersProcessed)
 #data_dir = Path("/mrhome/jesperdn/INN_JESPER/projects/facerecognition_dtu/data")
-data_dir = Path("data/JesperProcessed")
+data_dir = Path("fagProjekt2023/data/JesperProcessed")
 subject = "sub-01"
 
 subject_dir = data_dir / subject
@@ -18,6 +18,8 @@ inv_dir = meg_dir / "stage-inverse"
 
 mri_dir = subject_dir / "ses-mri"
 fmri_dir = mri_dir / "func"
+
+
 
 # Read sensor space data
 
@@ -48,9 +50,9 @@ stc = mne.read_source_estimate("task-facerecognition_space-fsaverage_cond-famous
 # Read source space data
 # to get from subject space to fsaverage
 # without -[l/r]h.stc !
-stc = mne.read_source_estimate(inv_dir / "task-facerecognition_cond-famous_fwd-mne_ch-eeg_split-0_stc")
-morph = mne.read_source_morph(fwd_dir / "task-facerecognition_fwd-mne_morph.h5")
-morph.apply(stc)
+# stc = mne.read_source_estimate(inv_dir / "task-facerecognition_cond-famous_fwd-mne_ch-eeg_split-0_stc")
+# morph = mne.read_source_morph(fwd_dir / "task-facerecognition_fwd-mne_morph.h5")
+# morph.apply(stc)
 # I already did this; should be equal to
 stc = mne.read_source_estimate(inv_dir / "task-facerecognition_space-fsaverage_cond-famous_fwd-mne_ch-eeg_split-0_stc")
 # get data: stc.data, stc.lh_data, stc.rh_data
