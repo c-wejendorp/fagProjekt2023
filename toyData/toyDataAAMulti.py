@@ -113,16 +113,18 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
     print("loss list ", loss_Adam) 
     print("final loss: ", loss_Adam[-1])
     
+    #plot archetypes
     _, ax = plt.subplots(3)
-    archetypes = np.mean(model.A.detach().numpy(), axis = 1)
-    for m in range(3): #for all modalities
-        for arch in range(k):
-            ax[m].plot(np.arange(T), archetypes[m, :, arch], '-', alpha=0.5)
+    for m in range(3): #num_modalities        
+        Am = np.mean((Xms[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
+        #plot the different archetypes
+        for k in range(k):
+            ax[m].plot(range(T), Am[:, k])
+        
     plt.show()
          
-
     #return data,archeTypes,loss_Adam
 
 if __name__ == "__main__":
-    toyDataAA(numIterations=5000, numArchetypes=5)
+    toyDataAA(numIterations=1000, numArchetypes=3)
     
