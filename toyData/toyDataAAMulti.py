@@ -14,7 +14,7 @@ class MMAA(torch.nn.Module):
         self.C = torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((V, k), dtype=torch.double))) #softmax upon initialization
 
         # here Sms has the shape of (numModalities, numSubjects, k, V)
-        self.Sms = [[torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((k, V), dtype=torch.double)))]*numSubjects for m in range(numModalities)]
+        self.Sms = torch.nn.Parameter(torch.nn.Parameter(torch.rand(numModalities, numSubjects, T, )))
         # as a parameterlist 
         #remove list of list since T is not in here
         
@@ -36,19 +36,18 @@ class MMAA(torch.nn.Module):
         softM = softmax(M)
         return softM
 
-    def forward(self):
+    def forward(self, X):
         #vectorize it later
         XCSms = [[0]*self.numSubjects for modality in range(self.numModalities)]
         
         #find the unique reconstruction for each modality for each subject
         #loss = 0
         for m in range(self.numModalities):
-            for s in range(self.numSubjects):   #remove this loop
-                XC = torch.matmul(self.Xms[m, s, :, :], self.soft_fun(self.C))
-                self.A = XC
-                XCS = torch.matmul(XC, self.soft_fun(self.Sms[m][s]))
-                XCSms[m][s] = XCS
-                #update loss as Xms - XCms
+            XC = torch.matmul(self.Xms[m], self.soft_fun(self.C))
+            self.A = XC
+            XCS = torch.matmul(XC, self.soft_fun(self.Sms[m]))
+            XCSms[m] = XCS
+            #update loss as Xms - XCms
         
         #XCSms is a list of list of tensors. Here we convert everything to tensors
         XCSms = torch.stack([torch.stack(XCSms[i]) for i in range(len(XCSms))])
@@ -56,7 +55,7 @@ class MMAA(torch.nn.Module):
         # i think we also need to save the reconstruction
         self.XCSms = XCSms
 
-        return XCSms
+        return loss
     
     
 def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=0,plotDistributions=False,learningRate=1e-3,numIterations=10000, numSubjects=6):
