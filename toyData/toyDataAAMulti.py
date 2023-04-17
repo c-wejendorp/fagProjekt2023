@@ -16,6 +16,7 @@ class MMAA(torch.nn.Module):
         # here Sms has the shape of (numModalities, numSubjects, k, V)
         self.Sms = [[torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((k, V), dtype=torch.double)))]*numSubjects for m in range(numModalities)]
         # as a parameterlist 
+        #remove list of list since T is not in here
         
         #should maybe change above to something called PARAMETERLIST 
         #self.Sms = torch.nn.ParameterList([[torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((k, V), dtype=torch.double)))]*numSubjects for m in range(numModalities)])
@@ -40,12 +41,14 @@ class MMAA(torch.nn.Module):
         XCSms = [[0]*self.numSubjects for modality in range(self.numModalities)]
         
         #find the unique reconstruction for each modality for each subject
+        #loss = 0
         for m in range(self.numModalities):
-            for s in range(self.numSubjects):   
+            for s in range(self.numSubjects):   #remove this loop
                 XC = torch.matmul(self.Xms[m, s, :, :], self.soft_fun(self.C))
                 self.A = XC
                 XCS = torch.matmul(XC, self.soft_fun(self.Sms[m][s]))
                 XCSms[m][s] = XCS
+                #update loss as Xms - XCms
         
         #XCSms is a list of list of tensors. Here we convert everything to tensors
         XCSms = torch.stack([torch.stack(XCSms[i]) for i in range(len(XCSms))])
@@ -65,11 +68,18 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
     V = numVoxels
     T = timeSteps
     k = numArchetypes
+    
+    #voxel distribution follows certain archetypes
+    vox1, vox2 = np.random.normal(0.25, 0.01, size = T), np.random.normal(0.25, 0.01, size = T)
+    vox3 = np.random.normal(0.5, 0.01, size = T)
+    vox4, vox5 = np.random.normal(0.75, 0.01, size = T), np.random.normal(0.75, 0.01, size = T)
 
+    voxels = [vox1, vox2, vox3, vox4, vox5]
+    
     ###initialize the a three-dimensional array for each modality (subject, time, voxel)
-    meg = np.array([np.array([np.random.normal(5 + 0.2 * t, 10, size = V) for t in range(T)]) for _ in range(numSubjects)]) 
-    eeg = np.array([np.array([np.random.normal(55 + 0.3 * t, 10, size = V) for t in range(T)]) for _ in range(numSubjects)]) 
-    fmri = np.array([np.array([np.random.normal(125 + 0.4 * t, 10, size = V) for t in range(T)]) for _ in range(numSubjects)]) 
+    meg = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
+    eeg = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
+    fmri = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
     
     if plotDistributions:        
         for sub in range(meg.shape[0]):
@@ -122,5 +132,5 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
     #return data,archeTypes,loss_Adam
 
 if __name__ == "__main__":
-    toyDataAA(numIterations=2000)
+    toyDataAA(numIterations=5000, numArchetypes=3)
     
