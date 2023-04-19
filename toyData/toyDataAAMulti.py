@@ -1,6 +1,7 @@
 import torch 
 import numpy as np
 import matplotlib.pyplot as plt
+from generate_data import initializeVoxels
     
 class MMAA(torch.nn.Module):
     def __init__(self, V, T, k, Xms, numSubjects = 1, numModalities = 1): #k is number of archetypes
@@ -57,45 +58,60 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
     
     #activation times
     # initialize voxels
-    def initializeVoxels(V, T, means):
-        """initializes however many voxels we want"""
-        #initialize "empty" voxels
-        voxels = []
-        for i in range(numVoxels):
-            voxels.append(np.zeros(T))        
 
-        timestamps = np.array_split(list(range(T)), V)
-        for i in range(len(voxels)): 
-            voxels[i][timestamps[i]] = np.random.normal(means[i], 0.01, size = len(timestamps[i]))
-        
-        return voxels
-    
-    voxels = initializeVoxels(V, T, [0.1, 0.5, 0.9])
+    #def initializeVoxels(V, T, means):
+    #    """initializes however many voxels we want"""
+    #    #initialize "empty" voxels
+    #    voxels = []
+    #    for i in range(numVoxels):
+    #        voxels.append(np.zeros(T))        
+#
+    #    timestamps = np.array_split(list(range(T)), V)
+    #    for i in range(len(voxels)): 
+    #        voxels[i][timestamps[i]] = np.random.normal(means[i], 0.01, size = len(timestamps[i]))
+    #    
+    #    return voxels
+    #
+    #
+    # voxels = initializeVoxels(V, T, [0.1, 0.5, 0.9])
+
+    X = initializeVoxels(V=V, T = T, s = numSubjects, m = 3, eeg_only=6, meg_only=6, fmri_only=6, eeg_meg_shared=3, eeg_fmri_shared=3, meg_fmri_shared=3, golden_voxel=3)
     
     ###initialize the a three-dimensional array for each modality (subject, time, voxel)
-    meg = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
-    eeg = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
-    fmri = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
+    #meg = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
+    #eeg = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
+    #fmri = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
+    
+    #if plotDistributions:        
+    #    for sub in range(meg.shape[0]):
+    #        _, ax = plt.subplots(3)
+    #        for voxel in range(V):
+    #            ax[0].plot(np.arange(T), meg[sub, :, voxel], '-', alpha=0.5)
+    #            ax[1].plot(np.arange(T), eeg[sub, :, voxel], '-', alpha=0.5)
+    #            ax[2].plot(np.arange(T), fmri[sub, :, voxel], '-', alpha=0.5)
+    #        plt.show()
     
     if plotDistributions:        
-        for sub in range(meg.shape[0]):
+        for sub in range(X.shape[1]):
             _, ax = plt.subplots(3)
             for voxel in range(V):
-                ax[0].plot(np.arange(T), meg[sub, :, voxel], '-', alpha=0.5)
-                ax[1].plot(np.arange(T), eeg[sub, :, voxel], '-', alpha=0.5)
-                ax[2].plot(np.arange(T), fmri[sub, :, voxel], '-', alpha=0.5)
+                ax[0].plot(np.arange(T), X[0,sub, :, voxel], '-', alpha=0.5)
+                ax[1].plot(np.arange(T), X[1,sub, :, voxel], '-', alpha=0.5)
+                ax[2].plot(np.arange(T), X[2,sub, :, voxel], '-', alpha=0.5)
             plt.show()
             
 
     ###create X matrix dependent on modality and subject
     # modality x subject x time x voxel
-    Xms = np.zeros((3, numSubjects, T, V))
-    
-    mod_list = [meg, eeg, fmri]
-    for idx_modality, data in enumerate(mod_list):        
-        Xms[idx_modality, :, :, :] = data #This works but if time: just concanate it all along some axis
+    #Xms = np.zeros((3, numSubjects, T, V))
+    #
+    #mod_list = [meg, eeg, fmri]
+    #for idx_modality, data in enumerate(mod_list):        
+    #    Xms[idx_modality, :, :, :] = data #This works but if time: just concanate it all along some axis
 
-    Xms = torch.tensor(Xms, dtype = torch.double)
+    #Xms = torch.tensor(Xms, dtype = torch.double)
+
+    Xms = torch.tensor(X, dtype = torch.double)
 
     #hyperparameters
     lr = learningRate
@@ -136,5 +152,5 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
     #return data,archeTypes,loss_Adam
 
 if __name__ == "__main__":
-    toyDataAA(numIterations=3000, numSubjects=1, numArchetypes=2, plotDistributions=True, numVoxels=3)
+    toyDataAA(numIterations=3000, numSubjects=1, numArchetypes=3, plotDistributions=True, numVoxels=30)
     
