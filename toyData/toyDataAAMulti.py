@@ -56,22 +56,21 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
     k = numArchetypes
     
     #activation times
-    t1, t2, t3, t4, t5 = list(range(0,20)), list(range(21,40)), list(range(41,60)), list(range(61,80)), list(range(81,100)) 
-    
-    #initialize voxels
-    vox1=np.zeros(T)
-    vox2=np.zeros(T)
-    vox3=np.zeros(T)
-    vox4=np.zeros(T)
-    vox5=np.zeros(T)
-    
-    #voxel distribution follows certain archetypes
-    vox1[t1], vox2[t2] = np.random.normal(0.5, 0.01, size = len(t1)), np.random.normal(0.5, 0.01, size = len(t2))
-    vox3[t3] = np.random.normal(0.5, 0.01, size = len(t3))
-    #vox3, vox6 = np.random.normal(0.5, 0.01, size = T), np.random.normal(0.5, 0.01, size = T)
-    vox4[t4], vox5[t5] = np.random.normal(0.5, 0.01, size = len(t4)), np.random.normal(0.5, 0.01, size = len(t5))
+    # initialize voxels
+    def initializeVoxels(V, T, means):
+        """initializes however many voxels we want"""
+        #initialize "empty" voxels
+        voxels = []
+        for i in range(numVoxels):
+            voxels.append(np.zeros(T))        
 
-    voxels = [vox1, vox2, vox3, vox4, vox5]
+        timestamps = np.array_split(list(range(T)), V)
+        for i in range(len(voxels)): 
+            voxels[i][timestamps[i]] = np.random.normal(means[i], 0.01, size = len(timestamps[i]))
+        
+        return voxels
+    
+    voxels = initializeVoxels(V, T, [0.1, 0.5, 0.9])
     
     ###initialize the a three-dimensional array for each modality (subject, time, voxel)
     meg = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
@@ -86,6 +85,7 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
                 ax[1].plot(np.arange(T), eeg[sub, :, voxel], '-', alpha=0.5)
                 ax[2].plot(np.arange(T), fmri[sub, :, voxel], '-', alpha=0.5)
             plt.show()
+            
 
     ###create X matrix dependent on modality and subject
     # modality x subject x time x voxel
@@ -120,21 +120,21 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
         # store loss into list
         loss_Adam.append(loss.item())
 
-    print("loss list ", loss_Adam) 
+    #print("loss list ", loss_Adam) 
     print("final loss: ", loss_Adam[-1])
     
     #plot archetypes
-    _, ax = plt.subplots(3)
-    for m in range(3): #num_modalities        
-        Am = np.mean((Xms[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
-        #plot the different archetypes
-        for k in range(k):
-            ax[m].plot(range(T), Am[:, k])
-        
+    _, ax = plt.subplots(3)     
+    Am = np.mean((Xms@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 1)
+    #plot the different archetypes
+    for m in range(3):
+        for arch in range(k):
+            ax[m].plot(range(T), Am[m, :, arch])
     plt.show()
+    print(2)
          
     #return data,archeTypes,loss_Adam
 
 if __name__ == "__main__":
-    toyDataAA(numIterations=3000, numArchetypes=5, plotDistributions=True)
+    toyDataAA(numIterations=3000, numSubjects=1, numArchetypes=2, plotDistributions=True, numVoxels=3)
     
