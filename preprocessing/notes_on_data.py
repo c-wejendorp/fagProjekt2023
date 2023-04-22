@@ -3,11 +3,11 @@ import mne
 
 #path to the freesurfer directory
 #fs_dir = Path("/mrhome/jesperdn/INN_JESPER/projects/facerecognition/freesurfer")
-fs_dir = Path("fagProjekt2023/data/freesurfer")
+fs_dir = Path("data/freesurfer")
 
 #path to the data directory (JespersProcessed)
 #data_dir = Path("/mrhome/jesperdn/INN_JESPER/projects/facerecognition_dtu/data")
-data_dir = Path("fagProjekt2023/data/JesperProcessed")
+data_dir = Path("data/JesperProcessed")
 subject = "sub-01"
 
 subject_dir = data_dir / subject
@@ -62,7 +62,9 @@ stc = mne.read_source_estimate(inv_dir / "task-facerecognition_space-fsaverage_c
 # I set time step to 2000 ms which is also repetition time (TR) so timings
 # should be valid
 # stimuli timing and identity is in `fmri_dir` .tsv files
-stc = mne.read_source_estimate(fmri_dir / "surf_sasub-01_ses-mri_task-facerecognition_run-01_bold")
+
+
+#stc = mne.read_source_estimate(fmri_dir / "surf_sasub-01_ses-mri_task-facerecognition_run-01_bold")
 
 # Plotting source space data
 # You can *try* this but I am not sure it will work. If it does, will show
