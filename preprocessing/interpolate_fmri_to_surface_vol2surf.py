@@ -4,6 +4,10 @@ import mne
 import nibabel as nib
 import numpy as np
 
+#add your local path into the file checkPath.py
+from checkPath import checkPath
+checkPath()
+
 from projects.facerecognition_dtu import utils
 from projects.facerecognition_dtu.config import Config
 

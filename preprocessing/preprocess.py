@@ -4,6 +4,10 @@ import mne
 import mne_bids
 import numpy as np
 
+#add your local path into the file checkPath.py
+from checkPath import checkPath
+checkPath()
+
 from projects.anateeg.utils import parse_args
 from projects.facerecognition import preprocess
 

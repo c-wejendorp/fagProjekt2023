@@ -1,6 +1,10 @@
 import sys
-
+import os
 import mne
+
+#add your local path into the file checkPath.py
+from checkPath import checkPath
+checkPath()
 
 from projects.anateeg.utils import parse_args
 

@@ -2,6 +2,10 @@
 import subprocess
 import sys
 
+#add your local path into the file checkPath.py
+from checkPath import checkPath
+checkPath()
+
 from projects.anateeg.utils import load_module
 from projects.anateeg.fieldtrip_tools import format_matlab_call
 

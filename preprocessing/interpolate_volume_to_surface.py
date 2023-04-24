@@ -7,6 +7,10 @@ import numpy as np
 from scipy.ndimage import map_coordinates
 from scipy.spatial.ckdtree import cKDTree
 
+#add your local path into the file checkPath.py
+from checkPath import checkPath
+checkPath()
+
 from simnibs.simulation.eeg import apply_trans
 from simnibs.utils.file_finder import SubjectFiles
 

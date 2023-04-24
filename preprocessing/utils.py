@@ -5,6 +5,10 @@ import mne_bids
 import numpy as np
 import pandas as pd
 
+#add your local path into the file checkPath.py
+from checkPath import checkPath
+checkPath()
+
 from projects.base.io.organize import FileFormatter, SimnibsOrganizer
 from projects.facerecognition_dtu.config import Config
 
