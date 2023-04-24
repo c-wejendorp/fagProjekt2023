@@ -1,8 +1,10 @@
 import numpy as np
 
-def initializeVoxels(V, T, s, m, eeg_only = 2, meg_only = 2, fmri_only = 2, eeg_meg_shared = 1,
+
+def initializeVoxels(T, s, m, eeg_only = 2, meg_only = 2, fmri_only = 2, eeg_meg_shared = 1,
                      eeg_fmri_shared = 1, meg_fmri_shared = 1, golden_voxel = 1):
     """initializes however many voxels we want"""
+    V = eeg_only + meg_only + fmri_only + eeg_meg_shared + meg_fmri_shared + eeg_fmri_shared + golden_voxel
     #initialize empty X matrix
     X = np.zeros((m, s, T, V))
     
@@ -37,5 +39,6 @@ def initializeVoxels(V, T, s, m, eeg_only = 2, meg_only = 2, fmri_only = 2, eeg_
     
     return X
 
-X = initializeVoxels(V = 5, T = 100, s = 1, m = 3, eeg_only=1, meg_only=1, fmri_only=1, eeg_meg_shared=1, eeg_fmri_shared=0, meg_fmri_shared=0, golden_voxel=1)
-print(X)
+Xeeg = initializeVoxels(T = 100, s = 1, m = 3, eeg_only=1, meg_only=1, fmri_only=1, eeg_meg_shared=1, eeg_fmri_shared=0, meg_fmri_shared=0, golden_voxel=1)
+#print(X)
+

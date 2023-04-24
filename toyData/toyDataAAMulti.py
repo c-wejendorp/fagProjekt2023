@@ -75,7 +75,7 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
     #
     # voxels = initializeVoxels(V, T, [0.1, 0.5, 0.9])
 
-    X = initializeVoxels(V=V, T = T, s = numSubjects, m = 3, eeg_only=6, meg_only=6, fmri_only=6, eeg_meg_shared=3, eeg_fmri_shared=3, meg_fmri_shared=3, golden_voxel=3)
+    X = initializeVoxels(T = T, s = numSubjects, m = 3, eeg_only=6, meg_only=6, fmri_only=6, eeg_meg_shared=3, eeg_fmri_shared=3, meg_fmri_shared=3, golden_voxel=3)
     
     ###initialize the a three-dimensional array for each modality (subject, time, voxel)
     #meg = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
@@ -98,6 +98,7 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
                 ax[0].plot(np.arange(T), X[0,sub, :, voxel], '-', alpha=0.5)
                 ax[1].plot(np.arange(T), X[1,sub, :, voxel], '-', alpha=0.5)
                 ax[2].plot(np.arange(T), X[2,sub, :, voxel], '-', alpha=0.5)
+            plt.savefig("/Users/helenakeitum/Desktop/data.png")
             plt.show()
             
 
@@ -121,36 +122,61 @@ def toyDataAA(numVoxels=5,timeSteps=100,numArchetypes=10,numpySeed=32,torchSeed=
     model = MMAA(V, T, k, Xms, numModalities=3, numSubjects=numSubjects)
     lossCriterion = torch.nn.MSELoss(reduction = "sum")
     optimizer = torch.optim.Adam(model.parameters(), lr = lr)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 10) # patience = 10 is default
 
     # Creating Dataloader object
     loss_Adam = []
+    lr_change = []
+    tol = 1e-6
     for i in range(n_iter):
         # zeroing gradients after each iteration
         optimizer.zero_grad()
         # making a prediction in forward pass
         loss = model.forward(Xms)
+        # update learning rate
+        scheduler.step(loss)
         # backward pass for computing the gradients of the loss w.r.t to learnable parameters
         loss.backward()
         # updating the parameters after each iteration
         optimizer.step()
+
         # store loss into list
         loss_Adam.append(loss.item())
+        
+        if i > 500 and np.abs(loss_Adam[-2] - loss_Adam[-1]) < tol:
+            break
+        lr_change.append(optimizer.param_groups[0]["lr"])
 
+        
     #print("loss list ", loss_Adam) 
     print("final loss: ", loss_Adam[-1])
     
     #plot archetypes
-    _, ax = plt.subplots(3)     
+    _, ax = plt.subplots(4)     
     Am = np.mean((Xms@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 1)
     #plot the different archetypes
     for m in range(3):
         for arch in range(k):
             ax[m].plot(range(T), Am[m, :, arch])
+    ax[-1].plot(range(V), torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy())
+    plt.savefig("/Users/helenakeitum/Desktop/A_and_C.png")
     plt.show()
-    print(2)
-         
+    
+    ### plot reconstruction
+    #m x t x v (averaged over subjects)
+    Xrecon = Am@np.mean(torch.nn.functional.softmax(model.Sms, dim = -2, dtype = torch.double).detach().numpy(), axis = 1)
+
+    _, ax = plt.subplots(3)
+    for voxel in range(V):
+        ax[0].plot(np.arange(T), Xrecon[0, :, voxel], '-', alpha=0.5)
+        ax[1].plot(np.arange(T), Xrecon[1, :, voxel], '-', alpha=0.5)
+        ax[2].plot(np.arange(T), Xrecon[2, :, voxel], '-', alpha=0.5)
+    
+    plt.savefig("/Users/helenakeitum/Desktop/recon.png")
+    plt.show()    
+    
     #return data,archeTypes,loss_Adam
 
 if __name__ == "__main__":
-    toyDataAA(numIterations=3000, numSubjects=1, numArchetypes=3, plotDistributions=True, numVoxels=30)
+    toyDataAA(numIterations=3000, numSubjects=1, numArchetypes=3, plotDistributions=False, numVoxels=30, learningRate=0.1)
     
