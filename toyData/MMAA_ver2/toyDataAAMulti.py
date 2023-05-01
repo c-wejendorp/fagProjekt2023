@@ -37,6 +37,7 @@ class MMAA(torch.nn.Module):
             # A = XC
             self.A = self.X[m]@torch.nn.functional.softmax(self.C, dim = 0, dtype = torch.double)
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
+            
             loss += torch.sum(loss_per_sub)
             
         #XCSms is a list of list of tensors. Here we convert everything to tensors
@@ -128,7 +129,7 @@ def toyDataAA(numArchetypes=25,
                 for voxel in range(V):
                     for modality in range(3):
                         ax[modality].plot(np.arange(T[modality]), model.X[modality][sub, :, voxel], '-', alpha=0.5) 
-                plt.savefig(r"C:\University\4th_semeseter\Project\fagProjekt2023\toyData\plots\distribution")
+                plt.savefig(r"C:\University\fagProjekt2023\toyData\plots\distribution")
                 plt.show()
             
 
@@ -188,7 +189,7 @@ def toyDataAA(numArchetypes=25,
         for arch in range(k):
             ax[m].plot(range(T[m]), A[:, arch])
     ax[-1].plot(range(V), torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy())
-    plt.savefig(r"C:\University\4th_semeseter\Project\fagProjekt2023\toyData\plots\archetypes")
+    plt.savefig(r"C:\University\fagProjekt2023\toyData\plots\archetypes")
     plt.show()
     
     ### plot reconstruction
@@ -202,7 +203,7 @@ def toyDataAA(numArchetypes=25,
             ax[m].plot(np.arange(T[m]), Xrecon[:, voxel], '-', alpha=0.5)
 
     
-    plt.savefig(r"C:\University\4th_semeseter\Project\fagProjekt2023\toyData\plots\reconstruction")
+    plt.savefig(r"C:\University\fagProjekt2023\toyData\plots\reconstruction")
     plt.show()    
     
     #return data,archeTypes,loss_Adam
