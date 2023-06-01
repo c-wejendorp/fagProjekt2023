@@ -1,6 +1,7 @@
 
 # large files and other types of data should be ignored and hence stored in the data folder
 data/
+.vscode/
 
 
 

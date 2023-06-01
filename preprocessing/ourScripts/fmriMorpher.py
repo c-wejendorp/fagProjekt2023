@@ -7,7 +7,7 @@ checkPath()
 from projects.facerecognition_dtu import utils
 from projects.facerecognition_dtu.config import Config
 
-for subject_id in range(1,3):
+for subject_id in range(1,17):
 
     io = utils.SubjectIO(subject_id)
 
