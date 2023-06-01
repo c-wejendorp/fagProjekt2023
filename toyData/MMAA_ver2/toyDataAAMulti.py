@@ -29,30 +29,24 @@ class MMAA(torch.nn.Module):
         self.X = [torch.tensor(X.X_eeg, dtype = torch.double), torch.tensor(X.X_meg, dtype = torch.double), torch.tensor(X.X_fmri, dtype = torch.double)]
 
     def forward(self):
-        #vectorize it later
-        XCSms = [[0]*self.numSubjects for modality in range(self.numModalities)]
-        
         #find the unique reconstruction for each modality for each subject
-        #loss = 0
+        loss = 0
         mle_loss = 0
         for m in range(self.numModalities):
 
             #X - Xrecon (via MMAA)
-            # A = XC
+            #A = XC
             self.A = self.X[m]@torch.nn.functional.softmax(self.C, dim = 0, dtype = torch.double)
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
-            #loss += torch.sum(loss_per_sub)
+            loss += torch.sum(loss_per_sub)
             mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)) 
                                           - torch.log(torch.tensor(self.T[m])) + 1)
-        
-        #XCSms is a list of list of tensors. Here we convert everything to tensors
-        # XCSms = torch.stack([torch.stack(XCSms[i]) for i in range(len(XCSms))])
+            if torch.sum(loss_per_sub) == 0:
+                print("Hit it")
 
-        # # i think we also need to save the reconstruction
-        # self.XCSms = XCSms
-        
         #minimize negative log likelihood
+        #return loss
         return -mle_loss
 
     
@@ -76,25 +70,6 @@ def toyDataAA(numArchetypes=25,
     #seed 
     np.random.seed(numpySeed)
     torch.manual_seed(torchSeed)
-    
-    #activation times
-    # initialize voxels
-
-    #def initializeVoxels(V, T, means):
-    #    """initializes however many voxels we want"""
-    #    #initialize "empty" voxels
-    #    voxels = []
-    #    for i in range(numVoxels):
-    #        voxels.append(np.zeros(T))        
-#
-    #    timestamps = np.array_split(list(range(T)), V)
-    #    for i in range(len(voxels)): 
-    #        voxels[i][timestamps[i]] = np.random.normal(means[i], 0.01, size = len(timestamps[i]))
-    #    
-    #    return voxels
-    #
-    #
-    # voxels = initializeVoxels(V, T, [0.1, 0.5, 0.9])
 
     X = Synthetic_Data(T_eeg=T_eeg, 
                        T_meg=T_meg, 
@@ -156,10 +131,14 @@ def toyDataAA(numArchetypes=25,
     n_iter = numIterations
 
     #loss function
-    lossCriterion = torch.nn.MSELoss(reduction = "sum")
+    #lossCriterion = torch.nn.MSELoss(reduction = "sum")
     optimizer = torch.optim.Adam(model.parameters(), lr = lr)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 10) # patience = 10 is default
-
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, 
+    #                                     T_0 = 50,# Number of iterations for the first restart
+    #                                     T_mult = 1, # A factor increases TiTi​ after a restart
+    #                                     eta_min = 1e-4) # Minimum learning rate
+    
     # Creating Dataloader object
     loss_Adam = []
     lr_change = []
@@ -182,6 +161,7 @@ def toyDataAA(numArchetypes=25,
         if i > 500 and np.abs(loss_Adam[-2] - loss_Adam[-1]) < tol:
             break
         lr_change.append(optimizer.param_groups[0]["lr"])
+        print(i, lr_change[-1])
 
         
     #print("loss list ", loss_Adam) 
@@ -201,12 +181,11 @@ def toyDataAA(numArchetypes=25,
     
     ### plot reconstruction
     #m x t x v (averaged over subjects)
-
     _, ax = plt.subplots(3)
     for m in range(3):
         A = np.mean((model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
+        Xrecon = A@np.mean(torch.nn.functional.softmax(model.Sms[m], dim = -2, dtype = torch.double).detach().numpy(), axis = 0)
         for voxel in range(V):
-            Xrecon = A@np.mean(torch.nn.functional.softmax(model.Sms[m], dim = -2, dtype = torch.double).detach().numpy(), axis = 0)
             ax[m].plot(np.arange(T[m]), Xrecon[:, voxel], '-', alpha=0.5)
 
     
@@ -216,5 +195,5 @@ def toyDataAA(numArchetypes=25,
     #return data,archeTypes,loss_Adam
 
 if __name__ == "__main__":
-    toyDataAA(numArchetypes=3, plotDistributions=True)
+    toyDataAA(numArchetypes=25, plotDistributions=False)
     
