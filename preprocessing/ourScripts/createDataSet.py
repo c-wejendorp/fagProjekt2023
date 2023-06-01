@@ -32,7 +32,7 @@ def EEG_AND_MEG(subject,data_dir="data/JesperProcessed"):
     inv_dir = meg_dir / "stage-inverse"    
 
     for modality in ["meg", "eeg"]:
-        condtionTimeSeries = [] 
+        conditionTimeSeries = [] 
         for condtion in ["famous", "unfamiliar", "scrambled"]:
             fsaverageSources = mne.read_source_estimate(inv_dir / f"task-facerecognition_space-fsaverage_cond-{condtion}_fwd-mne_ch-{modality}_split-0_stc")
             #as numpy array 
@@ -44,11 +44,11 @@ def EEG_AND_MEG(subject,data_dir="data/JesperProcessed"):
             # remember this normalization normalize the norm of the matrix
             # this means that each "activation" does not lie btw 0 and 1 as we also have discussed
             normalizedSourceTimesSeries= sourceTimesSeries / frobeniusNorm
-            condtionTimeSeries.append(normalizedSourceTimesSeries)
+            conditionTimeSeries.append(normalizedSourceTimesSeries)
         # concatenate the list of arrays to one array corresponding to concatenating the three condtions  
-        condtionTimeSeries = np.concatenate(condtionTimeSeries)
+        conditionTimeSeries = np.concatenate(conditionTimeSeries)
         with open(f'data/trainingDatasSubset/{subject}/{modality}.npy', 'wb') as f:
-            np.save(f, condtionTimeSeries)
+            np.save(f, conditionTimeSeries)
 
 # now do the same for the fMRI data
 def fMRI(subject, data_dir="data/JesperProcessed", morpherFolder = "data/fmriMorphers"):   
