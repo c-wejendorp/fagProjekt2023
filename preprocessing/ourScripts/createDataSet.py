@@ -2,6 +2,7 @@ from pathlib import Path
 import mne
 import numpy as np
 
+"""
 #path to the freesurfer directory
 fs_dir = Path("data/freesurfer")
 
@@ -19,7 +20,7 @@ inv_dir = meg_dir / "stage-inverse"
 
 mri_dir = subject_dir / "ses-mri"
 fmri_dir = mri_dir / "func"
-
+"""
 # Read sensor space data
 
 # For individual EPOCHs and ERP see notes on data in the folder JesperScripts
