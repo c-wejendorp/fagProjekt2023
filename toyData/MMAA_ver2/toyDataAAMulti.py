@@ -2,7 +2,10 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from generate_data import Synthetic_Data #initializeVoxelss
-    
+
+path = "/Users/helenakeitum/Desktop"
+#r"C:\University\fagProjekt2023\toyData\plots\archetypes"
+
 class MMAA(torch.nn.Module):
     def __init__(self, V, T, k, X:Synthetic_Data, numSubjects = 1, numModalities = 1): #k is number of archetypes
         super(MMAA, self).__init__()
@@ -30,7 +33,8 @@ class MMAA(torch.nn.Module):
         XCSms = [[0]*self.numSubjects for modality in range(self.numModalities)]
         
         #find the unique reconstruction for each modality for each subject
-        loss = 0
+        #loss = 0
+        mle_loss = 0
         for m in range(self.numModalities):
 
             #X - Xrecon (via MMAA)
@@ -38,15 +42,18 @@ class MMAA(torch.nn.Module):
             self.A = self.X[m]@torch.nn.functional.softmax(self.C, dim = 0, dtype = torch.double)
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
-            loss += torch.sum(loss_per_sub)
-            
+            #loss += torch.sum(loss_per_sub)
+            mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)) 
+                                          - torch.log(torch.tensor(self.T[m])) + 1)
+        
         #XCSms is a list of list of tensors. Here we convert everything to tensors
         # XCSms = torch.stack([torch.stack(XCSms[i]) for i in range(len(XCSms))])
 
         # # i think we also need to save the reconstruction
         # self.XCSms = XCSms
-
-        return loss
+        
+        #minimize negative log likelihood
+        return -mle_loss
 
     
 def toyDataAA(numArchetypes=25,
@@ -129,7 +136,7 @@ def toyDataAA(numArchetypes=25,
                 for voxel in range(V):
                     for modality in range(3):
                         ax[modality].plot(np.arange(T[modality]), model.X[modality][sub, :, voxel], '-', alpha=0.5) 
-                plt.savefig(r"C:\University\fagProjekt2023\toyData\plots\distribution")
+                plt.savefig(path)
                 plt.show()
             
 
@@ -189,7 +196,7 @@ def toyDataAA(numArchetypes=25,
         for arch in range(k):
             ax[m].plot(range(T[m]), A[:, arch])
     ax[-1].plot(range(V), torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy())
-    plt.savefig(r"C:\University\fagProjekt2023\toyData\plots\archetypes")
+    plt.savefig(path)
     plt.show()
     
     ### plot reconstruction
@@ -203,11 +210,11 @@ def toyDataAA(numArchetypes=25,
             ax[m].plot(np.arange(T[m]), Xrecon[:, voxel], '-', alpha=0.5)
 
     
-    plt.savefig(r"C:\University\fagProjekt2023\toyData\plots\reconstruction")
+    plt.savefig(path)
     plt.show()    
     
     #return data,archeTypes,loss_Adam
 
 if __name__ == "__main__":
-    toyDataAA(plotDistributions=True)
+    toyDataAA(numArchetypes=3, plotDistributions=True)
     
