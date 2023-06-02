@@ -78,10 +78,10 @@ print("The shape of the fMRI data is: ", FMRIstc_morphed.data.shape)
 #mne.viz.plot_source_estimates(MEGstc_morphed,subject=subject, subjects_dir=fs_dir)
 
 #works 
-MEGstc_morphed.plot(subject, subjects_dir=fs_dir)
+#MEGstc_morphed.plot(subject, subjects_dir=fs_dir)
 
 # doesn't work
-FMRIstc_morphed.plot(subject, subjects_dir=fs_dir)
+#FMRIstc_morphed.plot(subject, subjects_dir=fs_dir)
 # does however work on the NONE morphed data
 FMRIstc.plot(subject, subjects_dir=fs_dir)
 

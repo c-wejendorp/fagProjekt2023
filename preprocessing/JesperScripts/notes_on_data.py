@@ -34,17 +34,22 @@ evo = evo[0]
 # evo.plot(), evo.get_data()
 
 # orginal notes/code from Jesper below
-"""
+
 # Read source space data
 # to get from subject space to fsaverage
 # without -[l/r]h.stc !
-stc = mne.read_source_estimate("task-facerecognition_cond-famous_fwd-mne_ch-eeg_split-0_stc")
+stc = mne.read_source_estimate(inv_dir / "task-facerecognition_cond-famous_fwd-mne_ch-eeg_split-0_stc")
 morph = mne.read_source_morph(fwd_dir / "task-facerecognition_fwd-mne_morph.h5")
-morph.apply(stc)
+stc2=morph.apply(stc)
+
+brain=stc2.plot(subjects_dir=fs_dir,surface="white")
+brain.add_foci(stc2.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
+
+
 # I already did this; should be equal to
 stc = mne.read_source_estimate("task-facerecognition_space-fsaverage_cond-famous_fwd-mne_ch-eeg_split-0_stc")
 # get data: stc.data, stc.lh_data, stc.rh_data
-"""
+
 
 #My notes/code below
 # Read source space data
