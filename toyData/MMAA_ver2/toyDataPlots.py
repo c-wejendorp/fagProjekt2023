@@ -1,13 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from toyDataAAMulti import toyDataAA
+from tqdm import tqdm
 # from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
 #run the AA based on number of archetypes
 numArchetypes=range(2,21)
 
 losses=[]
-for numArchetype in numArchetypes:
+for numArchetype in tqdm(numArchetypes):
     loss_Adam = toyDataAA(numArchetypes=numArchetype,
               numpySeed=32,
               torchSeed=0,
@@ -46,6 +47,6 @@ ax1.set_xlabel('Number of archetypes')
 ax1.set_ylabel('Loss')
 ax1.set_yscale('log')
 ax1.legend()
-fig1.savefig('toyData/plots/lossComparison.png')
+fig1.savefig('toyData/plots/lossComparison_toyMMAA.png')
 
 
