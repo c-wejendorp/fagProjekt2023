@@ -1,7 +1,54 @@
 import torch 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.collections as mcol
+from matplotlib.cm import get_cmap
+from matplotlib.legend_handler import HandlerLineCollection, HandlerTuple
+from matplotlib.lines import Line2D
+
+
 from generate_data import Synthetic_Data #initializeVoxelss
+
+class HandlerDashedLines(HandlerLineCollection):
+    """
+    Custom Handler for LineCollection instances.
+    """
+    def create_artists(self, legend, orig_handle,
+                       xdescent, ydescent, width, height, fontsize, trans):
+        # figure out how many lines there are
+        numlines = len(orig_handle.get_segments())
+        xdata, xdata_marker = self.get_xdata(legend, xdescent, ydescent,
+                                             width, height, fontsize)
+        leglines = []
+        # divide the vertical space where the lines will go
+        # into equal parts based on the number of lines
+        ydata = np.full_like(xdata, height / (numlines + 1))
+        # for each line, create the line at the proper location
+        # and set the dash pattern
+        for i in range(numlines):
+            legline = Line2D(xdata, ydata * (numlines - i) - ydescent)
+            self.update_prop(legline, orig_handle, legend)
+            # set color, dash pattern, and linewidth to that
+            # of the lines in linecollection
+            try:
+                color = orig_handle.get_colors()[i]
+            except IndexError:
+                color = orig_handle.get_colors()[0]
+            try:
+                dashes = orig_handle.get_dashes()[i]
+            except IndexError:
+                dashes = orig_handle.get_dashes()[0]
+            try:
+                lw = orig_handle.get_linewidths()[i]
+            except IndexError:
+                lw = orig_handle.get_linewidths()[0]
+            if dashes[1] is not None:
+                legline.set_dashes(dashes[1])
+            legline.set_color(color)
+            legline.set_transform(trans)
+            legline.set_linewidth(lw)
+            leglines.append(legline)
+        return leglines
     
 class MMAA(torch.nn.Module):
     def __init__(self, V, T, k, X:Synthetic_Data, numSubjects = 1, numModalities = 1): #k is number of archetypes
@@ -49,10 +96,10 @@ class MMAA(torch.nn.Module):
         return loss
 
     
-def toyDataAA(numArchetypes=25,
+def toyDataAA(numArchetypes=3,
               numpySeed=32,
               torchSeed=0,
-              plotDistributions=False,
+              plotDistributions=True,
               learningRate=1e-1,
               numIterations=10000, 
               T_eeg=100, 
@@ -60,9 +107,9 @@ def toyDataAA(numArchetypes=25,
               T_fmri=500, 
               nr_subjects=10, 
               nr_sources=25, 
-              arg_eeg_sources=(np.arange(0,4), np.arange(7,11), np.arange(14,18)), 
-              arg_meg_sources=(np.array([0+i*7, 1+i*7, 4+i*7, 5+i*7]) for i in range(3)), 
-              arg_fmri_sources=(np.array([1+i*7, 2+i*7, 4+i*7, 6+i*7]) for i in range(3)), 
+              arg_eeg_sources=[np.arange(0,4), np.arange(7,11), np.arange(14,18)], 
+              arg_meg_sources=[np.array([0+i*7, 1+i*7, 4+i*7, 5+i*7]) for i in range(3)], 
+              arg_fmri_sources=[np.array([1+i*7, 2+i*7, 4+i*7, 6+i*7]) for i in range(3)], 
               activation_timeidx_eeg = np.array([0, 30, 60]), 
               activation_timeidx_meg=np.array([0, 30, 60]) + 10, 
               activation_timeidx_fmri=np.array([0, 30, 60]) + 50):
@@ -122,14 +169,64 @@ def toyDataAA(numArchetypes=25,
     #            ax[2].plot(np.arange(T), fmri[sub, :, voxel], '-', alpha=0.5)
     #        plt.show()
     
-    if plotDistributions:        
+    if plotDistributions: 
+
+        #there is 100% a smarter way to do this, but I'm lazy and this is only for toydata
+        import matplotlib._color_data as mcd
+        palette = list(mcd.XKCD_COLORS.values())[::10] # I'm SORRY FOR THE UGLY COLORS D:
+        source_colors = np.array(np.array(palette)[V:])
+
+        arg_eeg_sources_concat = np.array([area for area in arg_eeg_sources]).reshape(-1)
+        arg_meg_sources_concat = np.array([area for area in arg_meg_sources]).reshape(-1)
+        arg_fmri_sources_concat = np.array([area for area in arg_fmri_sources]).reshape(-1)
+
+
+        source_eeg_fmri = []
+        source_eeg_meg = []
+        source_meg_fmri = []
+        source_all = []
+        for i in range(V):
+            if i in arg_eeg_sources_concat and i in arg_meg_sources_concat and i in arg_fmri_sources_concat: 
+                source_all.append(i)
+            elif i in arg_eeg_sources_concat and i in arg_meg_sources_concat: 
+                source_eeg_meg.append(i)
+            elif i in arg_eeg_sources_concat and i in arg_fmri_sources_concat:
+                source_eeg_fmri.append(i)
+            elif i in arg_meg_sources_concat and i in arg_fmri_sources_concat:
+                source_meg_fmri.append(i)
+
         for sub in range(X.nr_subjects):
             if sub == 0: #AHHHHH TOO MANY PLOTS >:(
-                _, ax = plt.subplots(3)
+                fig, ax = plt.subplots(3)
                 for voxel in range(V):
                     for modality in range(3):
-                        ax[modality].plot(np.arange(T[modality]), model.X[modality][sub, :, voxel], '-', alpha=0.5) 
-                plt.savefig(r"C:\University\fagProjekt2023\toyData\plots\distribution")
+                        ax[modality].plot(np.arange(T[modality]), model.X[modality][sub, :, voxel], '-', alpha=1, c=source_colors[voxel]) 
+                ax[0].set_title("EEG")
+                ax[1].set_title("MEG")
+                ax[2].set_title("fMRI")
+                fig.suptitle("Plotted Distributions of the Data")
+                fig.tight_layout()
+                
+
+                lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
+                lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
+
+                # Finally, the legend (that maybe you'll customize differently)
+                line = [[(0, 0)]]
+                # set up the proxy artist
+
+
+                lc_eeg_meg = mcol.LineCollection(len(source_eeg_meg) * line, linestyles=['solid' for i in range(len(source_eeg_meg))], colors=source_colors[source_eeg_meg])
+                lc_eeg_fmri = mcol.LineCollection(len(source_eeg_fmri) * line, linestyles=['solid' for i in range(len(source_eeg_fmri))], colors=source_colors[source_eeg_fmri])
+                lc_meg_fmri = mcol.LineCollection(len(source_meg_fmri) * line, linestyles=['solid' for i in range(len(source_meg_fmri))], colors=source_colors[source_meg_fmri])
+                lc_all = mcol.LineCollection(len(source_all) * line, linestyles=['solid' for i in range(len(source_all))], colors=source_colors[[source_all]])
+
+                # create the legend
+                fig.legend([lc_eeg_meg,lc_eeg_fmri,lc_meg_fmri,lc_all], ['EEG+MEG shared', 'EEG+fMRI shared', 'MEG+fMRI shared', 'All shared'], handler_map={type(lc_all): HandlerDashedLines()},
+                        handlelength=2.5, handleheight=3)
+                # fig.legend(lines, labels, loc='right')
+                fig.subplots_adjust()
+                plt.savefig(r"C:\University\4th_semeseter\Project\fagProjekt2023\toyData\plots\distribution.png")
                 plt.show()
             
 
@@ -179,34 +276,44 @@ def toyDataAA(numArchetypes=25,
         
     #print("loss list ", loss_Adam) 
     print("final loss: ", loss_Adam[-1])
-    
-    #plot archetypes
-    _, ax = plt.subplots(4)     
+    if plotDistributions: 
+        #plot archetypes
+        fig, ax = plt.subplots(4)     
 
-    #plot the different archetypes
-    for m in range(3):
-        A = np.mean((model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
-        for arch in range(k):
-            ax[m].plot(range(T[m]), A[:, arch])
-    ax[-1].plot(range(V), torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy())
-    plt.savefig(r"C:\University\fagProjekt2023\toyData\plots\archetypes")
-    plt.show()
-    
-    ### plot reconstruction
-    #m x t x v (averaged over subjects)
+        #plot the different archetypes
+        for m in range(3):
+            A = np.mean((model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
+            for arch in range(k):
+                ax[m].plot(range(T[m]), A[:, arch])
+        ax[0].set_title("EEG")
+        ax[1].set_title("MEG")
+        ax[2].set_title("fMRI")
+        ax[3].set_title("Plotted Archetype Generator Matrix C")
+        ax[-1].plot(range(V), torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy())
+        fig.suptitle("Plotted Archetypes Specific to Each Modality and Averaged over Subjects(?)")
+        fig.tight_layout()
+        plt.savefig(r"C:\University\4th_semeseter\Project\fagProjekt2023\toyData\plots\archetypes.png")
+        plt.show()
+        
+        ### plot reconstruction
+        #m x t x v (averaged over subjects)
 
-    _, ax = plt.subplots(3)
-    for m in range(3):
-        A = np.mean((model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
-        for voxel in range(V):
-            Xrecon = A@np.mean(torch.nn.functional.softmax(model.Sms[m], dim = -2, dtype = torch.double).detach().numpy(), axis = 0)
-            ax[m].plot(np.arange(T[m]), Xrecon[:, voxel], '-', alpha=0.5)
+        fig, ax = plt.subplots(3)
+        for m in range(3):
+            A = np.mean((model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
+            for voxel in range(V):
+                Xrecon = A@np.mean(torch.nn.functional.softmax(model.Sms[m], dim = -2, dtype = torch.double).detach().numpy(), axis = 0)
+                ax[m].plot(np.arange(T[m]), Xrecon[:, voxel], '-', alpha=0.5)
 
-    
-    plt.savefig(r"C:\University\fagProjekt2023\toyData\plots\reconstruction")
-    plt.show()    
-    
-    #return data,archeTypes,loss_Adam
+        ax[0].set_title("EEG")
+        ax[1].set_title("MEG")
+        ax[2].set_title("fMRI")
+        fig.suptitle("Reconstructed Distributions after optimizing C and S")
+        fig.tight_layout()
+        plt.savefig(r"C:\University\4th_semeseter\Project\fagProjekt2023\toyData\plots\reconstruction.png")
+        plt.show()    
+
+    return loss_Adam
 
 if __name__ == "__main__":
     toyDataAA(plotDistributions=True)
