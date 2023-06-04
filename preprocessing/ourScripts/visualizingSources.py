@@ -1,6 +1,8 @@
 from pathlib import Path
 import mne
 
+#this file is just temporary and has not been cleaned up
+
 #path to the freesurfer directory
 #fs_dir = Path("/mrhome/jesperdn/INN_JESPER/projects/facerecognition/freesurfer")
 fs_dir = Path("data/freesurfer")
