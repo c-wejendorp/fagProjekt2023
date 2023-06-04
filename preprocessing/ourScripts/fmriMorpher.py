@@ -1,5 +1,7 @@
 import mne
 
+#this file creates a morpher for each subject
+
 #add your local path into the file checkPath.py
 from checkPath import checkPath
 checkPath()
