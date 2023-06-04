@@ -55,6 +55,19 @@ print("The shape of the fMRI data is: ", FMRIstc_morphed.data.shape)
 # når man morpher direkte i scriptet, som der gøres her med FMRI, så skal subject ikke angives i plotfunktionen
 # men hvis man derimod henter et morph objekt fra en fil, så skal subject angives som "fsaverage" i plot funktionen
 
+# Indlæs labels fra fsaverage
+labels = mne.read_labels_from_annot("fsaverage", parc="aparc_sub", subjects_dir=fs_dir)
+
+# loop over every other label and plot it
+for label in labels[::2]:
+    print("plotting:")
+    print(label.name)
+    region_stc = MEGstc_morphed.in_label(label)
+    region_plot = region_stc.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True)    
+    region_plot.add_foci(region_stc.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
+
+
+
 #visualisering af data
 # MEG
 MEG_plot=MEGstc_morphed.plot(subject="fsaverage",subjects_dir=fs_dir,surface="white")
