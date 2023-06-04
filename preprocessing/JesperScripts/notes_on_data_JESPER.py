@@ -37,7 +37,7 @@ evo = evo[0]
 # to get from subject space to fsaverage
 # without -[l/r]h.stc !
 stc = mne.read_source_estimate("task-facerecognition_cond-famous_fwd-mne_ch-eeg_split-0_stc")
-# Chrsitoffer not should be this I think 
+# Christoffer note should be this I think 
 #stc = mne.read_source_estimate(inv_dir / "task-facerecognition_cond-famous_fwd-mne_ch-eeg_split-0_stc")
 morph = mne.read_source_morph(fwd_dir / "task-facerecognition_fwd-mne_morph.h5")
 morph.apply(stc)
