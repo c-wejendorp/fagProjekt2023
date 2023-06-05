@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from loadData import Real_Data
+from tqdm import tqdm
     
 class MMAA(torch.nn.Module):
     def __init__(self, X: Real_Data, k : int,numModalities=3):
@@ -23,35 +24,9 @@ class MMAA(torch.nn.Module):
         self.Sms = torch.nn.Parameter(torch.nn.Softmax(dim = -2)(torch.rand((self.numModalities, self.numSubjects, k, self.V), dtype = torch.float)))
 
         self.X = [torch.tensor(X.EEG_data, dtype = torch.double), torch.tensor(X.MEG_data, dtype = torch.double), torch.tensor(X.fMRI_data, dtype = torch.double)]
-        # test=2
-        
-    # def forward(self):
-    #     #vectorize it later
-    #     XCSms = [[0]*self.numSubjects for modality in range(self.numModalities)]
-        
-    #     #find the unique reconstruction for each modality for each subject
-    #     loss = 0
-    #     for m in range(self.numModalities):
-
-    #         #X - Xrecon (via MMAA)
-    #         # A = XC
-    #         self.A = self.X[m]@torch.nn.functional.softmax(self.C, dim = 0, dtype = torch.double)
-    #         loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
-            
-    #         loss += torch.sum(loss_per_sub)
-            
-    #     #XCSms is a list of list of tensors. Here we convert everything to tensors
-    #     # XCSms = torch.stack([torch.stack(XCSms[i]) for i in range(len(XCSms))])
-
-    #     # # i think we also need to save the reconstruction
-    #     # self.XCSms = XCSms
-
-        
-    #     return loss   
 
     def forward(self):
         #find the unique reconstruction for each modality for each subject
-        loss = 0
         mle_loss = 0
         for m in range(self.numModalities):
 
@@ -60,14 +35,12 @@ class MMAA(torch.nn.Module):
             self.A = self.X[m]@torch.nn.functional.softmax(self.C, dim = 0, dtype = torch.double)
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
-            loss += torch.sum(loss_per_sub)
             mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub) + self.epsilon) 
                                           - torch.log(torch.tensor(self.T[m])) + 1)
             if torch.sum(loss_per_sub) == 0:
-                print("Hit it")
+                print("We hit a 0 loss per sub!")
 
         #minimize negative log likelihood
-        #return loss
         return -mle_loss
 
 
@@ -108,7 +81,6 @@ def trainModel(numArchetypes=25,
     n_iter = numIterations
 
     #loss function
-    lossCriterion = torch.nn.MSELoss(reduction = "sum")
     optimizer = torch.optim.Adam(model.parameters(), lr = lr)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 10) # patience = 10 is default
 
@@ -116,7 +88,7 @@ def trainModel(numArchetypes=25,
     loss_Adam = []
     lr_change = []
     tol = 1e-6
-    for i in range(n_iter):
+    for i in tqdm(range(n_iter), desc = "Optimizing iteration"):
         # zeroing gradients after each iteration
         optimizer.zero_grad()
         # making a prediction in forward pass
@@ -134,7 +106,7 @@ def trainModel(numArchetypes=25,
         #print(f"This is the current loss) {loss.item()}")
         #print(f"This is the current iteration {i})")
 
-        
+        #break if loss does not improve
         if i > 500 and np.abs(loss_Adam[-2] - loss_Adam[-1]) < tol:
             break
         lr_change.append(optimizer.param_groups[0]["lr"])
@@ -158,16 +130,16 @@ def trainModel(numArchetypes=25,
     ### plot reconstruction
     #m x t x v (averaged over subjects)
 
-    _, ax = plt.subplots(3)
-    for m in range(3):
-        A = np.mean((model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
-        for voxel in range(V):
-            Xrecon = A@np.mean(torch.nn.functional.softmax(model.Sms[m], dim = -2, dtype = torch.double).detach().numpy(), axis = 0)
-            ax[m].plot(np.arange(T[m]), Xrecon[:, voxel], '-', alpha=0.5)
+    # _, ax = plt.subplots(3)
+    # for m in range(3):
+    #     A = np.mean((model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
+    #     for voxel in range(V):
+    #         Xrecon = A@np.mean(torch.nn.functional.softmax(model.Sms[m], dim = -2, dtype = torch.double).detach().numpy(), axis = 0)
+    #         ax[m].plot(np.arange(T[m]), Xrecon[:, voxel], '-', alpha=0.5)
 
     
-    plt.savefig(path)
-    plt.show()    
+    # plt.savefig(path)
+    # plt.show()    
     
     #return data,archeTypes,loss_Adam
 

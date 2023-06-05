@@ -55,6 +55,11 @@ def fMRI(subject, data_dir="data/JesperProcessed", morpherFolder = "data/fmriMor
         sourceTimesSeries = FMRIstc_morphed.data 
         # transpose to get dimension (time, source)
         sourceTimesSeries = sourceTimesSeries.T
+        
+        #subtracting mean value
+        fMRI_mean = np.mean(sourceTimesSeries, axis = 0)
+        sourceTimesSeries -= fMRI_mean
+        
         # normalizing the data using frobenius normalization 
         frobeniusNorm = np.linalg.norm(sourceTimesSeries, ord='fro')
         # remember this normalization normalize the norm of the matrix
