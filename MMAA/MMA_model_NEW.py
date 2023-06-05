@@ -10,8 +10,9 @@ class MMAA(torch.nn.Module):
 
         self.numModalities = numModalities
         self.numSubjects = X.EEG_data.shape[0]
-        self.T = X.EEG_data.shape[1] #number of time points      
+        self.T = np.array([X.EEG_data.shape[1], X.MEG_data.shape[1], X.fMRI_data.shape[1]]) #number of time points      
         self.V = X.EEG_data.shape[2] #number of sources
+        self.epsilon = 1e-6
 
         self.A = 0        
 
@@ -22,30 +23,52 @@ class MMAA(torch.nn.Module):
         self.Sms = torch.nn.Parameter(torch.nn.Softmax(dim = -2)(torch.rand((self.numModalities, self.numSubjects, k, self.V), dtype = torch.float)))
 
         self.X = [torch.tensor(X.EEG_data, dtype = torch.double), torch.tensor(X.MEG_data, dtype = torch.double), torch.tensor(X.fMRI_data, dtype = torch.double)]
-        test=2
-    def forward(self):
-        #vectorize it later
-        XCSms = [[0]*self.numSubjects for modality in range(self.numModalities)]
+        # test=2
         
+    # def forward(self):
+    #     #vectorize it later
+    #     XCSms = [[0]*self.numSubjects for modality in range(self.numModalities)]
+        
+    #     #find the unique reconstruction for each modality for each subject
+    #     loss = 0
+    #     for m in range(self.numModalities):
+
+    #         #X - Xrecon (via MMAA)
+    #         # A = XC
+    #         self.A = self.X[m]@torch.nn.functional.softmax(self.C, dim = 0, dtype = torch.double)
+    #         loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
+            
+    #         loss += torch.sum(loss_per_sub)
+            
+    #     #XCSms is a list of list of tensors. Here we convert everything to tensors
+    #     # XCSms = torch.stack([torch.stack(XCSms[i]) for i in range(len(XCSms))])
+
+    #     # # i think we also need to save the reconstruction
+    #     # self.XCSms = XCSms
+
+        
+    #     return loss   
+
+    def forward(self):
         #find the unique reconstruction for each modality for each subject
         loss = 0
+        mle_loss = 0
         for m in range(self.numModalities):
 
             #X - Xrecon (via MMAA)
-            # A = XC
+            #A = XC
             self.A = self.X[m]@torch.nn.functional.softmax(self.C, dim = 0, dtype = torch.double)
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
             loss += torch.sum(loss_per_sub)
-            
-        #XCSms is a list of list of tensors. Here we convert everything to tensors
-        # XCSms = torch.stack([torch.stack(XCSms[i]) for i in range(len(XCSms))])
+            mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub) + self.epsilon) 
+                                          - torch.log(torch.tensor(self.T[m])) + 1)
+            if torch.sum(loss_per_sub) == 0:
+                print("Hit it")
 
-        # # i think we also need to save the reconstruction
-        # self.XCSms = XCSms
-
-        
-        return loss   
+        #minimize negative log likelihood
+        #return loss
+        return -mle_loss
 
 
 def trainModel(numArchetypes=25,
@@ -56,7 +79,8 @@ def trainModel(numArchetypes=25,
               numIterations=10000):
     #seed 
     np.random.seed(numpySeed)
-    torch.manual_seed(torchSeed)    
+    torch.manual_seed(torchSeed)
+    path = "/Users/helenakeitum/Desktop"    
     
     X = Real_Data(2)
     
@@ -65,7 +89,7 @@ def trainModel(numArchetypes=25,
     T = np.array([np.shape(X.EEG_data)[1], np.shape(X.MEG_data)[1], np.shape(X.fMRI_data)[1]])
     k = numArchetypes
     
-    model = MMAA(X,k,numModalities=3)    
+    model = MMAA(X, k, numModalities=3)    
     
     if plotDistributions:        
         for sub in range(X.EEG_data.shape[0]): #num of subjects
@@ -74,7 +98,7 @@ def trainModel(numArchetypes=25,
                 for voxel in range(V):
                     for modality in range(3):
                         ax[modality].plot(np.arange(T[modality]), model.X[modality][sub, :, voxel], '-', alpha=0.5) 
-                plt.savefig(r"MMAA\plots\distribution")
+                plt.savefig(path)
                 plt.show()
             
 
@@ -128,7 +152,7 @@ def trainModel(numArchetypes=25,
         for arch in range(k):
             ax[m].plot(range(T[m]), A[:, arch])
     ax[-1].plot(range(V), torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy())
-    plt.savefig(r"MMAA\plots\archetypes")
+    plt.savefig(path)
     plt.show()
     
     ### plot reconstruction
@@ -142,7 +166,7 @@ def trainModel(numArchetypes=25,
             ax[m].plot(np.arange(T[m]), Xrecon[:, voxel], '-', alpha=0.5)
 
     
-    plt.savefig(r"MMAA\plots\reconstruction")
+    plt.savefig(path)
     plt.show()    
     
     #return data,archeTypes,loss_Adam
