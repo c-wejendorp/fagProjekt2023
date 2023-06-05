@@ -1,5 +1,6 @@
 from pathlib import Path
 import mne
+import numpy as np
 
 # 
 # this file is basically just notes on how to load the data and visualize it
@@ -55,22 +56,14 @@ print("The shape of the fMRI data is: ", FMRIstc_morphed.data.shape)
 # når man morpher direkte i scriptet, som der gøres her med FMRI, så skal subject ikke angives i plotfunktionen
 # men hvis man derimod henter et morph objekt fra en fil, så skal subject angives som "fsaverage" i plot funktionen
 
-# Indlæs labels fra fsaverage
-labels = mne.read_labels_from_annot("fsaverage", parc="aparc_sub", subjects_dir=fs_dir)
+#read labels for corpus callosum
+label = mne.read_label(fs_dir / "fsaverage/label/lh.Medial_wall.label",subject=subject)
 
-#testLabel = mne.read_label(fs_dir / f"{subject}/label/lh.cortex.label",subject=subject)
-
-# loop over every other label and plot it
-for label in labels[::2]:
-    print("plotting:")
-    print(label.name)
-    try:
-        region_stc = MEGstc_morphed.in_label(label)
-        region_plot = region_stc.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True)    
-        region_plot.add_foci(region_stc.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
-    except:
-        print("No data in label")
-
+#remove indices from the M/EEG corresponding to corpus callosum
+MEGstc_morphed.vertices[0] = np.delete(MEGstc_morphed.vertices[0], label.vertices)
+#plot the sources (after removing)
+region_plot = MEGstc_morphed.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True)    
+region_plot.add_foci(MEGstc_morphed.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
 
 #visualisering af data
 # MEG
