@@ -140,10 +140,11 @@ def trainModel(numArchetypes=15,
     # plt.savefig(path)
     # plt.show()    
     # return C
-    C = model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy()
+    A = model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy()
+    C = torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy()
     return C
     #return data,archeTypes,loss_Adam
 
 if __name__ == "__main__":
-    C=trainModel(plotDistributions=False,numIterations=2)
-    print(2)
+    C=trainModel(plotDistributions=False,numIterations=100)
+    np.save('MMAA/C_matrix', C)
