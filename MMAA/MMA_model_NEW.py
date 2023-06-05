@@ -44,7 +44,7 @@ class MMAA(torch.nn.Module):
         return -mle_loss
 
 
-def trainModel(numArchetypes=25,
+def trainModel(numArchetypes=15,
               numpySeed=32,
               torchSeed=0,
               plotDistributions=False,
@@ -52,10 +52,9 @@ def trainModel(numArchetypes=25,
               numIterations=10000):
     #seed 
     np.random.seed(numpySeed)
-    torch.manual_seed(torchSeed)
-    path = "/Users/helenakeitum/Desktop"    
+    torch.manual_seed(torchSeed)       
     
-    X = Real_Data(2)
+    X = Real_Data(numSubjects=16)
     
     ###dim
     V = X.EEG_data.shape[2]
@@ -71,8 +70,8 @@ def trainModel(numArchetypes=25,
                 for voxel in range(V):
                     for modality in range(3):
                         ax[modality].plot(np.arange(T[modality]), model.X[modality][sub, :, voxel], '-', alpha=0.5) 
-                plt.savefig(path)
-                plt.show()
+                plt.savefig(r"MMMA\plots\data.png")
+                #plt.show()
             
 
     
@@ -124,7 +123,7 @@ def trainModel(numArchetypes=25,
         for arch in range(k):
             ax[m].plot(range(T[m]), A[:, arch])
     ax[-1].plot(range(V), torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy())
-    plt.savefig(path)
+    plt.savefig(r"MMAA\plots\archeTypes.png")
     plt.show()
     
     ### plot reconstruction
@@ -140,8 +139,11 @@ def trainModel(numArchetypes=25,
     
     # plt.savefig(path)
     # plt.show()    
-    
+    # return C
+    C = model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy()
+    return C
     #return data,archeTypes,loss_Adam
 
 if __name__ == "__main__":
-    trainModel(plotDistributions=False,numIterations=100)
+    C=trainModel(plotDistributions=False,numIterations=2)
+    print(2)
