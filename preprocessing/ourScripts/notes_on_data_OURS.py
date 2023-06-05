@@ -58,6 +58,8 @@ print("The shape of the fMRI data is: ", FMRIstc_morphed.data.shape)
 # Indlæs labels fra fsaverage
 labels = mne.read_labels_from_annot("fsaverage", parc="aparc_sub", subjects_dir=fs_dir)
 
+#testLabel = mne.read_label(fs_dir / f"{subject}/label/lh.cortex.label",subject=subject)
+
 # loop over every other label and plot it
 for label in labels[::2]:
     print("plotting:")
