@@ -2,26 +2,8 @@ from pathlib import Path
 import mne
 import numpy as np
 
-"""
-#path to the freesurfer directory
-fs_dir = Path("data/freesurfer")
-
-#path to the data directory (JespersProcessed)
-data_dir = Path("data/JesperProcessed")
-
-#from here could be in a loop over all our subjects but for now we just do it manually
-subject = "sub-02"
-
-subject_dir = data_dir / subject
-meg_dir = subject_dir / "ses-meg"
-fwd_dir = meg_dir / "stage-forward"
-pre_dir = meg_dir / "stage-preprocess"
-inv_dir = meg_dir / "stage-inverse"
-
-mri_dir = subject_dir / "ses-mri"
-fmri_dir = mri_dir / "func"
-"""
-# Read sensor space data
+#this file creates a dataset for each subject
+# needs to be updates such that FMRI is handled correctly regarding mean subtraction.
 
 # For individual EPOCHs and ERP see notes on data in the folder JesperScripts
 # We want to load the source space data starting with MEG and EEG
@@ -54,11 +36,7 @@ def EEG_AND_MEG(subject,data_dir="data/JesperProcessed"):
 # now do the same for the fMRI data
 def fMRI(subject, data_dir="data/JesperProcessed", morpherFolder = "data/fmriMorphers"):   
     data_dir = Path(data_dir)
-    subject_dir = data_dir / subject
-    #meg_dir = subject_dir / "ses-meg"
-    #fwd_dir = meg_dir / "stage-forward"
-    #pre_dir = meg_dir / "stage-preprocess"
-    #inv_dir = meg_dir / "stage-inverse"
+    subject_dir = data_dir / subject    
     mri_dir = subject_dir / "ses-mri"
     fmri_dir = mri_dir / "func"
 

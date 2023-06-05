@@ -64,6 +64,7 @@ class MMAA(torch.nn.Module):
         self.Sms = torch.nn.Parameter(torch.nn.Softmax(dim = -2)(torch.rand((numModalities, numSubjects, k, V), dtype = torch.float)))
 
         self.A = 0
+        self.epsilon = 1e-6
         
         self.numModalities = numModalities
         self.numSubjects = numSubjects
@@ -87,7 +88,7 @@ class MMAA(torch.nn.Module):
             
             # loss += torch.sum(loss_per_sub)
             
-            mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)) 
+            mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub) + self.epsilon) 
                                           - torch.log(torch.tensor(self.T[m])) + 1)
             if torch.sum(loss_per_sub) == 0:
                 print("Hit it")
