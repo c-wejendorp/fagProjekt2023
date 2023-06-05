@@ -62,10 +62,12 @@ labels = mne.read_labels_from_annot("fsaverage", parc="aparc_sub", subjects_dir=
 for label in labels[::2]:
     print("plotting:")
     print(label.name)
-    region_stc = MEGstc_morphed.in_label(label)
-    region_plot = region_stc.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True)    
-    region_plot.add_foci(region_stc.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
-
+    try:
+        region_stc = MEGstc_morphed.in_label(label)
+        region_plot = region_stc.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True)    
+        region_plot.add_foci(region_stc.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
+    except:
+        print("No data in label")
 
 
 #visualisering af data
