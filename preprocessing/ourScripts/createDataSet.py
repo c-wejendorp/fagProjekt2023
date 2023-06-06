@@ -15,7 +15,8 @@ def EEG_AND_MEG(subject,data_dir="data/JesperProcessed"):
     #label indices for corpus callosum in each hemisphere (888 for lh, 881 for rh)
     label_lh = mne.read_label(fs_dir / "fsaverage/label/lh.Medial_wall.label",subject=subject)
     label_rh = mne.read_label(fs_dir / "fsaverage/label/rh.Medial_wall.label",subject=subject)
-      
+    label_both = np.concatenate((label_lh.vertices, label_rh.vertices + 10242))
+    
     subject_dir = data_dir / subject
     meg_dir = subject_dir / "ses-meg"    
     inv_dir = meg_dir / "stage-inverse"    
@@ -26,10 +27,11 @@ def EEG_AND_MEG(subject,data_dir="data/JesperProcessed"):
             #shape before removing corpus callosum: [10242, 10242]
             fsaverageSources = mne.read_source_estimate(inv_dir / f"task-facerecognition_space-fsaverage_cond-{condtion}_fwd-mne_ch-{modality}_split-0_stc")
             
-            #remove corpus callosum sources for both hemispheres
+            #remove corpus callosum sources for both hemispheres - both vertices and the data itself
             #shape after removing: [9354, 9361]
             fsaverageSources.vertices[0] = np.delete(fsaverageSources.vertices[0], label_lh.vertices)
             fsaverageSources.vertices[1] = np.delete(fsaverageSources.vertices[1], label_rh.vertices)
+            fsaverageSources.data = np.delete(fsaverageSources.data, label_both, axis = 0)
             
             #as numpy array 
             sourceTimesSeries = fsaverageSources.data 
@@ -58,7 +60,8 @@ def fMRI(subject, data_dir="data/JesperProcessed", morpherFolder = "data/fmriMor
     #label indices for corpus callosum in each hemisphere (888 for lh, 881 for rh)
     label_lh = mne.read_label(fs_dir / "fsaverage/label/lh.Medial_wall.label",subject=subject)
     label_rh = mne.read_label(fs_dir / "fsaverage/label/rh.Medial_wall.label",subject=subject)
-
+    label_both = np.concatenate((label_lh.vertices, label_rh.vertices + 10242))
+    
     # for now we use the first 5 runs of the fMRI data as training data
     # we will use the last run as test data
     fMRIdata = []
@@ -75,7 +78,8 @@ def fMRI(subject, data_dir="data/JesperProcessed", morpherFolder = "data/fmriMor
         #shape after removing: [9354, 9361]
         FMRIstc_morphed.vertices[0] = np.delete(FMRIstc_morphed.vertices[0], label_lh.vertices)
         FMRIstc_morphed.vertices[1] = np.delete(FMRIstc_morphed.vertices[1], label_rh.vertices)
-        
+        FMRIstc_morphed.data = np.delete(FMRIstc_morphed.data, label_both, axis = 0)
+            
         #as numpy array 
         sourceTimesSeries = FMRIstc_morphed.data 
         # transpose to get dimension (time, source)
