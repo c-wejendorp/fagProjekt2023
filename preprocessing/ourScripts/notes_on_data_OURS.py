@@ -122,16 +122,16 @@ if plot_per_arch:
     #random HEX-code generator
     import random
     number_of_colors = c.shape[1]
-    color = ["#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
-                for i in range(number_of_colors)]
+    color = ["#"+''.join([random.choice('0123456789ABCDEF') for _ in range(6)])
+                for __ in range(number_of_colors)]
 
     #plot the sources with a color assigned to each archetype
     for k in range(c.shape[1]):  
         archetype = list(np.where(np.isin(brain_plot.lh_vertno, lh_sources[k]))[0])
         c_matrix_plot.add_foci(brain_plot.lh_vertno[archetype], coords_as_verts=True, hemi="lh", color=color[k],scale_factor=0.2)
-
-#if you don't care about archetypes and just want all plotted, just run this line and comment the loop out
-# c_matrix_plot.add_foci(brain_plot.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
+else:
+    #if you don't care about archetypes and just want all plotted, just run this line and comment the loop out
+    c_matrix_plot.add_foci(brain_plot.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
 
 
 #plot the sources (after removing)
