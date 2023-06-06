@@ -69,6 +69,8 @@ MEGstc_morphed.data = np.delete(MEGstc_morphed.data, label_both, axis = 0)
 #loading the c-matrix
 c = np.load("MMAA/C_matrix.npy")
 
+plot_per_arch = True
+
 #thresholding the sources. currently thresholding for 0.05
 thresh = 5e-2
 which_sources = np.where(np.any(c >= thresh, axis = 1))[0]
@@ -91,9 +93,46 @@ brain_plot.vertices[0] = brain_plot.vertices[0][which_sources_lh]
 brain_plot.vertices[1] = brain_plot.vertices[1][which_sources_rh]
 brain_plot.data = brain_plot.data[which_sources]
 
+# #plot the significant sources from the c-matrix (after removing)
+# c_matrix_plot = brain_plot.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True)    
+# c_matrix_plot.add_foci(brain_plot.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
+
+if plot_per_arch:
+    #thresholding the sources for each archetype
+    sources_per_arch = [np.where(c[:, k] >= thresh)[0] for k in range(c.shape[1])]
+
+    #splitting all sources into left and right hemispheres for each archetype
+    arch_sources_lh = list(sources_per_arch[k][sources_per_arch[k] < 9354] for k in range(c.shape[1]))
+    arch_sources_rh = list(sources_per_arch[k][sources_per_arch[k] >= 9354] - 9354 for k in range(c.shape[1])) #we subtract 9354 here because the vertex field starts from index 0
+
+    lh_sources = []
+    rh_sources = []
+    for k in range(c.shape[1]):
+        #copy the MEG-morphed object to newly index the activating sources
+        arch_plot = MEGstc_morphed.copy()
+        
+        #append all archetype indices to a list 
+        lh_sources.append(arch_plot.vertices[0][arch_sources_lh[k]])
+        rh_sources.append(arch_plot.vertices[1][arch_sources_rh[k]])
+        
 #plot the significant sources from the c-matrix (after removing)
-c_matrix_plot = brain_plot.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True)    
-c_matrix_plot.add_foci(brain_plot.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
+c_matrix_plot = brain_plot.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True) 
+
+if plot_per_arch:
+    #random HEX-code generator
+    import random
+    number_of_colors = c.shape[1]
+    color = ["#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
+                for i in range(number_of_colors)]
+
+    #plot the sources with a color assigned to each archetype
+    for k in range(c.shape[1]):  
+        archetype = list(np.where(np.isin(brain_plot.lh_vertno, lh_sources[k]))[0])
+        c_matrix_plot.add_foci(brain_plot.lh_vertno[archetype], coords_as_verts=True, hemi="lh", color=color[k],scale_factor=0.2)
+
+#if you don't care about archetypes and just want all plotted, just run this line and comment the loop out
+# c_matrix_plot.add_foci(brain_plot.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
+
 
 #plot the sources (after removing)
 region_plot = MEGstc_morphed.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True)    
