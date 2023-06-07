@@ -50,7 +50,7 @@ class HandlerDashedLines(HandlerLineCollection):
         return leglines
     
 class MMAA(torch.nn.Module):
-    def __init__(self, V, T, k, X:Synthetic_Data, numSubjects = 1, numModalities = 1): #k is number of archetypes
+    def __init__(self, V, T, k, X:Synthetic_Data, numSubjects = 1, numModalities = 1, loss_type = 'normal_mle'): #k is number of archetypes
         super(MMAA, self).__init__()
         
         #For toydataset purposes:
@@ -64,20 +64,27 @@ class MMAA(torch.nn.Module):
         self.Sms = torch.nn.Parameter(torch.nn.Softmax(dim = -2)(torch.rand((numModalities, numSubjects, k, V), dtype = torch.float)))
 
         self.A = 0
-        self.epsilon = 1e-6
+        
+        if loss_type == 'mle_rob':
+            self.epsilon = 1
+        else:
+            self.epsilon = 1e-6
         
         self.numModalities = numModalities
         self.numSubjects = numSubjects
         self.T = T
         self.V = V
         self.X = [torch.tensor(X.X_eeg, dtype = torch.double), torch.tensor(X.X_meg, dtype = torch.double), torch.tensor(X.X_fmri, dtype = torch.double)]
+        
+        self.loss_type = loss_type
 
     def forward(self):
         #vectorize it later
         XCSms = [[0]*self.numSubjects for modality in range(self.numModalities)]
         
         #find the unique reconstruction for each modality for each subject
-        # loss = 0
+        loss = 0
+        mle_loss_rob = 0
         mle_loss = 0
         for m in range(self.numModalities):
 
@@ -86,16 +93,21 @@ class MMAA(torch.nn.Module):
             self.A = self.X[m]@torch.nn.functional.softmax(self.C, dim = 0, dtype = torch.double)
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
-            # loss += torch.sum(loss_per_sub)
-            
+            loss += torch.sum(loss_per_sub)
             mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub) + self.epsilon) 
                                           - torch.log(torch.tensor(self.T[m])) + 1)
+            mle_loss_rob += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)/self.T[m] + self.epsilon)) - torch.sum(loss_per_sub)/(2 * (torch.sum(loss_per_sub)/self.T[m] + 1))
             if torch.sum(loss_per_sub) == 0:
                 print("Hit it")
-        return -mle_loss
+                
+        if self.loss_type == 'normal_mle': return -mle_loss
+        elif self.loss_type == 'mle_rob': return -mle_loss_rob
+        elif self.loss_type == 'squared_err': return loss
+        else: raise NotImplementedError
 
     
 def toyDataAA(numArchetypes=25,
+              loss_type = 'normal_mle',
               numpySeed=32,
               torchSeed=10,
               plotDistributions=True,
@@ -152,7 +164,7 @@ def toyDataAA(numArchetypes=25,
     T = np.array([np.shape(X.X_eeg)[1], np.shape(X.X_meg)[1], np.shape(X.X_fmri)[1]])
     k = numArchetypes
 
-    model = MMAA(V, T, k, X, numModalities=3, numSubjects=nr_subjects)
+    model = MMAA(V, T, k, X, numModalities=3, numSubjects=nr_subjects, loss_type=loss_type)
 
     ###initialize the a three-dimensional array for each modality (subject, time, voxel)
     #meg = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
@@ -175,9 +187,9 @@ def toyDataAA(numArchetypes=25,
         palette = list(mcd.XKCD_COLORS.values())[::10] # I'm SORRY FOR THE UGLY COLORS D:
         source_colors = np.array(np.array(palette)[V:])
 
-        arg_eeg_sources_concat = np.array([area for area in arg_eeg_sources]).reshape(-1)
-        arg_meg_sources_concat = np.array([area for area in arg_meg_sources]).reshape(-1)
-        arg_fmri_sources_concat = np.array([area for area in arg_fmri_sources]).reshape(-1)
+        arg_eeg_sources_concat = np.concatenate([area for area in arg_eeg_sources])
+        arg_meg_sources_concat = np.concatenate([area for area in arg_meg_sources])
+        arg_fmri_sources_concat = np.concatenate([area for area in arg_fmri_sources])
 
 
         source_eeg_fmri = []
@@ -326,5 +338,4 @@ def toyDataAA(numArchetypes=25,
     return loss_Adam
 
 if __name__ == "__main__":
-    toyDataAA(plotDistributions=True)
-    
+    toyDataAA(numArchetypes=25, torchSeed=10, plotDistributions=True, loss_type='mle_rob')
