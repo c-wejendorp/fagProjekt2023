@@ -10,18 +10,30 @@ class Real_Data:
     # you provide a list of subjects indices if you want to use a subset of subjects
     def __init__(self,subjects=range(1, 17), split=0):
         # load the data
-        subjects = ["sub-{:02d}".format(i) for i in subjects]        
+        subjects = ["sub-{:02d}".format(i) for i in subjects]
+        conditions = ["famous", "scrambled", "unfamiliar"]        
         EEG_data = []
         MEG_data = []
         fMRI_data = []
         #load the data and append to the lists
         for idx,subject in enumerate(subjects):            
-            if split == 0:                  
-                EEG_data.append(np.load(trainPath / f"{subject}/eeg_train.npy"))
-                MEG_data.append(np.load(trainPath / f"{subject}/meg_train.npy"))
+            if split == 0:
+                EEG_condition = []
+                MEG_condition = []
+                for condition in conditions:
+                    EEG_condition.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
+                    MEG_condition.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
+                EEG_data.append(np.concatenate(EEG_condition))
+                MEG_data.append(np.concatenate(MEG_condition))
+                
             elif split ==1:
-                EEG_data.append(np.load(testPath / f"{subject}/eeg.npy_test.npy"))
-                MEG_data.append(np.load(testPath / f"{subject}/meg.npy_test.npy"))      
+                EEG_condition = []
+                MEG_condition = []
+                for condition in conditions:
+                    EEG_condition.append(np.load(testPath / f"{subject}/eeg/{condition}_test.npy"))
+                    MEG_condition.append(np.load(testPath / f"{subject}/meg/{condition}_test.npy"))
+                EEG_data.append(np.concatenate(EEG_condition))
+                MEG_data.append(np.concatenate(MEG_condition))      
            
             #fMRI data is the same for both splits:            
             fMRI_data.append(np.load(trainPath / f"{subject}/fMRI_train.npy"))
@@ -43,5 +55,10 @@ class Real_Data:
         self.MEG_data = np.array(MEG_data)           
         self.fMRI_data = np.array(fMRI_data) 
           
+if __name__ == "__main__":
+    X = Real_Data()
+    print(X.EEG_data.shape)
+    print(X.MEG_data.shape)
+    print(X.fMRI_data.shape)
 
     
