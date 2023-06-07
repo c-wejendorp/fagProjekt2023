@@ -45,7 +45,7 @@ class MMAA(torch.nn.Module):
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
             if self.loss_robust:
-                mle_loss_m = -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)/self.T[m] + self.epsilon)) - torch.sum(loss_per_sub)/(2 * torch.sum(loss_per_sub)/self.T[m] + 1)
+                mle_loss_m = -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)/self.T[m] + self.epsilon)) - torch.sum(loss_per_sub)/(2 * (torch.sum(loss_per_sub)/self.T[m] + 1))
                 mle_loss += mle_loss_m
                 
                 if torch.sum(loss_per_sub) == 0:
