@@ -13,8 +13,13 @@ class MMAA(torch.nn.Module):
         self.numSubjects = X.EEG_data.shape[0]
         self.T = np.array([X.EEG_data.shape[1], X.MEG_data.shape[1], X.fMRI_data.shape[1]]) #number of time points      
         self.V = X.EEG_data.shape[2] #number of sources
-        self.epsilon = 1
         self.loss_robust = loss_robust
+        
+        if loss_robust:
+            self.epsilon = 1
+        else:
+            self.epsilon = 1e-6
+            
         self.A = 0        
 
         #C is universal for all subjects/modalities. S(ms) and A(ms) are unique though
@@ -40,7 +45,7 @@ class MMAA(torch.nn.Module):
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
             if self.loss_robust:
-                mle_loss_m = -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)/self.T[m] + self.epsilon)) - torch.sum(loss_per_sub)/(2 * torch.sum(loss_per_sub)/self.T[m] + 1)
+                mle_loss_m = -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)/self.T[m] + self.epsilon)) - torch.sum(loss_per_sub)/(2 * (torch.sum(loss_per_sub)/self.T[m] + 1))
                 mle_loss += mle_loss_m
                 
                 if torch.sum(loss_per_sub) == 0:
