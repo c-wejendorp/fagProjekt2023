@@ -47,7 +47,7 @@ FMRImorph = mne.read_source_morph(f"data/fmriMorphers/{subject}-morph.h5")
 
 # Morph fMRI data til fsaverage space
 FMRIstc_morphed=FMRImorph.apply(FMRIstc)
-
+FMRIstc_morphed.plot(subjects_dir = fs_dir)
 #dobbelt check af shape
 print("The shape of the M/EEG data is: ", MEGstc_morphed.data.shape)
 print("The shape of the fMRI data is: ", FMRIstc_morphed.data.shape)
