@@ -2,7 +2,7 @@
 # large files and other types of data should be ignored and hence stored in the data folder
 data/
 .vscode/
-
+projectModule/
 
 
 # The standard python .gitignore starts from below this line
@@ -136,7 +136,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-*env
+*env/
 
 # Spyder project settings
 .spyderproject
@@ -161,9 +161,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-
-projectModule/
-
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
