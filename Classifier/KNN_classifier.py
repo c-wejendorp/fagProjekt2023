@@ -20,7 +20,7 @@ class Nearest_Neighbor():
         for x_test in X_test_inp:
             for i, x in enumerate(self.X_train):
                 if self.distance_measure == 'Euclidean':
-                    distances[i] = np.sum(np.sqrt((x - x_test)**2))
+                    distances[i] = np.sqrt(np.sum((x - x_test)**2))
 
             predicts.append(self.y_train[np.argmin(distances)])
             
