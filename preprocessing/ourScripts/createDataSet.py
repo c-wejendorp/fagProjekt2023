@@ -2,13 +2,16 @@ from pathlib import Path
 import mne
 import numpy as np
 
+trainPath = Path("data/trainingDataSubset")
+testPath = Path("data/testDataSubset")
+
 #this file creates a dataset for each subject
 # needs to be updates such that FMRI is handled correctly regarding mean subtraction.
 
 # For individual EPOCHs and ERP see notes on data in the folder JesperScripts
 # We want to load the source space data starting with MEG and EEG
 
-def EEG_AND_MEG(subject,data_dir="data/JesperProcessed"):
+def EEG_AND_MEG(subject,data_dir="data/JesperProcessed",split=0):
     data_dir = Path(data_dir) 
     fs_dir = Path("data/freesurfer")
     
@@ -25,7 +28,7 @@ def EEG_AND_MEG(subject,data_dir="data/JesperProcessed"):
         conditionTimeSeries = [] 
         for condtion in ["famous", "unfamiliar", "scrambled"]:
             #shape before removing corpus callosum: [10242, 10242]
-            fsaverageSources = mne.read_source_estimate(inv_dir / f"task-facerecognition_space-fsaverage_cond-{condtion}_fwd-mne_ch-{modality}_split-0_stc")
+            fsaverageSources = mne.read_source_estimate(inv_dir / f"task-facerecognition_space-fsaverage_cond-{condtion}_fwd-mne_ch-{modality}_split-{split}_stc")
             
             #remove corpus callosum sources for both hemispheres - both vertices and the data itself
             #shape after removing: [9354, 9361]
@@ -45,10 +48,14 @@ def EEG_AND_MEG(subject,data_dir="data/JesperProcessed"):
             conditionTimeSeries.append(normalizedSourceTimesSeries)
         # concatenate the list of arrays to one array corresponding to concatenating the three condtions  
         conditionTimeSeries = np.concatenate(conditionTimeSeries)
-        with open(f'data/trainingDatasSubset/{subject}/{modality}.npy', 'wb') as f:
-            np.save(f, conditionTimeSeries)
+        if split == 0:
+            with open(trainPath / f'{subject}/{modality}_train.npy', 'wb') as f:
+                np.save(f, conditionTimeSeries)
+        elif split == 1:
+            with open(testPath / f'{subject}/{modality}_test.npy', 'wb') as f:
+                np.save(f, conditionTimeSeries)
 
-# now do the same for the fMRI data
+# now do the same for the fMRI data, here the splits doesnt matter, as we use the full fmri data for training and testing
 def fMRI(subject, data_dir="data/JesperProcessed", morpherFolder = "data/fmriMorphers"):   
     data_dir = Path(data_dir)
     fs_dir = Path("data/freesurfer")
@@ -62,10 +69,11 @@ def fMRI(subject, data_dir="data/JesperProcessed", morpherFolder = "data/fmriMor
     label_rh = mne.read_label(fs_dir / "fsaverage/label/rh.Medial_wall.label",subject=subject)
     label_both = np.concatenate((label_lh.vertices, label_rh.vertices + 10242))
     
-    # for now we use the first 5 runs of the fMRI data as training data
+    # we use all the runs of the fMRI data as training data
     # we will use the last run as test data
     fMRIdata = []
-    for run in ["run-{:02d}".format(i) for i in range(1, 6)]: 
+    runLengths = []
+    for run in ["run-{:02d}".format(i) for i in range(1, 10)]: 
         # indlæsning af fMRI data i fsaverage space gøres således:
         #shape before removing corpus callosum: [10242, 10242]
         FMRIstc = mne.read_source_estimate(fmri_dir / f"surf_sa{subject}_ses-mri_task-facerecognition_{run}_bold")
@@ -98,10 +106,18 @@ def fMRI(subject, data_dir="data/JesperProcessed", morpherFolder = "data/fmriMor
         fMRIdata.append(normalizedSourceTimesSeries)
         #print("The shape of the fMRI data is: ", FMRIstc_morphed.data.shape)
 
+        #check if all runs have the same lenght
+        runLengths.append(normalizedSourceTimesSeries.shape[0])
+       
+    #print(runLengths)    
     fMRIdata = np.concatenate(fMRIdata)
 
-    with open(f'data/trainingDatasSubset/{subject}/fMRI.npy', 'wb') as f:
+    with open(trainPath / f'{subject}/fMRI_train.npy', 'wb') as f:
         np.save(f, fMRIdata)
+    
+    #with open(testPath / f'{subject}/fMRI_test.npy', 'wb') as f:
+    #    np.save(f, fMRIdata) 
+    
 
 if __name__ == "__main__":
     # create a list of all subjects with 1 leading zero
@@ -109,9 +125,11 @@ if __name__ == "__main__":
     # loop over all subjects
     for subject in subjects:
         # create a folder for each subject
-        Path(f"data/trainingDatasSubset/{subject}").mkdir(parents=True, exist_ok=True)
+        Path(trainPath /f"{subject}").mkdir(parents=True, exist_ok=True)
+        Path(testPath /f"{subject}").mkdir(parents=True, exist_ok=True)        
         # create the data for each subject
-        EEG_AND_MEG(subject)
+        EEG_AND_MEG(subject,split=0)
+        EEG_AND_MEG(subject,split=1)
         fMRI(subject)
 
 
