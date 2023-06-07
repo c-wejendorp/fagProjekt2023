@@ -125,8 +125,9 @@ def plot_sources_on_brain(m, stc_morph, thresh, fs_dir, plot_per_arch = True, pl
         #if you don't care about archetypes and just want all plotted
         matrix_plot.add_foci(stc_morph.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
 
-#loading the c-matrix
+#loading the matrices
 c = np.load("MMAA/C_matrix.npy")
+s = np.load("MMAA/S_matrix.npy")
 
 #copy the MEG-morphed object to newly index the activating sources (without overwriting the old)
 brain_plot = MEGstc_morphed.copy()
@@ -134,10 +135,12 @@ brain_plot = MEGstc_morphed.copy()
 #thresholding the sources. currently thresholding for 0.05
 thresh = 5e-2
 
-plot_sources_on_brain(c, brain_plot, thresh, fs_dir)
+#plot_sources_on_brain(c, brain_plot, thresh = 5e-2, fs_dir = fs_dir)
+
+brain_plot = MEGstc_morphed.copy()
 
 #plot meg s-matrix
-#plot_sources_on_brain(s[1], brain_plot, thresh, fs_dir, plotting_S = True)
+plot_sources_on_brain(s[1], brain_plot, thresh = 5e-1, fs_dir = fs_dir, plotting_S = True)
 
 #plot the sources (after removing)
 region_plot = MEGstc_morphed.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True)    
