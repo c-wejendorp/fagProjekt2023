@@ -73,17 +73,15 @@ class MMAA(torch.nn.Module):
         return -mle_loss
 
 
-def trainModel(numArchetypes=15,
-              numpySeed=32,
-              torchSeed=0,
+def trainModel(X: Real_Data, numArchetypes=15,seed=32,
               plotDistributions=False,
               learningRate=1e-1,
               numIterations=10000, loss_robust=True):
     #seed 
-    np.random.seed(numpySeed)
-    torch.manual_seed(torchSeed)       
+    np.random.seed(seed)
+    torch.manual_seed(seed)       
     
-    X = Real_Data(numSubjects=16)
+    #X = Real_Data(numSubjects=16)
     
     ###dim
     V = X.EEG_data.shape[2]
@@ -99,7 +97,9 @@ def trainModel(numArchetypes=15,
                 for voxel in range(V):
                     for modality in range(3):
                         ax[modality].plot(np.arange(T[modality]), model.X[modality][sub, :, voxel], '-', alpha=0.5) 
-                plt.savefig(r"MMMA\plots\data.png")
+                
+                plt.savefig(f"MMAA\plots\data_seed{seed}.png")
+                #plt.savefig(r"MMMA\plots\data.png")
                 #plt.show()
             
 
@@ -152,8 +152,8 @@ def trainModel(numArchetypes=15,
         for arch in range(k):
             ax[m].plot(range(T[m]), A[:, arch])
     ax[-1].plot(range(V), torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy())
-    plt.savefig(r"MMAA\plots\archeTypes.png")
-    plt.show()
+    plt.savefig(f"MMAA\plots\{k}_archeTypes_seed{seed}.png")
+    #plt.show()
     
     ### plot reconstruction
     #m x t x v (averaged over subjects)
@@ -179,6 +179,7 @@ def trainModel(numArchetypes=15,
     return C, S, eeg_loss, meg_loss, fmri_loss, loss_Adam
 
 if __name__ == "__main__":
-    C, S, eeg_loss, meg_loss, fmri_loss, loss_Adam =trainModel(plotDistributions=False,numIterations=100, loss_robust=True)
+    X = Real_Data(subjects=range(1, 17),split=0)
+    C, S, eeg_loss, meg_loss, fmri_loss, loss_Adam =trainModel(X,plotDistributions=False,numIterations=100, loss_robust=True)
     np.save('MMAA/C_matrix', C)
     np.save('MMAA/S_matrix', S)
