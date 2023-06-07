@@ -25,6 +25,10 @@ class MMAA(torch.nn.Module):
 
         self.X = [torch.tensor(X.EEG_data, dtype = torch.double), torch.tensor(X.MEG_data, dtype = torch.double), torch.tensor(X.fMRI_data, dtype = torch.double)]
 
+        self.eeg_loss = []
+        self.meg_loss = []
+        self.fmri_loss = []
+        
     def forward(self):
         #find the unique reconstruction for each modality for each subject
         mle_loss = 0
@@ -39,6 +43,16 @@ class MMAA(torch.nn.Module):
                                           - torch.log(torch.tensor(self.T[m])) + 1)
             if torch.sum(loss_per_sub) == 0:
                 print("We hit a 0 loss per sub!")
+            
+            if m == 0:
+                self.eeg_loss.append(-self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub) + self.epsilon) 
+                                          - torch.log(torch.tensor(self.T[m])) + 1))
+            elif m == 1:
+                self.meg_loss.append(-self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub) + self.epsilon) 
+                                          - torch.log(torch.tensor(self.T[m])) + 1))
+            else:
+                self.fmri_loss.append(-self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub) + self.epsilon) 
+                                          - torch.log(torch.tensor(self.T[m])) + 1))
 
         #minimize negative log likelihood
         return -mle_loss
@@ -74,7 +88,7 @@ def trainModel(numArchetypes=15,
                 #plt.show()
             
 
-    
+
     #hyperparameters
     lr = learningRate
     n_iter = numIterations
@@ -135,14 +149,19 @@ def trainModel(numArchetypes=15,
     #     for voxel in range(V):
     #         Xrecon = A@np.mean(torch.nn.functional.softmax(model.Sms[m], dim = -2, dtype = torch.double).detach().numpy(), axis = 0)
     #         ax[m].plot(np.arange(T[m]), Xrecon[:, voxel], '-', alpha=0.5)
-
     
     # plt.savefig(path)
     # plt.show()    
     # return C
+    
+    #retrieve the matrices and losses we want for plotting
     C = model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy()
-    return C
-    #return data,archeTypes,loss_Adam
+    S = np.mean(torch.nn.functional.softmax(model.Sms, dim = -2, dtype = torch.double).detach().numpy(), axis = 1)
+    eeg_loss = model.eeg_loss
+    meg_loss = model.meg_loss
+    fmri_loss = model.fmri_loss
+    
+    return C, S, eeg_loss, meg_loss, fmri_loss, loss_Adam
 
 if __name__ == "__main__":
     C=trainModel(plotDistributions=False,numIterations=2)
