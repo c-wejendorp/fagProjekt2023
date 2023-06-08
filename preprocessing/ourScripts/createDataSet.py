@@ -25,10 +25,10 @@ def EEG_AND_MEG(subject,data_dir="data/JesperProcessed",split=0):
     inv_dir = meg_dir / "stage-inverse"    
 
     for modality in ["meg", "eeg"]:
-        conditionTimeSeries = [] 
-        for condtion in ["famous", "unfamiliar", "scrambled"]:
+        # conditionTimeSeries = [] 
+        for condition in ["famous", "unfamiliar", "scrambled"]:
             #shape before removing corpus callosum: [10242, 10242]
-            fsaverageSources = mne.read_source_estimate(inv_dir / f"task-facerecognition_space-fsaverage_cond-{condtion}_fwd-mne_ch-{modality}_split-{split}_stc")
+            fsaverageSources = mne.read_source_estimate(inv_dir / f"task-facerecognition_space-fsaverage_cond-{condition}_fwd-mne_ch-{modality}_split-{split}_stc")
             
             #remove corpus callosum sources for both hemispheres - both vertices and the data itself
             #shape after removing: [9354, 9361]
@@ -45,15 +45,23 @@ def EEG_AND_MEG(subject,data_dir="data/JesperProcessed",split=0):
             # remember this normalization normalize the norm of the matrix
             # this means that each "activation" does not lie btw 0 and 1 as we also have discussed
             normalizedSourceTimesSeries= sourceTimesSeries / frobeniusNorm
-            conditionTimeSeries.append(normalizedSourceTimesSeries)
-        # concatenate the list of arrays to one array corresponding to concatenating the three condtions  
-        conditionTimeSeries = np.concatenate(conditionTimeSeries)
-        if split == 0:
-            with open(trainPath / f'{subject}/{modality}_train.npy', 'wb') as f:
-                np.save(f, conditionTimeSeries)
-        elif split == 1:
-            with open(testPath / f'{subject}/{modality}_test.npy', 'wb') as f:
-                np.save(f, conditionTimeSeries)
+            # conditionTimeSeries.append(normalizedSourceTimesSeries)
+            
+            if split == 0:
+                with open(trainPath / f'{subject}/{modality}/{condition}_train.npy', 'wb') as f:
+                    np.save(f, normalizedSourceTimesSeries)
+            elif split == 1:
+                with open(testPath / f'{subject}/{modality}/{condition}_test.npy', 'wb') as f:
+                    np.save(f, normalizedSourceTimesSeries)
+            
+        # # concatenate the list of arrays to one array corresponding to concatenating the three condtions  
+        # conditionTimeSeries = np.concatenate(conditionTimeSeries)
+        # if split == 0:
+        #     with open(trainPath / f'{subject}/{modality}_train.npy', 'wb') as f:
+        #         np.save(f, conditionTimeSeries)
+        # elif split == 1:
+        #     with open(testPath / f'{subject}/{modality}_test.npy', 'wb') as f:
+        #         np.save(f, conditionTimeSeries)
 
 # now do the same for the fMRI data, here the splits doesnt matter, as we use the full fmri data for training and testing
 def fMRI(subject, data_dir="data/JesperProcessed", morpherFolder = "data/fmriMorphers"):   
@@ -122,11 +130,13 @@ def fMRI(subject, data_dir="data/JesperProcessed", morpherFolder = "data/fmriMor
 if __name__ == "__main__":
     # create a list of all subjects with 1 leading zero
     subjects = ["sub-{:02d}".format(i) for i in range(1, 17)]
+    eegmeg = ["eeg", "meg"]
     # loop over all subjects
     for subject in subjects:
-        # create a folder for each subject
-        Path(trainPath /f"{subject}").mkdir(parents=True, exist_ok=True)
-        Path(testPath /f"{subject}").mkdir(parents=True, exist_ok=True)        
+        for modality in eegmeg:
+            # create a folder for each subject
+            Path(trainPath /f"{subject}" / f"{modality}").mkdir(parents=True, exist_ok=True)
+            Path(testPath /f"{subject}" / f"{modality}").mkdir(parents=True, exist_ok=True)        
         # create the data for each subject
         EEG_AND_MEG(subject,split=0)
         EEG_AND_MEG(subject,split=1)

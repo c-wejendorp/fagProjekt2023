@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from loadData import Real_Data
 from tqdm import tqdm
+import os
     
 class MMAA(torch.nn.Module):
     def __init__(self, X: Real_Data, k : int, loss_robust: bool, numModalities=3):
@@ -184,7 +185,13 @@ def trainModel(X: Real_Data, numArchetypes=15,seed=32,
     return C, S, eeg_loss, meg_loss, fmri_loss, loss_Adam
 
 if __name__ == "__main__":
-    X = Real_Data(subjects=range(1, 17),split=0)
-    C, S, eeg_loss, meg_loss, fmri_loss, loss_Adam =trainModel(X,plotDistributions=False,numIterations=100, loss_robust=True)
-    np.save('MMAA/C_matrix', C)
-    np.save('MMAA/S_matrix', S)
+    split = 1
+    save_path = f'data/MMAA_results/split_{split}/'
+    X = Real_Data(subjects=range(1, 17), split=split)
+    C, S, eeg_loss, meg_loss, fmri_loss, loss_Adam = trainModel(X,plotDistributions=False,numIterations=100, loss_robust=True)
+    
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+        
+    np.save(save_path + 'C_matrix', C)
+    np.save(save_path + 'S_matrix', S)
