@@ -6,7 +6,8 @@ from loadData import Real_Data
 import os
 
 #ensure that all tensors are on the GPU
-torch.set_default_device("cuda:0")
+if torch.cuda.is_available():
+    torch.set_default_device("cuda:0")
     
 class MMAA(torch.nn.Module):
     def __init__(self, X: Real_Data, k : int, loss_robust: bool, numModalities=3):
@@ -200,7 +201,7 @@ def trainModel(X: Real_Data, numArchetypes=15,seed=32,
 
 if __name__ == "__main__":
     split = 0
-    save_path = f'data/MMAA_results/split_{split}/'
+    save_path = f'data/MMAA_results/single_run/split_{split}/'
     X = Real_Data(subjects=range(1, 17), split=split)
     C, S, eeg_loss, meg_loss, fmri_loss, loss_Adam = trainModel(X,plotDistributions=False,numIterations=100, loss_robust=True)
     
@@ -209,3 +210,13 @@ if __name__ == "__main__":
         
     np.save(save_path + 'C_matrix', C)
     np.save(save_path + 'S_matrix', S)
+    
+
+    np.save(save_path + f'C_matrix_split{split}', C)
+    np.save(save_path + f'S_matrix_split{split}', S)
+    np.save(save_path + f'eeg_loss_split{split}', np.array([int(x.cpu().detach().numpy())for x in eeg_loss])) 
+    np.save(save_path + f'meg_loss_split{split}', np.array([int(x.cpu().detach().numpy())for x in meg_loss]))
+    np.save(save_path + f'fmri_loss_split{split}', np.array([int(x.cpu().detach().numpy())for x in fmri_loss]))
+    np.save(save_path + f'loss_adam_split{split}', np.array(loss_Adam))
+
+    
