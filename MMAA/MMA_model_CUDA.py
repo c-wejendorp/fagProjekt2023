@@ -21,7 +21,7 @@ class MMAA(torch.nn.Module):
         self.loss_robust = loss_robust
         
         if loss_robust:
-            self.epsilon = 1
+            self.epsilon = 1e-3
         else:
             self.epsilon = 1e-6
             
@@ -50,7 +50,9 @@ class MMAA(torch.nn.Module):
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
             if self.loss_robust:
-                mle_loss_m = -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)/self.T[m] + self.epsilon)) - torch.sum(loss_per_sub)/(2 * (torch.sum(loss_per_sub)/self.T[m] + 1))
+                beta  = 1/(self.V *self.T[m]) * self.epsilon
+                alpha = 1 + self.T[2]/2  - self.T[m]/2
+                mle_loss_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.log(2 * beta + torch.sum(loss_per_sub))
                 mle_loss += mle_loss_m
                 
                 if torch.sum(loss_per_sub) == 0:
@@ -135,7 +137,7 @@ def trainModel(X: Real_Data, numArchetypes=15,seed=32,
     # Creating Dataloader object
     loss_Adam = []
     lr_change = []
-    tol = 1e-6
+    tol = 1e-1
     for i in range(n_iter):
         # zeroing gradients after each iteration
         optimizer.zero_grad()
