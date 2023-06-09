@@ -126,8 +126,8 @@ def plot_sources_on_brain(m, stc_morph, thresh, fs_dir, plot_per_arch = True, pl
         matrix_plot.add_foci(stc_morph.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
 
 #loading the matrices
-c = np.load("MMAA/C_matrix.npy")
-s = np.load("MMAA/S_matrix.npy")
+c = np.load("data/MMAA_results/split_0/C_matrix.npy")
+s = np.load("data/MMAA_results/split_0/S_matrix.npy")
 
 #copy the MEG-morphed object to newly index the activating sources (without overwriting the old)
 brain_plot = MEGstc_morphed.copy()
@@ -135,7 +135,7 @@ brain_plot = MEGstc_morphed.copy()
 #thresholding the sources. currently thresholding for 0.05
 thresh = 5e-2
 
-#plot_sources_on_brain(c, brain_plot, thresh = 5e-2, fs_dir = fs_dir)
+plot_sources_on_brain(c, brain_plot, thresh = 5e-2, fs_dir = fs_dir)
 
 brain_plot = MEGstc_morphed.copy()
 
