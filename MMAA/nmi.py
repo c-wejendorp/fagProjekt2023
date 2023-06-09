@@ -21,7 +21,7 @@ def nmi(S1, S2):
     
     mutual_info = 2 * i(S1, S2) / (i(S1, S1) + i(S2, S2))
     
-    assert (mutual_info >= 0 or mutual_info <= 1), f"boundary error. nmi is not between 0 and 1, but got {mutual_info}"
+    assert (mutual_info >= 0 and mutual_info <= 1), f"boundary error. nmi is not between 0 and 1, but got {mutual_info}"
     
     return mutual_info
 
