@@ -66,7 +66,7 @@ class MMAA(torch.nn.Module):
         self.A = 0
         
         if loss_type == 'mle_rob':
-            self.epsilon = 1
+            self.epsilon = 1e-3
         else:
             self.epsilon = 1e-6
         
@@ -96,9 +96,15 @@ class MMAA(torch.nn.Module):
             loss += torch.sum(loss_per_sub)
             mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub) + self.epsilon) 
                                           - torch.log(torch.tensor(self.T[m])) + 1)
-            mle_loss_rob += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)/self.T[m] + self.epsilon)) - torch.sum(loss_per_sub)/(2 * (torch.sum(loss_per_sub)/self.T[m] + 1))
+            
+            beta  = 1/(self.V *self.T[m]) * self.epsilon
+            alpha = 1 + self.T[2]/2 - self.T[m]/2
+            mle_loss_rob_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.log(2 * beta + torch.sum(loss_per_sub))
+            mle_loss_rob += mle_loss_rob_m
             if torch.sum(loss_per_sub) == 0:
                 print("Hit it")
+            # if mle_loss_rob_m > 0:
+            #     print("negative loss???")
                 
         if self.loss_type == 'normal_mle': return -mle_loss
         elif self.loss_type == 'mle_rob': return -mle_loss_rob
@@ -112,7 +118,7 @@ def toyDataAA(numArchetypes=25,
               torchSeed=10,
               plotDistributions=True,
               learningRate=1e-1,
-              numIterations=10000, 
+              numIterations=5000, 
               T_eeg=100, 
               T_meg=100, 
               T_fmri=500, 
