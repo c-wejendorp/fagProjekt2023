@@ -6,6 +6,7 @@ from MMA_model_CUDA import MMAA, trainModel
 import ast
 import os
 import numpy as np
+import torch
 
 
 if __name__ == "__main__":  
@@ -24,6 +25,8 @@ if __name__ == "__main__":
 
     for seed in arguments.get("seeds"):
         for numArcheTypes in range(arguments.get("archeTypeIntevalStart"),arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSize")):
+            # lets clear the cache
+            torch.cuda.empty_cache()
             #print(f"Training model with {numArcheTypes} archetypes and seed {seed}")
             C, Sms, eeg_loss, meg_loss, fmri_loss, loss_Adam = trainModel(
                     X,
