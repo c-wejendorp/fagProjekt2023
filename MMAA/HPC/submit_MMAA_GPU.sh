@@ -19,9 +19,9 @@
 
 #BSUB -R "rusage[mem=32G]"
 
-### wall time limit - the maximum time the job will run. Currently 24 hours - overkill
+### wall time limit - the maximum time the job will run. Currently 3 hours. 
 
-#BSUB -W 00:30
+#BSUB -W 03:00
 
 ##BSUB -u s204090@dtu.dk
 ### -- send notification at start -- 
