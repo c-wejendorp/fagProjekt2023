@@ -43,4 +43,4 @@ module load cuda/11.8
 # NOTE: needs to have been built with the same SciPy version above!
 source fagprojectENV/bin/activate
 
-python MMAA/trainModels_0-4.py
+python MMAA/trainModels_5-9.py

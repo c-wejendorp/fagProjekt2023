@@ -194,31 +194,61 @@ def trainModel(X: Real_Data, numArchetypes=15,seed=32,
     """
     #retrieve the matrices and losses we want for plotting
     C = torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).cpu().detach().numpy()
-    S = np.mean(torch.nn.functional.softmax(model.Sms, dim = -2, dtype = torch.double).cpu().detach().numpy(), axis = 1)
+    Sms = torch.nn.functional.softmax(model.Sms, dim = -2, dtype = torch.double).cpu().detach().numpy()
+    #S = np.mean(torch.nn.functional.softmax(model.Sms, dim = -2, dtype = torch.double).cpu().detach().numpy(), axis = 1)
     eeg_loss = model.eeg_loss
     meg_loss = model.meg_loss
     fmri_loss = model.fmri_loss
     
-    return C, S, eeg_loss, meg_loss, fmri_loss, loss_Adam
+    return C, Sms, eeg_loss, meg_loss, fmri_loss, loss_Adam
 
 if __name__ == "__main__":
     split = 0
-    save_path = f'data/MMAA_results/single_run/split_{split}/'
-    X = Real_Data(subjects=range(1, 17), split=split)
-    C, S, eeg_loss, meg_loss, fmri_loss, loss_Adam = trainModel(X,plotDistributions=False,numIterations=100, loss_robust=True)
-    
+    seed = 0
+    k = 15
+    iterations = 200
+    lossRobust = True
+       
+    X = Real_Data(subjects=range(1, 17), split=split)   
+        
+    C, Sms, eeg_loss, meg_loss, fmri_loss, loss_Adam = trainModel(X, 
+                                                                numArchetypes=k,
+                                                                seed=seed,
+                                                                plotDistributions=False,
+                                                                numIterations=iterations,
+                                                                loss_robust=lossRobust)             
+    # save the results  
+    save_path = f'data/MMAA_results/single_run/split-{split}/k-{k}/seed-{0}/'  
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-        
-    np.save(save_path + 'C_matrix', C)
-    np.save(save_path + 'S_matrix', S)
-    
 
-    np.save(save_path + f'C_matrix_split{split}', C)
-    np.save(save_path + f'S_matrix_split{split}', S)
-    np.save(save_path + f'eeg_loss_split{split}', np.array([int(x.cpu().detach().numpy())for x in eeg_loss])) 
-    np.save(save_path + f'meg_loss_split{split}', np.array([int(x.cpu().detach().numpy())for x in meg_loss]))
-    np.save(save_path + f'fmri_loss_split{split}', np.array([int(x.cpu().detach().numpy())for x in fmri_loss]))
-    np.save(save_path + f'loss_adam_split{split}', np.array(loss_Adam))
+    # save C
+    np.save(save_path + f'C_split-{split}_k-{k}_seed-{seed}', C)  
 
-    
+    # save all the S matrices
+    # filename for sub: S_split-x_k-x_seed-x_sub-x_mod-m
+    # filename for average: S_split-x_k-x_seed-x_sub-avg
+    modalities = ['eeg', 'meg', 'fmri']
+    m,sub,k,_ = Sms.shape
+    for i in range(m):
+        for j in range(sub):
+            np.save(save_path + f'S_split-{split}_k-{k}_seed-{seed}_sub-{j}_mod-{modalities[i]}', Sms[i,j,:,:])
+
+    S_avg = np.mean(Sms, axis = 1)
+    np.save(save_path + f'S_split-{split}_k-{k}_seed-{seed}_sub-avg', S_avg)
+
+    # save all the losses
+    # Save the different loss
+    # filename: loss_split-x_k-x_seed-x_type-m
+    # m will be, eeg,meg,fmri and sum. 
+    # sum is the sum of the three losses
+    loss = [eeg_loss, meg_loss, fmri_loss,loss_Adam]
+    loss_type = ['eeg', 'meg', 'fmri', 'sum']
+    for i in range(len(loss)):
+        if i == 3:
+            np.save(save_path + f'loss_split-{split}_k-{k}_seed-{seed}_type-{loss_type[i]}', np.array(loss[i]))
+        else:    
+            np.save(save_path + f'loss_split-{split}_k-{k}_seed-{seed}_type-{loss_type[i]}', np.array([int(x.cpu().detach().numpy())for x in loss[i]]))  
+
+
+  
