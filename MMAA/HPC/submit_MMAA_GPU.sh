@@ -21,7 +21,7 @@
 
 ### wall time limit - the maximum time the job will run. Currently 3 hours. 
 
-#BSUB -W 03:00
+#BSUB -W 02:00
 
 ##BSUB -u s204090@dtu.dk
 ### -- send notification at start -- 
