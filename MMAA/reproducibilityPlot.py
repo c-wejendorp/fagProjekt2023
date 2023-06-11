@@ -3,44 +3,61 @@ import matplotlib.pyplot as plt
 from scipy.special import softmax
 from loadData import Real_Data
 from nmi import nmi
-#This is work in progress.
-# currently i'm just testing stuff regarding the HPC
-#read in the information from the models
-datapath = "data/MMAA_results/multiple_runs/split_0/"
 
-number_of_seeds = 2
+# for split 0 we want to plot the average NMI with error bars for each modality for each number of archetypes.
+# In the same plot we will also show the best average NMI across splits for EEG and MEG. (fmri is shared in both splits) 
 
-# loop over all archetypes
-for k in range(2,10,2):
-    # load the average S matrix for each seed
-    S_matrices=[]
-    for s in range(number_of_seeds):
-        seed = s*10
-        S_matrices.append(np.load(datapath + f"S_matrix_k{k}_s{seed}_split0.npy"))
+number_of_seeds = 10
+mods = ["eeg", "meg", "fmri"]
+colors = ["green", "red", "blue"]
+
+# lets start with split 0
+splits = [0,1]
+datapath = f"data/MMAA_results/multiple_runs/split_{splits[0]}/NMI/"
+
+# loop over modalities
+offset = 0
+for idx, modality in enumerate(mods):
+    NMI_tuples = []
+    #now over archetypes
     
-    # calculate the NMI for S1 and S2, S2 and S3, etc and last S10 and S1
-    # this needs to be done for each modality
-    eeg_NMIs = []
-    meg_NMIs = []
-    fmri_NMIs = []
-    for s in range(number_of_seeds):
-        eeg_NMIs.append(nmi(S_matrices[s][0], S_matrices[(s+1)%number_of_seeds][0]))
-        meg_NMIs.append(nmi(S_matrices[s][1], S_matrices[(s+1)%number_of_seeds][1]))
-        fmri_NMIs.append(nmi(S_matrices[s][2], S_matrices[(s+1)%number_of_seeds][2]))
-    # calculate the average NMI for each modality
-    eeg_NMI_mean = np.mean(eeg_NMIs)
-    meg_NMI_mean = np.mean(meg_NMIs)
-    fmri_NMI_mean = np.mean(fmri_NMIs)
-    # calculate the standard deviation for each modality
-    eeg_NMI_std = np.std(eeg_NMIs)
-    meg_NMI_std = np.std(meg_NMIs)
-    fmri_NMI_std = np.std(fmri_NMIs)
-    # plot the average NMI for each modality
-    plt.errorbar(k, eeg_NMI_mean, yerr=eeg_NMI_std, fmt='o', color='green')
-    plt.errorbar(k, meg_NMI_mean, yerr=meg_NMI_std, fmt='o', color='red')
-    plt.errorbar(k, fmri_NMI_mean, yerr=fmri_NMI_std, fmt='o', color='blue')
+    for k in range(2,20+1,2):
+        NMI_tuples.append(np.load(datapath + f"NMI_split-{splits[0]}_k-{k}_type-{modality}.npy"))
+    
+    # now we have a list of tuples with (mean,std) for each k
+    # we want to plot the mean with error bars
+    NMI_mean = [t[0] for t in NMI_tuples]
+    NMI_std = [t[1] for t in NMI_tuples]
+    plt.errorbar(np.arange(2,20+1,2)+offset, NMI_mean, yerr=NMI_std, fmt='o', capsize=5,color=colors[idx], label=f"{modality}_split_{splits[0]}")
+    offset += 0.3
 
-plt.legend(["EEG", "MEG", "fMRI"])
+# now for the best NMI across splits for EEG and MEG
+
+path = f"data/MMAA_results/multiple_runs/"
+
+offset = 0
+for idx, modality in enumerate(["eeg", "meg"]):
+    NMI_best = []
+    #now over archetypes
+    for k in range(2,20+1,2):
+        NMI_best.append(max([np.load(path + f"split_{split}/NMI/NMI_split-{split}_k-{k}_type-{modality}.npy")[0] for split in splits]))
+
+
+    # plot it as a dotted line
+    plt.plot(np.arange(2,20+1,2)+offset, NMI_best, '--', color=colors[idx], label=f"{modality}_best")
+    
+    offset += 0.3
+
+    
+
+
+    
+
+
+
+plt.xticks(np.arange(2,20+1,2))    
+
+plt.legend()
 plt.xlabel("Number of archetypes")
 plt.ylabel("NMI")
 plt.savefig("NMI.png")

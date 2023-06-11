@@ -46,13 +46,19 @@ if __name__ == "__main__":
             meg_NMI_std = np.std(meg_NMIs)
             fmri_NMI_std = np.std(fmri_NMIs)
 
+            #find the largest NMI for each modality
+            eeg_NMI_max = np.max(eeg_NMIs)
+            meg_NMI_max = np.max(meg_NMIs)
+            fmri_NMI_max = np.max(fmri_NMIs)          
+
             
 
-            #save the mean and std
-            np.save(savepath + f'NMI_split-{split}_k-{numArcheTypes}_type-eeg', np.array([eeg_NMI_mean, eeg_NMI_std]))
-            np.save(savepath + f'NMI_split-{split}_k-{numArcheTypes}_type-meg', np.array([meg_NMI_mean, meg_NMI_std]))
-            np.save(savepath + f'NMI_split-{split}_k-{numArcheTypes}_type-fmri', np.array([fmri_NMI_mean, fmri_NMI_std]))
+            #save the mean,std and max NMI for each modality'
+            np.save(savepath + f'NMI_split-{split}_k-{numArcheTypes}_type-eeg', np.array([eeg_NMI_mean, eeg_NMI_std, eeg_NMI_max]))
+            np.save(savepath + f'NMI_split-{split}_k-{numArcheTypes}_type-meg', np.array([meg_NMI_mean, meg_NMI_std, meg_NMI_max]))
+            np.save(savepath + f'NMI_split-{split}_k-{numArcheTypes}_type-fmri', np.array([fmri_NMI_mean, fmri_NMI_std, fmri_NMI_max]))
 
+            
 
 
 
