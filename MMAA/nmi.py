@@ -7,9 +7,7 @@ def nmi(S1, S2):
             #p(d,d') = ∑_n p(d|n)*p(d'|n)*p(n) (#p(d|n) = s[d,n], p(n) = 1/n)
             # moving the 1/n to the end of the sum      
             # 
-            # 
-            return sum([S1[k1][v] * S2[k2][v] * 1 / S1.shape[1] for v in range(S1.shape[1])])      
-        
+            #   
             return np.array(sum([S1[k1][v] * S2[k2][v] for v in range(S1.shape[1])])) * 1 / S1.shape[1]            
         
         #p(d) = ∑_n p(d|n)*p(n), p(d') = ∑_n p(d'|n)*p(n)
@@ -17,16 +15,16 @@ def nmi(S1, S2):
         pd1 = np.array(sum([S1[:, v] for v in range(S1.shape[1])])) * 1 / S1.shape[1]
         pd2 = np.array(sum([S2[:, v] for v in range(S1.shape[1])])) * 1 / S1.shape[1]        
         
-        kl = 0
+        KL = 0
         for k1 in range(S1.shape[0]):
             for k2 in range(S2.shape[0]):
                 #kullback-leibler entropy: ∑_(d,d') p(d,d') * log(p(d,d') / (p(d) * p(d')))
 
                 # only calculate pdd once
                 pdd_ = pdd(S1, S2, k1, k2)
-                k1 += pdd_ * np.log(pdd_ / (pd1[k1] * pd2[k2]))               
+                KL += pdd_ * np.log(pdd_ / (pd1[k1] * pd2[k2]))               
         
-        return kl
+        return KL
     
     mutual_info = 2 * i(S1, S2) / (i(S1, S1) + i(S2, S2))
     
