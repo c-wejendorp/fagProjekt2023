@@ -1,7 +1,6 @@
 from pathlib import Path
 import mne
 import numpy as np
-import os
 
 # 
 # this file is basically just notes on how to load the data and visualize it
@@ -67,60 +66,64 @@ MEGstc_morphed.vertices[0] = np.delete(MEGstc_morphed.vertices[0], label_lh.vert
 MEGstc_morphed.vertices[1] = np.delete(MEGstc_morphed.vertices[1], label_rh.vertices)
 MEGstc_morphed.data = np.delete(MEGstc_morphed.data, label_both, axis = 0)
 
-def plot_sources_on_brain(m, stc_morph, fs_dir, thresh = 0, plot_per_arch = True, plotting_S = False):
+def plot_sources_on_brain(m, stc_morph, thresh, fs_dir, plot_per_arch = True, plotting_S = False):
     #transpose s to match dimension of c (original code was made for c plotting only)
     if plotting_S:
         m = m.T
     
-    for k in range(m.shape[1]):
+    if plot_per_arch:
+        #copy the morphed object to newly index the activating sources before tampering
         arch_plot = stc_morph.copy()
     
-        #only plot sources that are contributing to the archetype
-        which_sources = np.where(m[:, k] >= thresh)[0]
+    which_sources = np.where(np.any(m >= thresh, axis = 1))[0]
+    
+    #splitting all sources into left and right hemispheres
+    #we divide by 9354 because we know that the c-matrix is 18715 aka after removing
+    #corpus callosum. it has been previously noted that the shape af removal is [9354, 9361]
+    which_sources_lh = which_sources[which_sources < 9354]
+    which_sources_rh = which_sources[which_sources >= 9354] - 9354 #we subtract 9354 here because the vertex field starts from index 0
 
-        #splitting all sources into left and right hemispheres
-        #we divide by 9354 because we know that the c-matrix is 18715 aka after removing
-        #corpus callosum. it has been previously noted that the shape af removal is [9354, 9361]
-        which_sources_lh = which_sources[which_sources < 9354]
-        which_sources_rh = which_sources[which_sources >= 9354] - 9354 #we subtract 9354 here because the vertex field starts from index 0
+    #an example:
+    #all vertices together: [0, 1, 2, 3, 4, 5]
+    #after deleting redundant regions: [0, 2, 3]
+    #the c matrix only gives us indices from the "after deleting region" i. e C = [0, 1]
+    #we therefore need to mask like so: after_delete[C] for certain threshold values for C
+    stc_morph.vertices[0] = stc_morph.vertices[0][which_sources_lh]
+    stc_morph.vertices[1] = stc_morph.vertices[1][which_sources_rh]
+    stc_morph.data = stc_morph.data[which_sources]
 
-        #an example:
-        #all vertices together: [0, 1, 2, 3, 4, 5]
-        #after deleting redundant regions: [0, 2, 3]
-        #the c matrix only gives us indices from the "after deleting region" i. e C = [0, 1]
-        #we therefore need to mask like so: after_delete[C] for certain threshold values for C
-        arch_plot.vertices[0] = stc_morph.vertices[0][which_sources_lh]
-        arch_plot.vertices[1] = stc_morph.vertices[1][which_sources_rh]
-        arch_plot.data = stc_morph.data[which_sources]
-        
-        hemi = ["lh", "rh"]
-        matrix = "S" if plotting_S else "C"
-        sources = [which_sources_lh, which_sources_rh]
-        plot_vert = [arch_plot.lh_vertno, arch_plot.rh_vertno]
-        for i in range(2):
-            #only plot if there are any sources to plot
-            if sources[i].size:
-                #plot the significant sources from the c-matrix (after removing)
-                matrix_plot = stc_morph.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True, views = 'auto', hemi = hemi[i]) #try views/surface = flat if we can get the correct files from Jesper
+    if plot_per_arch:
+        #thresholding the sources for each archetype
+        sources_per_arch = [np.where(m[:, k] >= thresh)[0] for k in range(m.shape[1])]
 
-                #plot the sources with a color assigned to each archetype
-                #min max normalize the source estimation for an archetype 
-                #to get the "weight" for each color used
-                colors = (m[sources[i], k] - min(m[sources[i], k])) / (max(m[sources[i], k]) - min(m[sources[i], k]))
-                
-                for v, _ in enumerate(sources[i]): 
-                    matrix_plot.add_foci(plot_vert[i][v], coords_as_verts=True, hemi=hemi[i], color=(1 - 1 * colors[v], 1 - 1 * colors[v], 1), scale_factor=0.2)
+        #splitting all sources into left and right hemispheres for each archetype
+        arch_sources_lh = list(sources_per_arch[k][sources_per_arch[k] < 9354] for k in range(m.shape[1]))
+        arch_sources_rh = list(sources_per_arch[k][sources_per_arch[k] >= 9354] - 9354 for k in range(m.shape[1])) #we subtract 9354 here because the vertex field starts from index 0
 
-                #save to a location - the images are horrible :(
-                try:
-                    os.mkdir("data/brain_plots")
-                except OSError as error:
-                    try:
-                        os.mkdir(f"data/brain_plots/{matrix}")
-                    except OSError as error:
-                        pass
-                
-                matrix_plot.save_image(f'data/brain_plots/{matrix}/arch_{k + 1}_{hemi[i]}.png')
+        lh_sources = []
+        rh_sources = []
+        for k in range(m.shape[1]):
+            #append all archetype indices to a list 
+            lh_sources.append(arch_plot.vertices[0][arch_sources_lh[k]])
+            rh_sources.append(arch_plot.vertices[1][arch_sources_rh[k]])
+            
+    #plot the significant sources from the c-matrix (after removing)
+    matrix_plot = stc_morph.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True) 
+
+    if plot_per_arch:
+        #random HEX-code generator
+        import random
+        number_of_colors = m.shape[1]
+        color = ["#"+''.join([random.choice('0123456789ABCDEF') for _ in range(6)])
+                    for __ in range(number_of_colors)]
+
+        #plot the sources with a color assigned to each archetype
+        for k in range(m.shape[1]):  
+            archetype = list(np.where(np.isin(stc_morph.lh_vertno, lh_sources[k]))[0])
+            matrix_plot.add_foci(stc_morph.lh_vertno[archetype], coords_as_verts=True, hemi="lh", color=color[k],scale_factor=0.2)
+    else:
+        #if you don't care about archetypes and just want all plotted
+        matrix_plot.add_foci(stc_morph.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.2)
 
 #loading the matrices
 c = np.load("data/MMAA_results/split_0/C_matrix.npy")
@@ -129,12 +132,15 @@ s = np.load("data/MMAA_results/split_0/S_matrix.npy")
 #copy the MEG-morphed object to newly index the activating sources (without overwriting the old)
 brain_plot = MEGstc_morphed.copy()
 
-plot_sources_on_brain(c, brain_plot, thresh=10e-5, fs_dir = fs_dir)
+#thresholding the sources. currently thresholding for 0.05
+thresh = 5e-2
+
+plot_sources_on_brain(c, brain_plot, thresh = 5e-2, fs_dir = fs_dir)
 
 brain_plot = MEGstc_morphed.copy()
 
 #plot meg s-matrix
-plot_sources_on_brain(s[1], brain_plot, thresh=10e-5, fs_dir = fs_dir, plotting_S = True)
+plot_sources_on_brain(s[1], brain_plot, thresh = 5e-1, fs_dir = fs_dir, plotting_S = True)
 
 #plot the sources (after removing)
 region_plot = MEGstc_morphed.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=True)    
