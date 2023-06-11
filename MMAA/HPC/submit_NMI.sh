@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ### select queue 
-#BSUB -q HPC
+#BSUB -q hpc
 
 ### name of job, output file and err
 #BSUB -J NMI

@@ -13,9 +13,11 @@ if __name__ == "__main__":
     # loop over split
     for split in [0,1]:
 
-        datapath = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/NMI/'
-        if not os.path.exists(datapath):
-            os.makedirs(datapath)       
+        datapath = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/'
+
+        savepath = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/NMI/'
+        if not os.path.exists(savepath):
+            os.makedirs(savepath)       
 
         # loop over all archetypes in correct stepSize
         for numArcheTypes in range(arguments.get("archeTypeIntevalStart"),arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSize")):
@@ -23,7 +25,7 @@ if __name__ == "__main__":
             S_matrices=[]
             for seed in seeds:
                 
-                S_matrices.append(np.load(datapath + f"S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avgnpy"))         
+                S_matrices.append(np.load(datapath + f"S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy"))         
             # calculate the NMI for S1 and S2, S2 and S3, etc and last S10 and S1
             # this needs to be done for each modality
             eeg_NMIs = []
@@ -44,10 +46,12 @@ if __name__ == "__main__":
             meg_NMI_std = np.std(meg_NMIs)
             fmri_NMI_std = np.std(fmri_NMIs)
 
+            
+
             #save the mean and std
-            np.save(datapath + f'NMI_split-{split}_k-{numArcheTypes}_type-eeg', np.array([eeg_NMI_mean, eeg_NMI_std]))
-            np.save(datapath + f'NMI_split-{split}_k-{numArcheTypes}_type-meg', np.array([meg_NMI_mean, meg_NMI_std]))
-            np.save(datapath + f'NMI_split-{split}_k-{numArcheTypes}_type-fmri', np.array([fmri_NMI_mean, fmri_NMI_std]))
+            np.save(savepath + f'NMI_split-{split}_k-{numArcheTypes}_type-eeg', np.array([eeg_NMI_mean, eeg_NMI_std]))
+            np.save(savepath + f'NMI_split-{split}_k-{numArcheTypes}_type-meg', np.array([meg_NMI_mean, meg_NMI_std]))
+            np.save(savepath + f'NMI_split-{split}_k-{numArcheTypes}_type-fmri', np.array([fmri_NMI_mean, fmri_NMI_std]))
 
 
 
