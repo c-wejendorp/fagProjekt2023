@@ -23,12 +23,13 @@ class Nearest_Neighbor():
                     distances[i] = np.sqrt(np.sum((x - x_test)**2))
             neighbor_dist = np.argsort(distances)[:self.K_neighbors]
             neighbor, counts = np.unique(neighbor_dist, return_counts=True)
-            if len(counts) != len(set(counts)):
-                vote = self.y_train[neighbor[np.argmax(counts)]]
-            else: 
-                tie_neighbors = neighbor[np.argwhere(counts == np.amax(counts)).flatten()]
-                vote = self.y_train[[i for i in tie_neighbors if i in set(neighbor_dist)][0]]
-            predicts.append(vote)
+            vote_idx = neighbor[counts == np.amax(counts)]
+            if len(vote_idx) > 1:
+                set_neighbot_dist = set(neighbor_dist)
+                vote_idx = next((i for i in vote_idx if i in set_neighbot_dist), None)
+
+    
+            predicts.append(self.y_train[vote_idx])
             
         accuracy = np.sum(np.array(predicts) == np.array(y_test))/len(y_test)
         return predicts, accuracy
