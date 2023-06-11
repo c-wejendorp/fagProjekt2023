@@ -1,65 +1,68 @@
+import json
 import sys
 import getopt
 from loadData import Real_Data
-from MMA_model_NEW import MMAA, trainModel
+from MMA_model_CUDA import MMAA, trainModel
 import ast
+import os
 import numpy as np
+import torch
 
-# I dont think i actually need this function
-"""
-def parseArgs(argv):
-    # Check if at least one argument is provided
-    if len(sys.argv) != 8:
-        print("Please provide the following arguments in this specfic order <subjectIdxList> <archeTypeIntevalStart> <archeTypeIntevalStop> <archeTypeStepSize> <seed> <lossRobust> <split>")
-        sys.exit(1)
 
-    # Access the command-line arguments
-    arguments = {
-    'subjects': ast.literal_eval(sys.argv[1]),
-    'iterations': sys.argv[2],
-    'archeTypeIntevalStart': sys.argv[3],
-    'archeTypeIntevalStop': sys.argv[4],
-    'archeTypeStepSize': sys.argv[5],
-    'seed': sys.argv[6],
-    'lossRobust': sys.argv[7],
-    'split': sys.argv[8]
-                         }
+if __name__ == "__main__":  
+    #load arguments from json file
+    with open('MMAA/arguments.json') as f:
+        arguments = json.load(f)    
 
-    return arguments
-""" 
-if __name__ == "__main__":   
+    split = arguments.get("split")
         
-    # i will implement that we read this from json file later 
-    arguments = {
-    #'subjects': range(1, 17),
-    'subjects': range(1,3),
-    'iterations': 100,
-    'archeTypeIntevalStart': 14,
-    'archeTypeIntevalStop': 16,
-    'archeTypeStepSize': 2,
-    'seed': 0,
-    'lossRobust': True,
-    'split': 0                             }
-        
-    X = Real_Data(subjects=arguments.get("subjects"),split=arguments.get("split"))
-    for numArcheTypes in range(arguments.get("archeTypeIntevalStart"),arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSize")):
-        print(f"Training model with {numArcheTypes} archetypes")
-        C, S, eeg_loss, meg_loss, fmri_loss, loss_Adam = trainModel(
-                X,
-                numArchetypes=numArcheTypes,
-                seed=arguments.get("seed"),
-                plotDistributions=False,
-                learningRate=1e-1,
-                numIterations=arguments.get("iterations"), 
-                loss_robust=arguments.get("lossRobust"))
-        
-        seed = arguments.get("seed")
+    X = Real_Data(subjects=arguments.get("subjects"),split=split)
+    # loop over seeds
+         
+    save_path = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/'
+    if not os.path.exists(save_path):
+            os.makedirs(save_path)
 
-        np.save(f'MMAA/modelsInfo/C_matrix_k{numArcheTypes}_s{seed}', C)
-        np.save(f'MMAA/modelsInfo/S_matrix_k{numArcheTypes}_s{seed}', S)
-        np.save(f'MMAA/modelsInfo/eeg_loss{numArcheTypes}_s{seed}', np.array([int(x.detach().numpy())for x in eeg_loss])) 
-        np.save(f'MMAA/modelsInfo/meg_loss{numArcheTypes}_s{seed}', np.array([int(x.detach().numpy())for x in meg_loss]))
-        np.save(f'MMAA/modelsInfo/fmri_loss{numArcheTypes}_s{seed}', np.array([int(x.detach().numpy())for x in fmri_loss]))
-        np.save(f'MMAA/modelsInfo/loss_adam{numArcheTypes}_s{seed}', np.array(loss_Adam))
-      
- 
+    for seed in arguments.get("seeds"):
+        for numArcheTypes in range(arguments.get("archeTypeIntevalStart"),arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSize")):
+            # lets clear the cache
+            torch.cuda.empty_cache()
+            #print(f"Training model with {numArcheTypes} archetypes and seed {seed}")
+            C, Sms, eeg_loss, meg_loss, fmri_loss, loss_Adam = trainModel(
+                    X,
+                    numArchetypes=numArcheTypes,
+                    seed=seed,
+                    plotDistributions=False,
+                    learningRate=1e-1,
+                    numIterations=arguments.get("iterations"), 
+                    loss_robust=arguments.get("lossRobust"))    
+    
+            # save all the S matrices
+            # filename for sub: S_split-x_k-x_seed-x_sub-x_mod-m
+            # filename for average: S_split-x_k-x_seed-x_sub-avg
+            modalities = ['eeg', 'meg', 'fmri']
+            m,sub,k,_ = Sms.shape
+            for i in range(m):
+                for j in range(sub):
+                    np.save(save_path + f'S_split-{split}_k-{k}_seed-{seed}_sub-{j}_mod-{modalities[i]}', Sms[i,j,:,:])
+
+            S_avg = np.mean(Sms, axis = 1)
+            np.save(save_path + f'S_split-{split}_k-{k}_seed-{seed}_sub-avg', S_avg)
+
+            # save all the losses
+            # Save the different loss
+            # filename: loss_split-x_k-x_seed-x_type-m
+            # m will be, eeg,meg,fmri and sum. 
+            # sum is the sum of the three losses
+            loss = [eeg_loss, meg_loss, fmri_loss,loss_Adam]
+            loss_type = ['eeg', 'meg', 'fmri', 'sum']
+            for i in range(len(loss)):
+                if i == 3:
+                    np.save(save_path + f'loss_split-{split}_k-{k}_seed-{seed}_type-{loss_type[i]}', np.array(loss[i]))
+                else:    
+                    np.save(save_path + f'loss_split-{split}_k-{k}_seed-{seed}_type-{loss_type[i]}', np.array([int(x.cpu().detach().numpy())for x in loss[i]]))  
+
+
+  
+                  
+            

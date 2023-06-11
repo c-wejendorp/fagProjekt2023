@@ -5,6 +5,8 @@ data/
 projectModule/
 modelsInfo/
 plots/
+HPC/submit_logs/
+HPC_env/
 
 
 
