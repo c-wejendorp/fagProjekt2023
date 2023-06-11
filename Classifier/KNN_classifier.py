@@ -21,8 +21,14 @@ class Nearest_Neighbor():
             for i, x in enumerate(self.X_train):
                 if self.distance_measure == 'Euclidean':
                     distances[i] = np.sqrt(np.sum((x - x_test)**2))
-
-            predicts.append(self.y_train[np.argmin(distances)])
+            neighbor_dist = np.argsort(distances)[:self.K_neighbors]
+            neighbor, counts = np.unique(neighbor_dist, return_counts=True)
+            if len(counts) != len(set(counts)):
+                vote = self.y_train[neighbor[np.argmax(counts)]]
+            else: 
+                tie_neighbors = neighbor[np.argwhere(counts == np.amax(counts)).flatten()]
+                vote = self.y_train[[i for i in tie_neighbors if i in set(neighbor_dist)][0]]
+            predicts.append(vote)
             
         accuracy = np.sum(np.array(predicts) == np.array(y_test))/len(y_test)
         return predicts, accuracy
@@ -32,7 +38,7 @@ def main():
     trainPath = Path("data/trainingDataSubset")
     testPath = Path("data/testDataSubset")
 
-    knn_clf=Nearest_Neighbor(distance_measure = 'Euclidean', K_neighbors = 1)
+    knn_clf=Nearest_Neighbor(distance_measure = 'Euclidean', K_neighbors = 3)
 
     splits = range(2)
 
