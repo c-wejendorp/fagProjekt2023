@@ -5,22 +5,17 @@ def nmi(S1, S2):
     def i(S1, S2):
         def pdd(S1, S2, k1, k2):
             #p(d,d') = ∑_n p(d|n)*p(d'|n)*p(n) (#p(d|n) = s[d,n], p(n) = 1/n)
-            # moving the 1/n to the end of the sum
-            return sum([S1[k1][v] * S2[k2][v] for v in range(S1.shape[1])]) * 1 / S1.shape[1]            
+            return sum([S1[k1][v] * S2[k2][v] * 1 / S1.shape[1] for v in range(S1.shape[1])])
         
         #p(d) = ∑_n p(d|n)*p(n), p(d') = ∑_n p(d'|n)*p(n)
-        # moving the 1/n to the end of the sum
-        pd1 = sum([S1[:, v] for v in range(S1.shape[1])]) * 1 / S1.shape[1]
-        pd2 = sum([S2[:, v] for v in range(S1.shape[1])]) * 1 / S1.shape[1]        
+        pd1 = sum([S1[:, v] * 1 / S1.shape[1] for v in range(S1.shape[1])])
+        pd2 = sum([S2[:, v] * 1 / S1.shape[1] for v in range(S1.shape[1])])
         
         kl = 0
         for k1 in range(S1.shape[0]):
             for k2 in range(S2.shape[0]):
                 #kullback-leibler entropy: ∑_(d,d') p(d,d') * log(p(d,d') / (p(d) * p(d')))
-
-                # only calculate pdd once
-                pdd_ = pdd(S1, S2, k1, k2)
-                k1 += pdd_ * np.log(pdd_ / (pd1[k1] * pd2[k2]))               
+                kl += pdd(S1, S2, k1, k2) * np.log(pdd(S1, S2, k1, k2) / (pd1[k1] * pd2[k2]))
         
         return kl
     
