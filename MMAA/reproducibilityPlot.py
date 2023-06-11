@@ -2,38 +2,50 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import softmax
 from loadData import Real_Data
+from nmi import nmi
 #This is work in progress.
 # currently i'm just testing stuff regarding the HPC
 #read in the information from the models
-datapath = "MMAA/modelsInfo/"
+datapath = "data/MMAA_results/multiple_runs/split_0/"
 
-C = np.load(datapath + "C_matrix_k14_s0_split0.npy")
-S = np.load(datapath + "S_matrix_k14_s0_split0.npy")
-eeg_loss = np.load(datapath + "eeg_loss14_s0_split0.npy")
-meg_loss = np.load(datapath + "meg_loss14_s0_split0.npy")
-fmri_loss = np.load(datapath + "fmri_loss14_s0_split0.npy")
-loss_adam = np.load(datapath + "loss_adam14_s0_split0.npy")
+number_of_seeds = 2
 
-#plot th loss curves in seperate plots
-plt.plot(eeg_loss)
-plt.title("EEG loss")
-plt.savefig("eeg_loss.png")
+# loop over all archetypes
+for k in range(2,10,2):
+    # load the average S matrix for each seed
+    S_matrices=[]
+    for s in range(number_of_seeds):
+        seed = s*10
+        S_matrices.append(np.load(datapath + f"S_matrix_k{k}_s{seed}_split0.npy"))
+    
+    # calculate the NMI for S1 and S2, S2 and S3, etc and last S10 and S1
+    # this needs to be done for each modality
+    eeg_NMIs = []
+    meg_NMIs = []
+    fmri_NMIs = []
+    for s in range(number_of_seeds):
+        eeg_NMIs.append(nmi(S_matrices[s][0], S_matrices[(s+1)%number_of_seeds][0]))
+        meg_NMIs.append(nmi(S_matrices[s][1], S_matrices[(s+1)%number_of_seeds][1]))
+        fmri_NMIs.append(nmi(S_matrices[s][2], S_matrices[(s+1)%number_of_seeds][2]))
+    # calculate the average NMI for each modality
+    eeg_NMI_mean = np.mean(eeg_NMIs)
+    meg_NMI_mean = np.mean(meg_NMIs)
+    fmri_NMI_mean = np.mean(fmri_NMIs)
+    # calculate the standard deviation for each modality
+    eeg_NMI_std = np.std(eeg_NMIs)
+    meg_NMI_std = np.std(meg_NMIs)
+    fmri_NMI_std = np.std(fmri_NMIs)
+    # plot the average NMI for each modality
+    plt.errorbar(k, eeg_NMI_mean, yerr=eeg_NMI_std, fmt='o', color='green')
+    plt.errorbar(k, meg_NMI_mean, yerr=meg_NMI_std, fmt='o', color='red')
+    plt.errorbar(k, fmri_NMI_mean, yerr=fmri_NMI_std, fmt='o', color='blue')
+
+plt.legend(["EEG", "MEG", "fMRI"])
+plt.xlabel("Number of archetypes")
+plt.ylabel("NMI")
+plt.savefig("NMI.png")
 plt.show()
 
-plt.plot(meg_loss)
-plt.title("MEG loss")
-plt.savefig("meg_loss.png")
-plt.show()
-
-plt.plot(fmri_loss)
-plt.title("fMRI loss")
-plt.savefig("fmri_loss.png")
-plt.show()
-
-plt.plot(loss_adam)
-plt.title("Adam loss")
-plt.savefig("adam_loss.png")
-plt.show()
 
 
 
