@@ -15,8 +15,8 @@
 
 ### -- specify that the cores must be on the same host -- 
 #BSUB -R "span[hosts=1]"
-### -- specify that we need 24GB of 
-#BSUB -R "rusage[mem=24GB]"
+### -- specify that we need 8GB of Memory  more than enough for this task
+#BSUB -R "rusage[mem=8GB]"
 
 ### wall time limit - the maximum time the job will run. Currently 30 min. 
 

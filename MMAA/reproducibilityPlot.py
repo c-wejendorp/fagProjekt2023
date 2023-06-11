@@ -40,11 +40,11 @@ for idx, modality in enumerate(["eeg", "meg"]):
     NMI_best = []
     #now over archetypes
     for k in range(2,20+1,2):
-        NMI_best.append(max([np.load(path + f"split_{split}/NMI/NMI_split-{split}_k-{k}_type-{modality}.npy")[0] for split in splits]))
+        NMI_best.append(max([np.load(path + f"split_{split}/NMI/NMI_split-{split}_k-{k}_type-{modality}.npy")[2] for split in splits]))
 
 
     # plot it as a dotted line
-    plt.plot(np.arange(2,20+1,2)+offset, NMI_best, '--', color=colors[idx], label=f"{modality}_best")
+    plt.plot(np.arange(2,20+1,2)+offset, NMI_best, '--', color=colors[idx], label=f"{modality}_best btw splits")
     
     offset += 0.3
 
@@ -60,7 +60,7 @@ plt.xticks(np.arange(2,20+1,2))
 plt.legend()
 plt.xlabel("Number of archetypes")
 plt.ylabel("NMI")
-plt.savefig("NMI.png")
+plt.savefig("MMAA/plots/NMI.png", dpi=300)
 plt.show()
 
 
