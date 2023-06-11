@@ -5,7 +5,7 @@ if __name__ == "__main__":
     # i will implement that we read this from json file later 
     arguments = {    
     'subjects': list(range(1,17)),
-    'iterations': 1000,
+    'iterations': 200,
     'archeTypeIntevalStart': 2,
     'archeTypeIntevalStop': 20,
     'archeTypeStepSize': 2,
