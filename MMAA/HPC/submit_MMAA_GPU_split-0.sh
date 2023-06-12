@@ -21,9 +21,9 @@
 # request 32GB of GPU-memory
 #BSUB -R "select[gpu32gb]"
 
-### wall time limit - the maximum time the job will run. Currently 3 hours. 
+### wall time limit - the maximum time the job will run. Currently 3.5 hours. 
 
-#BSUB -W 02:00
+#BSUB -W 03:30
 
 ##BSUB -u s204090@dtu.dk
 ### -- send notification at start -- 

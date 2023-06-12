@@ -157,7 +157,8 @@ def trainModel(X: Real_Data, numArchetypes=15,seed=32,
         #print(f"This is the current iteration {i})")
 
         #break if loss does not improve
-        if i > 500 and np.abs(loss_Adam[-2] - loss_Adam[-1])/np.abs(loss_Adam[-2]) < tol:
+        # this is set to 200 based on prevoius runs
+        if i > 200 and np.abs(loss_Adam[-2] - loss_Adam[-1])/np.abs(loss_Adam[-2]) < tol:
             break
         lr_change.append(optimizer.param_groups[0]["lr"])
 
