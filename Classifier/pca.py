@@ -3,7 +3,7 @@ from sklearn.decomposition import PCA
 from pathlib import Path
 from matplotlib import pyplot as plt
 
-def pca(path, nr_subjects, C, plot = False):
+def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
 
     #load data
     trainPath = path
@@ -24,9 +24,12 @@ def pca(path, nr_subjects, C, plot = False):
             eeg_train_cond = []
             meg_train_cond = []
             
-            eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
-            meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
-        
+            if split == 0:
+                eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
+                meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
+            elif split == 1:
+                eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_test.npy"))
+                meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_test.npy"))
             #append archetypes and labels ERP's to training
             signal = np.concatenate((np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C), axis=1)
             y_train_final = np.append(y_train_final, condition)
@@ -52,7 +55,10 @@ def pca(path, nr_subjects, C, plot = False):
 
     for i, var in enumerate(pca.explained_variance_ratio_.cumsum()):
         if var >= 0.95:
-            print(f"explained variance exceeded 95% at {var} for {i + 1} components")
+            i_var = i
+            if verbose:
+                print(f"explained variance exceeded 95% at {var} for {i + 1} components")
+            break
 
     if plot:
         #plot the "time series" of conditions
@@ -85,11 +91,11 @@ def pca(path, nr_subjects, C, plot = False):
             ax.scatter(x, y, z)
         plt.show()
 
-    return X_pca
+    return X_pca, y_train_final, i_var
 
 if __name__ == "__main__":
     trainPath = Path("data/trainingDataSubset")
-    subjects = range(1,3)
+    subjects = range(1,17)
     C = np.load(f"data/MMAA_results/split_0/C_matrix.npy")
     
-    pca(trainPath, subjects, C, plot = True)
+    pca(trainPath, subjects, C, plot = True, verbose=True)
