@@ -64,8 +64,9 @@ class MMAA(torch.nn.Module):
         self.Sms = torch.nn.Parameter(torch.nn.Softmax(dim = -2)(torch.rand((numModalities, numSubjects, k, V), dtype = torch.float)))
 
         self.A = 0
+        
         if loss_type == 'mle_rob':
-            self.epsilon = 1
+            self.epsilon = 1e-3
         else:
             self.epsilon = 1e-6
         
@@ -93,16 +94,20 @@ class MMAA(torch.nn.Module):
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
             loss += torch.sum(loss_per_sub)
-            mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub) + self.epsilon) 
+            mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.sum(torch.log(torch.add(loss_per_sub, self.epsilon)))
                                           - torch.log(torch.tensor(self.T[m])) + 1)
+
             # mle_loss_rob += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)/self.T[m] + self.epsilon)) - torch.sum(loss_per_sub)/(2 * (torch.sum(loss_per_sub)/self.T[m] + 1))
             
             beta  = 1/(self.V) * self.epsilon
+
             alpha = 1 + self.T[2]/2 - self.T[m]/2
             mle_loss_rob_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.sum(torch.log(torch.add(loss_per_sub, 2 * beta)))
             mle_loss_rob += mle_loss_rob_m
             if torch.sum(loss_per_sub) == 0:
                 print("Hit it")
+            # if mle_loss_rob_m > 0:
+            #     print("negative loss???")
                 
         if self.loss_type == 'normal_mle': return -mle_loss
         elif self.loss_type == 'mle_rob': return -mle_loss_rob
@@ -342,6 +347,8 @@ def toyDataAA(numArchetypes=25,
     return loss_Adam
 
 if __name__ == "__main__":
+
     toyDataAA(numArchetypes=3, torchSeed=10, plotDistributions=True, loss_type='mle_rob', nr_subjects=30)
     toyDataAA(numArchetypes=3, torchSeed=10, plotDistributions=True, loss_type='squared_err', nr_subjects=30)
+
     
