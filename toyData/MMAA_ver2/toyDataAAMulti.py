@@ -99,7 +99,7 @@ class MMAA(torch.nn.Module):
             
             beta  = 1/(self.V *self.T[m]) * self.epsilon
             alpha = 1 + self.T[2]/2 - self.T[m]/2
-            mle_loss_rob_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.log(2 * beta + torch.sum(loss_per_sub))
+            mle_loss_rob_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.sum(torch.log(torch.add(loss_per_sub, 2 * beta)))
             mle_loss_rob += mle_loss_rob_m
             if torch.sum(loss_per_sub) == 0:
                 print("Hit it")

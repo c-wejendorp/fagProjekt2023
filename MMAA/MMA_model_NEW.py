@@ -48,18 +48,18 @@ class MMAA(torch.nn.Module):
             if self.loss_robust:
                 beta  = 1/(self.V *self.T[m]) * self.epsilon
                 alpha = 1 + self.T[2]/2  - self.T[m]/2
-                mle_loss_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.log(2 * beta + torch.sum(loss_per_sub))
+                mle_loss_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.sum(torch.log(torch.add(loss_per_sub, 2 * beta)))
                 mle_loss += mle_loss_m
                 
                 if torch.sum(loss_per_sub) == 0:
                     print("We hit a 0 loss per sub!")
                 
                 if m == 0:
-                    self.eeg_loss.append(mle_loss_m)
+                    self.eeg_loss.append(-mle_loss_m)
                 elif m == 1:
-                    self.meg_loss.append(mle_loss_m)
+                    self.meg_loss.append(-mle_loss_m)
                 else:
-                    self.fmri_loss.append(mle_loss_m)
+                    self.fmri_loss.append(-mle_loss_m)
                     
                     
             else: 
@@ -71,11 +71,11 @@ class MMAA(torch.nn.Module):
                     print("We hit a 0 loss per sub!")
                 
                 if m == 0:
-                    self.eeg_loss.append(mle_loss_m)
+                    self.eeg_loss.append(-mle_loss_m)
                 elif m == 1:
-                    self.meg_loss.append(mle_loss_m)
+                    self.meg_loss.append(-mle_loss_m)
                 else:
-                    self.fmri_loss.append(mle_loss_m)
+                    self.fmri_loss.append(-mle_loss_m)
 
         #minimize negative log likelihood
         return -mle_loss
