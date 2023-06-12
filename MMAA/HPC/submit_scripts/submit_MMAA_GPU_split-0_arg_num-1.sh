@@ -1,17 +1,14 @@
 
-            #!/bin/sh
-
-            ## should be run as filename.sh <split_number> <argsNum>
-            # example submit_MMAA_GPU.sh 0 0
+            #!/bin/sh            
 
 
             ### select queue 
             #BSUB -q gpuv100
 
             ### name of job, output file and err
-            #BSUB -J MMAA_train_split-0
-            #BSUB -o MMAA_train_split-0_%J.out
-            #BSUB -e MMAA_train_split-0_%J.err
+            #BSUB -J MMAA_train_split-0_arg_num-1
+            #BSUB -o MMAA_train_split-0_arg_num-1_%J.out
+            #BSUB -e MMAA_train_split-0_arg_num-1_J.err
 
 
             ### number of cores
@@ -37,11 +34,7 @@
             #BSUB -N 
 
 
-            # end of BSUB options
-
-            # Access the command line arguments
-            split=$1
-            argNum=$2
+            # end of BSUB options          
 
 
             # load the correct  scipy module and python
@@ -54,5 +47,5 @@
             # NOTE: needs to have been built with the same SciPy version above!
             source MMAA/HPC_env/bin/activate
 
-            python MMAA/trainModels.py {split} {argNum}
+            python MMAA/trainModels.py 0 1
             

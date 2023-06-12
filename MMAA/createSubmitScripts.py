@@ -4,24 +4,21 @@ def createSubmitScripts():
     # read the arguments
     createArguments()
     #loop over split
-    for split in range(2):
+    for splitNum in range(2):
         # loop over the argument files
         for argumentsNum in range(4):
             # create the script
             script_template = '''
-            #!/bin/sh
-
-            ## should be run as filename.sh <split_number> <argsNum>
-            # example submit_MMAA_GPU.sh 0 0
+            #!/bin/sh            
 
 
             ### select queue 
             #BSUB -q gpuv100
 
             ### name of job, output file and err
-            #BSUB -J MMAA_train_split-0
-            #BSUB -o MMAA_train_split-0_%J.out
-            #BSUB -e MMAA_train_split-0_%J.err
+            #BSUB -J MMAA_train_split-{split}_arg_num-{argNum}
+            #BSUB -o MMAA_train_split-{split}_arg_num-{argNum}_%J.out
+            #BSUB -e MMAA_train_split-{split}_arg_num-{argNum}_J.err
 
 
             ### number of cores
@@ -47,11 +44,7 @@ def createSubmitScripts():
             #BSUB -N 
 
 
-            # end of BSUB options
-
-            # Access the command line arguments
-            split=$1
-            argNum=$2
+            # end of BSUB options          
 
 
             # load the correct  scipy module and python
@@ -66,9 +59,10 @@ def createSubmitScripts():
 
             python MMAA/trainModels.py {split} {argNum}
             '''
-            # save the script
-            with open(f'MMAA/HPC/submit_scripts/submit_MMAA_GPU_split-{split}_arg_num-{argumentsNum}.sh', 'w') as fp:
-                fp.write(script_template)
+
+            script_content = script_template.format(split=splitNum, argNum=argumentsNum)
+            with open(f'MMAA/HPC/submit_scripts/submit_MMAA_GPU_split-{splitNum}_arg_num-{argumentsNum}.sh', 'w') as fp:
+                fp.write(script_content)
 
 if __name__ == "__main__":
     createSubmitScripts()
