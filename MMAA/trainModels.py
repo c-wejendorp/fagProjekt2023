@@ -24,12 +24,12 @@ if __name__ == "__main__":
             os.makedirs(save_path)
     
     save_path_Cs = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/C/'
-    if not os.path.exists(save_path_C):
-            os.makedirs(save_path_C)
+    if not os.path.exists(save_path_Cs):
+            os.makedirs(save_path_Cs)
 
     save_path_Ss = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/S/'
-    if not os.path.exists(save_path_S):
-            os.makedirs(save_path_S)
+    if not os.path.exists(save_path_Ss):
+            os.makedirs(save_path_Ss)
 
     save_path_SprSub = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/SprSub/'
     if not os.path.exists(save_path_SprSub):
