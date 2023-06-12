@@ -4,9 +4,9 @@
 #BSUB -q gpuv100
 
 ### name of job, output file and err
-#BSUB -J MMAA_train
-#BSUB -o MMAA_train_%J.out
-#BSUB -e MMAA_train_%J.err
+#BSUB -J MMAA_train_split-1
+#BSUB -o MMAA_train_split-1_%J.out
+#BSUB -e MMAA_train_split-1_%J.err
 
 
 ### number of cores
@@ -45,4 +45,4 @@ module load cuda/11.8
 # NOTE: needs to have been built with the same SciPy version above!
 source MMAA/HPC_env/bin/activate
 
-python MMAA/trainModels.py
+python MMAA/trainModels.py 1
