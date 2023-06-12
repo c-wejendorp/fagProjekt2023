@@ -53,4 +53,4 @@ module load cuda/11.8
 # NOTE: needs to have been built with the same SciPy version above!
 source MMAA/HPC_env/bin/activate
 
-python MMAA/trainModels.py split argNum
+python MMAA/trainModels.py 0 0

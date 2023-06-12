@@ -1,7 +1,5 @@
 import json
-
-if __name__ == "__main__":   
-
+def createArguments():
     modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"]]
     for idx,modalityComb in enumerate(modalityCombs):    
         # i will implement that we read this from json file later 
@@ -18,7 +16,8 @@ if __name__ == "__main__":
         'modalities': modalityComb,
                                     }
         # save to json file
-        with open(f'MMAA/arguments{idx}.json', 'w') as fp:
+        with open(f'MMAA/HPC/arguments/arguments{idx}.json', 'w') as fp:
             json.dump(arguments, fp)
 
-
+if __name__ == "__main__":
+    createArguments()

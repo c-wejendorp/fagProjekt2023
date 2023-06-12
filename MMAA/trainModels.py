@@ -20,7 +20,7 @@ if __name__ == "__main__":
          argumentsNum = int(sys.argv[2])
 
     #load arguments from json file
-    with open(f'MMAA/arguments{argumentsNum}.json') as f:
+    with open(f'MMAA/HPC/arguments/arguments{argumentsNum}.json') as f:
         arguments = json.load(f)
 
     #split = arguments.get("split")
