@@ -26,7 +26,7 @@ class Synthetic_Data:
                 activation_time[idx_of_activation] = 1
 
                 if source == 24:
-                    X[0, activation_time==1 , source] = np.random.normal(2, 0.1)
+                    X[0, activation_time==1 , source] = np.random.normal(1, 0.1)
                 else:
                     X[:, activation_time==1 , source] = np.random.normal(1, 0.1)
 
