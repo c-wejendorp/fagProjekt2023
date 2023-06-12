@@ -9,7 +9,7 @@ plot loss curve
 # from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
 #run the AA based on number of archetypes
-numArchetypes=range(2,25)
+numArchetypes=range(2,26)
 
 losses=[]
 for numArchetype in tqdm(numArchetypes):
@@ -19,7 +19,7 @@ for numArchetype in tqdm(numArchetypes):
             torchSeed=0,
             plotDistributions=False,
             learningRate=1e-1,
-            numIterations=1000, 
+            numIterations=5000, 
             T_eeg=100, 
             T_meg=100, 
             T_fmri=500, 
@@ -50,7 +50,7 @@ ax1.set_xticks(numArchetypes[::2])
 ax1.set_title('Loss Comparisons')
 ax1.set_xlabel('Number of archetypes')
 ax1.set_ylabel('Loss')
-ax1.set_yscale('log')
+# ax1.set_yscale('log')
 ax1.legend()
 fig1.savefig('toyData/plots/lossComparison_toyMMAA.png')
 
