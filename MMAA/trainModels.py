@@ -12,9 +12,16 @@ import torch
 if __name__ == "__main__":  
     #load arguments from json file
     with open('MMAA/arguments.json') as f:
-        arguments = json.load(f)    
+        arguments = json.load(f)
 
-    split = arguments.get("split")
+    # get the split from the command line
+    # if there is no split given, the program will stop
+    if len(sys.argv) == 1:
+         assert False, "No split given"  
+    else:
+         split = int(sys.argv[1])     
+
+    #split = arguments.get("split")
         
     X = Real_Data(subjects=arguments.get("subjects"),split=split)
     # loop over seeds
