@@ -67,8 +67,8 @@ class MMAA(torch.nn.Module):
                     
                     
             else: 
-                mle_loss_m = -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub) + self.epsilon) 
-                                            - torch.log(torch.tensor(self.T[m])) + 1)
+                mle_loss_m = -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.sum(torch.log(torch.add(loss_per_sub, self.epsilon)))
+                                          - torch.log(torch.tensor(self.T[m])) + 1)
                 mle_loss += mle_loss_m
                 
                 if torch.sum(loss_per_sub) == 0:
