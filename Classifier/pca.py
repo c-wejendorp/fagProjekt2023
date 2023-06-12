@@ -16,8 +16,8 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
     #load c matrix for split 0 (training data)
     C = C
 
-    X_train_final = np.array([])
-    y_train_final = np.array([])
+    X_train = np.array([])
+    y_train = np.array([])
 
     #load in the ERP's for each condition an concatenate everything
     for subject in subjects: 
@@ -33,19 +33,19 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
                 meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_test.npy"))
             #append archetypes and labels ERP's to training
             signal = np.concatenate((np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C), axis=1)
-            y_train_final = np.append(y_train_final, condition)
+            y_train = np.append(y_train, condition)
         
             #concatenate ERP's to one long feature vector
-            X_train_final = np.append(X_train_final, np.concatenate(signal).reshape(-1))
+            X_train = np.append(X_train, np.concatenate(signal).reshape(-1))
 
     #reshape: [s*cond, t*k*2] matrix
-    X_train_final = np.reshape(X_train_final, ((len(subjects) * len(conditions)), np.concatenate(signal).reshape(-1).shape[0]))
+    X_train = np.reshape(X_train, ((len(subjects) * len(conditions)), np.concatenate(signal).reshape(-1).shape[0]))
 
     #standardize
-    mu = np.mean(X_train_final,axis=0,dtype=np.float64) 
-    std = np.std(X_train_final,axis=0,dtype=np.float64)
+    mu = np.mean(X_train,axis=0,dtype=np.float64) 
+    std = np.std(X_train,axis=0,dtype=np.float64)
 
-    X_train_final = (X_train_final - mu) / std
+    X_train_final = (X_train - mu) / std
     
     n = len(X_train_final)
     pca = PCA(n_components=n)
@@ -79,8 +79,9 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
         for i in range(len(conditions)):
             for j in range(len(subjects)):
                 #plt.plot(range(V.shape[0]),V[:, 0], '-',color = colors[i], label = f"PC{i + 3 * j}") #plotting a principle component
-                plt.plot(range(X_pca.shape[1]),X_pca[i + 3 * j,:], '-',color = colors[i], label = conditions[i])
+                plt.plot(range(X_pca.shape[1]),X_pca[i + 3 * j,:], '.',color = colors[i], label = conditions[i])
         plt.legend()
+        #plt.ylim([-0.5, 0.5])
         plt.xlabel('Principal component')
         plt.ylabel('Projected value')
         plt.show()
@@ -104,11 +105,11 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
             ax.scatter(x, y, z)
         plt.show()
 
-    return X_pca, y_train_final, i_var
+    return X_pca, y_train, i_var
 
 if __name__ == "__main__":
     trainPath = Path("data/trainingDataSubset")
-    subjects = range(1,17)
+    subjects = range(1,3)
     C = np.load(f"data/MMAA_results/split_0/C_matrix.npy")
     
     pca(trainPath, subjects, C, plot = True, verbose=True)
