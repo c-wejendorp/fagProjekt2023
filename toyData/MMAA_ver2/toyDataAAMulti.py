@@ -94,12 +94,12 @@ class MMAA(torch.nn.Module):
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
             loss += torch.sum(loss_per_sub)
-            mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub) + self.epsilon) 
+            mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.sum(torch.log(torch.add(loss_per_sub, self.epsilon)))
                                           - torch.log(torch.tensor(self.T[m])) + 1)
             
             beta  = 1/(self.V *self.T[m]) * self.epsilon
             alpha = 1 + self.T[2]/2 - self.T[m]/2
-            mle_loss_rob_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.log(2 * beta + torch.sum(loss_per_sub))
+            mle_loss_rob_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.sum(torch.log(torch.add(loss_per_sub, 2 * beta)))
             mle_loss_rob += mle_loss_rob_m
             if torch.sum(loss_per_sub) == 0:
                 print("Hit it")
