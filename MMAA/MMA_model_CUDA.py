@@ -50,9 +50,9 @@ class MMAA(torch.nn.Module):
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
             if self.loss_robust:
-                beta  = 1/(self.V *self.T[m]) * self.epsilon
+                beta  = 1/(self.V) * self.epsilon
                 alpha = 1 + self.T[2]/2  - self.T[m]/2
-                mle_loss_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.log(2 * beta + torch.sum(loss_per_sub))
+                mle_loss_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.sum(torch.log(torch.add(loss_per_sub, 2 * beta)))
                 mle_loss += mle_loss_m
                 
                 if torch.sum(loss_per_sub) == 0:
@@ -132,7 +132,7 @@ def trainModel(X: Real_Data, numArchetypes=15,seed=32,
 
     #loss function
     optimizer = torch.optim.Adam(model.parameters(), lr = lr)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 10) # patience = 10 is default
+    # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 10) # patience = 10 is default
 
     # Creating Dataloader object
     loss_Adam = []
@@ -144,7 +144,7 @@ def trainModel(X: Real_Data, numArchetypes=15,seed=32,
         # making a prediction in forward pass
         loss = model.forward()
         # update learning rate
-        scheduler.step(loss)
+        # scheduler.step(loss)
         # backward pass for computing the gradients of the loss w.r.t to learnable parameters
         loss.backward()
         # updating the parameters after each iteration
@@ -157,7 +157,7 @@ def trainModel(X: Real_Data, numArchetypes=15,seed=32,
         #print(f"This is the current iteration {i})")
 
         #break if loss does not improve
-        if i > 500 and np.abs(loss_Adam[-2] - loss_Adam[-1]) < tol:
+        if i > 500 and np.abs(loss_Adam[-2] - loss_Adam[-1])/np.abs(loss_Adam[-2]) < tol:
             break
         lr_change.append(optimizer.param_groups[0]["lr"])
 
@@ -205,7 +205,7 @@ def trainModel(X: Real_Data, numArchetypes=15,seed=32,
 if __name__ == "__main__":
     split = 0
     seed = 0
-    k = 15
+    k = 14 
     iterations = 200
     lossRobust = True
        

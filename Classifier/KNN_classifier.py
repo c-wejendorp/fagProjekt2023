@@ -25,11 +25,7 @@ class Nearest_Neighbor():
                     distances[i] = np.sqrt(np.sum((x - x_test)**2))
                     
                 if self.distance_measure == 'DTW':
-                    if len(x.shape) > 1:
-                        for k in range(x.shape[1]):
-                            distances[i] += dtw.distance(x_test[:,k], x[:,k])
-                    else: # TODO: why are the dimensions not 2D ????????? help
-                        distances[i] = dtw.distance(x_test, x)
+                    distances[i] = dtw.distance(x_test, x)
             
             # get the indices that are the closest matches
             neighbor_dist = np.argsort(distances)[:self.K_neighbors]
@@ -117,7 +113,7 @@ def train_KNN(K_neighbors, distance_measure, pca_data=True):
                             ## it is perhaps a bit of waste only to evaluate on a single subject when we have data for all of them. Uncomment if wanted to evaluate on all.
                             # eeg_test_cond.append(np.load(testPath / f"{subject}/eeg/{condition}_test.npy"))  
                             # meg_test_cond.append(np.load(testPath / f"{subject}/meg/{condition}_test.npy"))
-                        
+                            
                         elif split == 1:
                             # eeg_test_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
                             # meg_test_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
@@ -145,6 +141,9 @@ def train_KNN(K_neighbors, distance_measure, pca_data=True):
                 X_train = np.array(X_train)
                 X_test = np.array(X_test)
                 
+                X_train = X_train.reshape((X_train.shape[0],X_train.shape[1] * X_train.shape[2]))
+                X_test = X_test.reshape((X_test.shape[0],X_test.shape[1] * X_test.shape[2]))
+                
                 y_test = np.array(y_test)
                 y_train = np.array(y_train)
             
@@ -163,5 +162,5 @@ def train_KNN(K_neighbors, distance_measure, pca_data=True):
     return general_err_all, y_all_predicts
     
 if __name__ == '__main__':
-    train_KNN(K_neighbors=5, distance_measure = 'DTW', pca_data = True)
+    train_KNN(K_neighbors=5, distance_measure = 'Euclidean', pca_data = False)
     

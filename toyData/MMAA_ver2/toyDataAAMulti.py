@@ -97,9 +97,9 @@ class MMAA(torch.nn.Module):
             mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub) + self.epsilon) 
                                           - torch.log(torch.tensor(self.T[m])) + 1)
             
-            beta  = 1/(self.V *self.T[m]) * self.epsilon
+            beta  = 1/(self.V) * self.epsilon
             alpha = 1 + self.T[2]/2 - self.T[m]/2
-            mle_loss_rob_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.log(2 * beta + torch.sum(loss_per_sub))
+            mle_loss_rob_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.sum(torch.log(torch.add(loss_per_sub, 2 * beta)))
             mle_loss_rob += mle_loss_rob_m
             if torch.sum(loss_per_sub) == 0:
                 print("Hit it")
@@ -113,23 +113,26 @@ class MMAA(torch.nn.Module):
 
     
 def toyDataAA(numArchetypes=25,
-              loss_type = 'normal_mle',
-              numpySeed=32,
-              torchSeed=10,
-              plotDistributions=True,
-              learningRate=1e-1,
-              numIterations=5000, 
-              T_eeg=100, 
-              T_meg=100, 
-              T_fmri=500, 
-              nr_subjects=10, 
-              nr_sources=25, 
-              arg_eeg_sources=[np.arange(0,4), np.arange(7,11), np.arange(14,18)], 
-              arg_meg_sources=[np.array([0+i*7, 1+i*7, 4+i*7, 5+i*7]) for i in range(3)], 
-              arg_fmri_sources=[np.array([1+i*7, 2+i*7, 4+i*7, 6+i*7]) for i in range(3)], 
-              activation_timeidx_eeg = np.array([0, 30, 60]), 
-              activation_timeidx_meg=np.array([0, 30, 60]) + 10, 
-              activation_timeidx_fmri=np.array([0, 30, 60]) + 50):
+            loss_type = 'normal_mle',
+            numpySeed=32,
+            torchSeed=10,
+            plotDistributions=True,
+            learningRate=1e-1,
+            numIterations=5000, 
+            T_eeg=100, 
+            T_meg=100, 
+            T_fmri=500 , #500 
+            nr_subjects=10, 
+            nr_sources=25, 
+            arg_eeg_sources=[np.arange(0,4), np.arange(7,11), np.arange(14,18)], 
+            arg_meg_sources=[np.array([0+i*7, 1+i*7, 4+i*7, 5+i*7]) for i in range(3)], 
+            arg_fmri_sources=[np.array([1+i*7, 2+i*7, 4+i*7, 6+i*7]) for i in range(3)], 
+            # activation_timeidx_eeg = np.array([0, 30, 60]), 
+            # activation_timeidx_meg=np.array([0, 30, 60]) + 10, 
+            # activation_timeidx_fmri=np.array([0, 30, 60]) + 50):
+            activation_timeidx_eeg = np.array([0, 0, 0]), 
+            activation_timeidx_meg=np.array([0, 0, 0]), 
+            activation_timeidx_fmri=np.array([0, 0, 0])):
     #seed 
     np.random.seed(numpySeed)
     torch.manual_seed(torchSeed)
@@ -265,7 +268,7 @@ def toyDataAA(numArchetypes=25,
     #loss function
     # lossCriterion = torch.nn.MSELoss(reduction = "sum")
     optimizer = torch.optim.Adam(model.parameters(), lr = lr)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 10) # patience = 10 is default
+    # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 10) # patience = 10 is default
 
     # Creating Dataloader object
     loss_Adam = []
@@ -277,7 +280,7 @@ def toyDataAA(numArchetypes=25,
         # making a prediction in forward pass
         loss = model.forward()
         # update learning rate
-        scheduler.step(loss)
+        # scheduler.step(loss)
         # backward pass for computing the gradients of the loss w.r.t to learnable parameters
         loss.backward()
         # updating the parameters after each iteration
@@ -286,7 +289,7 @@ def toyDataAA(numArchetypes=25,
         # store loss into list
         loss_Adam.append(loss.item())
         
-        if i > 500 and np.abs(loss_Adam[-2] - loss_Adam[-1]) < tol:
+        if i > 500 and np.abs(loss_Adam[-2] - loss_Adam[-1]) / np.abs(loss_Adam[-2]) < tol:
             break
         lr_change.append(optimizer.param_groups[0]["lr"])
 
@@ -339,9 +342,9 @@ def toyDataAA(numArchetypes=25,
         fig.suptitle("Reconstructed Distributions after optimizing C and S")
         fig.tight_layout()
         plt.savefig(r"toyData\plots\reconstruction.png")
-        plt.show()    
-
+        plt.show()
+        
     return loss_Adam
 
 if __name__ == "__main__":
-    toyDataAA(numArchetypes=25, torchSeed=10, plotDistributions=True, loss_type='mle_rob')
+    toyDataAA(numArchetypes=3, torchSeed=10, plotDistributions=True, loss_type='mle_rob')
