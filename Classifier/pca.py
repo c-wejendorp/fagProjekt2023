@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.decomposition import PCA
 from pathlib import Path
 from matplotlib import pyplot as plt
+from scipy.linalg import svd
 
 def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
 
@@ -45,13 +46,24 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
     std = np.std(X_train_final,axis=0,dtype=np.float64)
 
     X_train_final = (X_train_final - mu) / std
-
+    
     n = len(X_train_final)
     pca = PCA(n_components=n)
 
     #find the number of components need to exceed 95% variance for each subject
     X_pca = pca.fit_transform(X_train_final)
     pca.explained_variance_ratio_.cumsum()
+    
+    # #equivalent way of doing all this
+    # #compute svd
+    # U, S, Vh = svd(X_train_final, full_matrices = False)
+    # V = Vh.T #[5400, 6]
+    
+    # #project observations onto eigenvector space
+    # X_pca_svd = X_train_final @ V
+    
+    # #compute variance explained
+    # rho = S * S / (S * S).sum()
 
     for i, var in enumerate(pca.explained_variance_ratio_.cumsum()):
         if var >= 0.95:
@@ -61,15 +73,16 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
             break
 
     if plot:
-        #plot the "time series" of conditions
+        #plot how the observations are being projected
         colors = ['r','k','b','lime','k','c','m','y','tab:purple','tab:pink','tab:gray','tab:orange','lime','tan','aquamarine','gold','lightgreen','tomato','papayawhip']
         fig = plt.figure()
         for i in range(len(conditions)):
             for j in range(len(subjects)):
+                #plt.plot(range(V.shape[0]),V[:, 0], '-',color = colors[i], label = f"PC{i + 3 * j}") #plotting a principle component
                 plt.plot(range(X_pca.shape[1]),X_pca[i + 3 * j,:], '-',color = colors[i], label = conditions[i])
         plt.legend()
-        plt.xlabel('Time')
-        plt.ylabel('...')
+        plt.xlabel('Principal component')
+        plt.ylabel('Projected value')
         plt.show()
 
         #plot datapoints on first three pc's
