@@ -23,13 +23,24 @@ if __name__ == "__main__":
     if not os.path.exists(save_path):
             os.makedirs(save_path)
     
-    save_path_SprSub = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/SprSub'
+    save_path_Cs = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/C/'
+    if not os.path.exists(save_path_C):
+            os.makedirs(save_path_C)
+
+    save_path_Ss = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/S/'
+    if not os.path.exists(save_path_S):
+            os.makedirs(save_path_S)
+
+    save_path_SprSub = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/SprSub/'
     if not os.path.exists(save_path_SprSub):
             os.makedirs(save_path_SprSub)
     
-    save_path_loss = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/loss'
+    save_path_loss = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/loss/'
     if not os.path.exists(save_path_loss):
             os.makedirs(save_path_loss)
+    
+
+    
 
     
 
@@ -48,7 +59,7 @@ if __name__ == "__main__":
                     loss_robust=arguments.get("lossRobust"))    
             
             # save the C matrix
-            np.save(save_path + f'C_split-{split}_k-{numArcheTypes}_seed-{seed}', C)
+            np.save(save_path_Cs + f'C_split-{split}_k-{numArcheTypes}_seed-{seed}', C)
     
             # save all the S matrices
             # filename for sub: S_split-x_k-x_seed-x_sub-x_mod-m
@@ -60,7 +71,7 @@ if __name__ == "__main__":
                     np.save(save_path_SprSub + f'S_split-{split}_k-{k}_seed-{seed}_sub-{j}_mod-{modalities[i]}', Sms[i,j,:,:])
 
             S_avg = np.mean(Sms, axis = 1)
-            np.save(save_path + f'S_split-{split}_k-{k}_seed-{seed}_sub-avg', S_avg)
+            np.save(save_path_Ss + f'S_split-{split}_k-{k}_seed-{seed}_sub-avg', S_avg)
 
             # save all the losses
             # Save the different loss
