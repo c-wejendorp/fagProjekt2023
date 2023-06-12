@@ -2,6 +2,21 @@ from pathlib import Path
 import mne
 import numpy as np
 
+from scipy.signal import butter, filtfilt
+
+def butter_highpass(lowcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    b, a = butter(order, low, btype="highpass")
+    
+    return b, a
+
+def butter_highpass_filter(data, lowcut=0.008, fs=1/2, order=5):
+    b, a = butter_highpass(lowcut, fs, order=order)
+    y = filtfilt(b, a, data)
+
+    return y
+
 trainPath = Path("data/trainingDataSubset")
 testPath = Path("data/testDataSubset")
 
@@ -89,6 +104,9 @@ def fMRI(subject, data_dir="data/JesperProcessed", morpherFolder = "data/fmriMor
         FMRImorph = mne.read_source_morph(f"data/fmriMorphers/{subject}-morph.h5")
         # Morph fMRI data til fsaverage space
         FMRIstc_morphed=FMRImorph.apply(FMRIstc)
+        
+        #highpass filter the fmri signal
+        FMRIstc_morphed.data = butter_highpass_filter(FMRIstc_morphed.data, lowcut = 0.008)
         
         #remove corpus callosum sources for both hemispheres
         #shape after removing: [9354, 9361]
