@@ -96,8 +96,11 @@ class MMAA(torch.nn.Module):
             loss += torch.sum(loss_per_sub)
             mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.sum(torch.log(torch.add(loss_per_sub, self.epsilon)))
                                           - torch.log(torch.tensor(self.T[m])) + 1)
+
+            # mle_loss_rob += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)/self.T[m] + self.epsilon)) - torch.sum(loss_per_sub)/(2 * (torch.sum(loss_per_sub)/self.T[m] + 1))
             
-            beta  = 1/(self.V *self.T[m]) * self.epsilon
+            beta  = 1/(self.V) * self.epsilon
+
             alpha = 1 + self.T[2]/2 - self.T[m]/2
             mle_loss_rob_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.sum(torch.log(torch.add(loss_per_sub, 2 * beta)))
             mle_loss_rob += mle_loss_rob_m
@@ -277,7 +280,7 @@ def toyDataAA(numArchetypes=25,
         # making a prediction in forward pass
         loss = model.forward()
         # update learning rate
-        scheduler.step(loss)
+        # scheduler.step(loss)
         # backward pass for computing the gradients of the loss w.r.t to learnable parameters
         loss.backward()
         # updating the parameters after each iteration
@@ -286,7 +289,7 @@ def toyDataAA(numArchetypes=25,
         # store loss into list
         loss_Adam.append(loss.item())
         
-        if i > 500 and np.abs(loss_Adam[-2] - loss_Adam[-1]) < tol:
+        if i > 500 and np.abs(loss_Adam[-2] - loss_Adam[-1])/np.abs(loss_Adam[-2]) < tol:
             break
         lr_change.append(optimizer.param_groups[0]["lr"])
 
@@ -344,6 +347,8 @@ def toyDataAA(numArchetypes=25,
     return loss_Adam
 
 if __name__ == "__main__":
-    toyDataAA(numArchetypes=3, nr_subjects=30, torchSeed=10, plotDistributions=True, loss_type='mle_rob')
-    toyDataAA(numArchetypes=3, nr_subjects=30, torchSeed=10, plotDistributions=True, loss_type='squared_err')
+
+    toyDataAA(numArchetypes=3, torchSeed=10, plotDistributions=True, loss_type='mle_rob', nr_subjects=30)
+    toyDataAA(numArchetypes=3, torchSeed=10, plotDistributions=True, loss_type='squared_err', nr_subjects=30)
+
     
