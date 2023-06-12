@@ -10,47 +10,47 @@ import torch
 
 
 if __name__ == "__main__":  
-    #load arguments from json file
-    with open('MMAA/arguments.json') as f:
-        arguments = json.load(f)
-
-    # get the split from the command line
-    # if there is no split given, the program will stop
-    if len(sys.argv) == 1:
-         assert False, "No split given"  
+    
+    # get the split and  argumentNum (which argument file to read) from from the command line
+    # if these two are not given the program will stop
+    if len(sys.argv) != 3:
+         assert False, "Give split and argumentNum as command line arguments" 
     else:
-         split = int(sys.argv[1])     
+         split = int(sys.argv[1])
+         argumentsNum = int(sys.argv[2])
+
+    #load arguments from json file
+    with open(f'MMAA/arguments{argumentsNum}.json') as f:
+        arguments = json.load(f)
 
     #split = arguments.get("split")
         
     X = Real_Data(subjects=arguments.get("subjects"),split=split)
     # loop over seeds
+
+    modalities = arguments.get("modalities")
          
-    save_path = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/'
+    save_path = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/'
     if not os.path.exists(save_path):
             os.makedirs(save_path)
     
-    save_path_Cs = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/C/'
+    save_path_Cs = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/C/'
     if not os.path.exists(save_path_Cs):
             os.makedirs(save_path_Cs)
 
-    save_path_Ss = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/S/'
+    save_path_Ss = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/S/'
     if not os.path.exists(save_path_Ss):
             os.makedirs(save_path_Ss)
 
-    save_path_SprSub = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/SprSub/'
+    save_path_SprSub = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/SprSub/'
     if not os.path.exists(save_path_SprSub):
             os.makedirs(save_path_SprSub)
     
-    save_path_loss = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/loss/'
+    save_path_loss = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/loss/'
     if not os.path.exists(save_path_loss):
-            os.makedirs(save_path_loss)
-    
+            os.makedirs(save_path_loss) 
 
-    
-
-    
-
+    # loop over seeds
     for seed in arguments.get("seeds"):
         for numArcheTypes in range(arguments.get("archeTypeIntevalStart"),arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSize")):
             # lets clear the cache

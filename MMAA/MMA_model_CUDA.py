@@ -10,14 +10,21 @@ if torch.cuda.is_available():
     torch.set_default_device("cuda:0")
     
 class MMAA(torch.nn.Module):
-    def __init__(self, X: Real_Data, k : int, loss_robust: bool, numModalities=3):
+    def __init__(self, X: Real_Data, k : int, loss_robust: bool, modalities=["eeg", "meg", "fmri"]):
     #def __init__(self, V, T, k, X: Real_Data, numSubjects = 1, numModalities = 1): #k is number of archetypes
         super(MMAA, self).__init__()
+        self.modalities = modalities
+        self.numModalities = len(self.modalities)
+        
+        self.numSubjects = getattr(X, f"{self.modalities[0]}_data").shape[0]
+        #self.numSubjects = X.EEG_data.shape[0]
 
-        self.numModalities = numModalities
-        self.numSubjects = X.EEG_data.shape[0]
-        self.T = np.array([X.EEG_data.shape[1], X.MEG_data.shape[1], X.fMRI_data.shape[1]]) #number of time points      
-        self.V = X.EEG_data.shape[2] #number of sources
+        self.T = np.array([getattr(X, f"{m}_data").shape[1] for m in self.modalities]) #number of time points               
+        #self.T = np.array([X.EEG_data.shape[1], X.MEG_data.shape[1], X.fMRI_data.shape[1]]) #number of time points  
+
+        self.V = getattr(X, f"{self.modalities[0]}_data").shape[2] #number of sources          
+        #self.V = X.EEG_data.shape[2] #number of sources
+
         self.loss_robust = loss_robust
         
         if loss_robust:
@@ -33,16 +40,21 @@ class MMAA(torch.nn.Module):
         # here Sms has the shape of (m, s, k, V)
         self.Sms = torch.nn.Parameter(torch.nn.Softmax(dim = -2)(torch.rand((self.numModalities, self.numSubjects, k, self.V), dtype = torch.float)))
 
-        self.X = [torch.tensor(X.EEG_data, dtype = torch.double), torch.tensor(X.MEG_data, dtype = torch.double), torch.tensor(X.fMRI_data, dtype = torch.double)]
+    
+        self.X = [torch.tensor(getattr(X, f"{self.modalities[m]}_data"), dtype = torch.double) for m in range(self.numModalities)]
+        #self.X = [torch.tensor(X.EEG_data, dtype = torch.double), torch.tensor(X.MEG_data, dtype = torch.double), torch.tensor(X.fMRI_data, dtype = torch.double)]
 
-        self.eeg_loss = []
-        self.meg_loss = []
-        self.fmri_loss = []
+        #losses as dict
+        self.losses = {"eeg_loss": [], "meg_loss": [], "fmri_loss": []}
+        
+        #self.eeg_loss = []
+        #self.meg_loss = []
+        #self.fmri_loss = []
         
     def forward(self):
         #find the unique reconstruction for each modality for each subject
         mle_loss = 0
-        for m in range(self.numModalities):
+        for m,modalName in enumerate(self.modalities):
 
             #X - Xrecon (via MMAA)
             #A = XC
@@ -51,20 +63,25 @@ class MMAA(torch.nn.Module):
             
             if self.loss_robust:
                 beta  = 1/(self.V) * self.epsilon
-                alpha = 1 + self.T[2]/2  - self.T[m]/2
+                # find the highest number of time points across all modalities               
+                max_T = np.max(self.T)
+                alpha = 1 + max_T/2  - self.T[m]/2
                 mle_loss_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.sum(torch.log(torch.add(loss_per_sub, 2 * beta)))
                 mle_loss += mle_loss_m
                 
                 if torch.sum(loss_per_sub) == 0:
                     print("We hit a 0 loss per sub!")
-                
-                if m == 0:
-                    self.eeg_loss.append(-mle_loss_m)
-                elif m == 1:
-                    self.meg_loss.append(-mle_loss_m)
-                else:
-                    self.fmri_loss.append(-mle_loss_m)
-                    
+
+                self.losses[modalName + "_loss"].append(-mle_loss_m)
+
+                """
+                if modalName == "eeg":
+                    self.losses["eeg_loss"].append(-mle_loss_m)
+                elif modalName == "meg":
+                    self.losses["meg_loss"].append(-mle_loss_m)
+                elif modalName == "fmri":
+                    self.losses["fmri_loss"].append(-mle_loss_m)    
+                """              
                     
             else: 
                 mle_loss_m = -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.sum(torch.log(torch.add(loss_per_sub, self.epsilon)))
@@ -74,12 +91,15 @@ class MMAA(torch.nn.Module):
                 if torch.sum(loss_per_sub) == 0:
                     print("We hit a 0 loss per sub!")
                 
-                if m == 0:
-                    self.eeg_loss.append(-mle_loss_m)
-                elif m == 1:
-                    self.meg_loss.append(-mle_loss_m)
-                else:
-                    self.fmri_loss.append(-mle_loss_m)
+                self.losses[modalName + "_loss"].append(-mle_loss_m)
+                """
+                if modalName == "eeg":
+                    self.losses["eeg_loss"].append(-mle_loss_m)
+                elif modalName == "meg":
+                    self.losses["meg_loss"].append(-mle_loss_m)
+                elif modalName == "fmri":
+                    self.losses["fmri_loss"].append(-mle_loss_m)    
+                """              
 
         #minimize negative log likelihood
         return -mle_loss
@@ -88,43 +108,20 @@ class MMAA(torch.nn.Module):
 def trainModel(X: Real_Data, numArchetypes=15,seed=32,
               plotDistributions=False,
               learningRate=1e-1,
-              numIterations=10000, loss_robust=True):
+              numIterations=10000, loss_robust=True,modalities=["eeg", "meg", "fmri"]):
     #seed 
     np.random.seed(seed)
     torch.manual_seed(seed)       
     
     #X = Real_Data(numSubjects=16)
     
+    # I dont think this is used:
     ###dim
-    V = X.EEG_data.shape[2]
-    T = np.array([np.shape(X.EEG_data)[1], np.shape(X.MEG_data)[1], np.shape(X.fMRI_data)[1]])
-    k = numArchetypes
+    #V = X.EEG_data.shape[2]
+    #T = np.array([np.shape(X.EEG_data)[1], np.shape(X.MEG_data)[1], np.shape(X.fMRI_data)[1]])
+    #k = numArchetypes
     
-    model = MMAA(X, k, loss_robust,numModalities=3)
-
-    """
-    if torch.cuda.is_available():
-        device = torch.device('cuda')
-    else:
-        device = torch.device('cpu')
-    
-    model.to(device) 
-    """
-
-    """
-    if plotDistributions:        
-        for sub in range(X.EEG_data.shape[0]): #num of subjects
-            if sub == 0: #AHHHHH TOO MANY PLOTS >:(
-                _, ax = plt.subplots(3)
-                for voxel in range(V):
-                    for modality in range(3):
-                        ax[modality].plot(np.arange(T[modality]), model.X[modality][sub, :, voxel], '-', alpha=0.5) 
-                
-                plt.savefig(f"MMAA\plots\data_seed{seed}.png")
-                #plt.savefig(r"MMMA\plots\data.png")
-                #plt.show()
-    """        
-
+    model = MMAA(X, numArchetypes, loss_robust, modalities=modalities) 
 
     #hyperparameters
     lr = learningRate
@@ -160,66 +157,40 @@ def trainModel(X: Real_Data, numArchetypes=15,seed=32,
         # this is set to 200 based on prevoius runs
         if i > 200 and np.abs(loss_Adam[-2] - loss_Adam[-1])/np.abs(loss_Adam[-2]) < tol:
             break
-        lr_change.append(optimizer.param_groups[0]["lr"])
-
-        
-    #print("loss list ", loss_Adam) 
-    #print("final loss: ", loss_Adam[-1])
+        lr_change.append(optimizer.param_groups[0]["lr"])        
     
-    """
-    #plot archetypes
-    _, ax = plt.subplots(4)     
-
-    #plot the different archetypes
-    for m in range(3):
-        A = np.mean((model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
-        for arch in range(k):
-            ax[m].plot(range(T[m]), A[:, arch])
-    ax[-1].plot(range(V), torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).detach().numpy())
-    plt.savefig(f"MMAA\plots\{k}_archeTypes_seed{seed}.png")
-    #plt.show()
-    
-    ### plot reconstruction
-    #m x t x v (averaged over subjects)
-
-    # _, ax = plt.subplots(3)
-    # for m in range(3):
-    #     A = np.mean((model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
-    #     for voxel in range(V):
-    #         Xrecon = A@np.mean(torch.nn.functional.softmax(model.Sms[m], dim = -2, dtype = torch.double).detach().numpy(), axis = 0)
-    #         ax[m].plot(np.arange(T[m]), Xrecon[:, voxel], '-', alpha=0.5)
-    
-    # plt.savefig(path)
-    # plt.show()    
-    # return C
-    """
     #retrieve the matrices and losses we want for plotting
     C = torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double).cpu().detach().numpy()
     Sms = torch.nn.functional.softmax(model.Sms, dim = -2, dtype = torch.double).cpu().detach().numpy()
     #S = np.mean(torch.nn.functional.softmax(model.Sms, dim = -2, dtype = torch.double).cpu().detach().numpy(), axis = 1)
-    eeg_loss = model.eeg_loss
-    meg_loss = model.meg_loss
-    fmri_loss = model.fmri_loss
+
+    eeg_loss = model.losses["eeg_loss"]
+    meg_loss = model.losses["meg_loss"]
+    fmri_loss = model.losses["fmri_loss"]
     
     return C, Sms, eeg_loss, meg_loss, fmri_loss, loss_Adam
 
 if __name__ == "__main__":
     split = 0
     seed = 0
-    k = 14 
-    iterations = 200
+    k = 2 
+    iterations = 2
     lossRobust = True
-       
-    X = Real_Data(subjects=range(1, 17), split=split)   
+    #modalities = ["eeg", "meg"]
+    modalities = ["eeg", "meg", "fmri"]
+    
+    #X = Real_Data(subjects=range(1, 17), split=split) 
+    X = Real_Data(subjects=range(1, 3), split=split)   
         
     C, Sms, eeg_loss, meg_loss, fmri_loss, loss_Adam = trainModel(X, 
                                                                 numArchetypes=k,
                                                                 seed=seed,
                                                                 plotDistributions=False,
                                                                 numIterations=iterations,
-                                                                loss_robust=lossRobust)             
+                                                                loss_robust=lossRobust,
+                                                                modalities=modalities)             
     # save the results  
-    save_path = f'data/MMAA_results/single_run/split-{split}/k-{k}/seed-{0}/'  
+    save_path = f'data/MMAA_results/single_run/{"-".join(modalities)}/split-{split}/k-{k}/seed-{0}/'  
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 

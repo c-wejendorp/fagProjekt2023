@@ -51,14 +51,14 @@ class Real_Data:
 
 
         #convert the lists to numpy arrays
-        self.EEG_data = np.array(EEG_data)
-        self.MEG_data = np.array(MEG_data)           
-        self.fMRI_data = np.array(fMRI_data) 
+        self.eeg_data = np.array(EEG_data)
+        self.meg_data = np.array(MEG_data)           
+        self.fmri_data = np.array(fMRI_data) 
           
 if __name__ == "__main__":
     X = Real_Data()
-    print(X.EEG_data.shape)
-    print(X.MEG_data.shape)
-    print(X.fMRI_data.shape)
+    print(X.eeg_data.shape)
+    print(X.meg_data.shape)
+    print(X.fmri_data.shape)
 
     
