@@ -11,14 +11,12 @@ if __name__ == "__main__":
     seeds = arguments.get("seeds")
     modalities = ['eeg', 'meg', 'fmri']
 
-    datapath = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/'
+    datapath_C = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/C/'
+    datapath_S = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}S/'
 
     savepath = f'/work3/s204090/data/MMAA_results/multiple_runs/split_{split}/test_loss/'
     if not os.path.exists(savepath):
-        os.makedirs(savepath)       
-    
-    #S = np.load(f"data/MMAA_results/multiple_runs/split_{split}/S_split-{split}_k-2_seed-0_sub-avg.npy")
-
+        os.makedirs(savepath)     
     
     #notice that x train can be either split 0 or 1
     if split == 0:
@@ -41,9 +39,11 @@ if __name__ == "__main__":
         sum_loss_testTest = []
 
         #calculate the loss for each seed        
-        for seed in seeds:                
-            S = np.load(datapath + f"S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy")
-            C = np.load(datapath + f"C_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy")
+        for seed in seeds:          
+
+            C = np.load(datapath_C + f"C_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy")
+
+            S = np.load(datapath_S + f"S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy")
 
             #with testtrain
             eeg_loss_testTrain.append(np.linalg.norm(X_test[0] - np.linalg.multi_dot(X_train,C,S))**2)

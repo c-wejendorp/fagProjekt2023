@@ -15,13 +15,13 @@
 ### -- Select the resources: 1 gpu in exclusive process mode --
 #BSUB -gpu "num=1:mode=exclusive_process"
 
-# request 32GB of system-memory
+# request 32GB of GPU-memory
 
-#BSUB -R "rusage[mem=32G]"
+#BSUB -R "select[gpu32gb]"
 
 ### wall time limit - the maximum time the job will run. Currently 3 hours. 
 
-#BSUB -W 02:00
+#BSUB -W 02:30
 
 ##BSUB -u s204090@dtu.dk
 ### -- send notification at start -- 

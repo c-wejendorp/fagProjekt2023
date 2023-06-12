@@ -25,7 +25,7 @@ if __name__ == "__main__":
             S_matrices=[]
             for seed in seeds:
                 
-                S_matrices.append(np.load(datapath + f"S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy"))         
+                S_matrices.append(np.load(datapath + f"S/S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy"))         
             # calculate the NMI for S1 and S2, S2 and S3, etc and last S10 and S1
             # this needs to be done for each modality
             eeg_NMIs = []
