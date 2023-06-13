@@ -3,9 +3,11 @@ from sklearn.decomposition import PCA
 from pathlib import Path
 from matplotlib import pyplot as plt
 from scipy.linalg import svd
+import seaborn as sns
+from loadData import Real_Data
 
 def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
-
+    
     #load data
     trainPath = path
 
@@ -16,36 +18,55 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
     #load c matrix for split 0 (training data)
     C = C
 
+    # X_train = np.array([])
+    # y_train = np.array([])
+
+    # #load in the ERP's for each condition an concatenate everything
+    # for subject in subjects: 
+    #     for condition in conditions:
+    #         eeg_train_cond = []
+    #         meg_train_cond = []
+            
+    #         if split == 0:
+    #             eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
+    #             meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
+    #         elif split == 1:
+    #             eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_test.npy"))
+    #             meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_test.npy"))
+    #         #append archetypes and labels ERP's to training
+    #         signal = np.concatenate((np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C), axis=1)
+    #         y_train = np.append(y_train, condition)
+        
+    #         #concatenate ERP's to one long feature vector
+    #         X_train = np.append(X_train, np.concatenate(signal).reshape(-1, order = "F"))
+
+    # #reshape: [s*cond, t*k*2] matrix
+    # X_train = np.reshape(X_train, ((len(subjects) * len(conditions)), np.concatenate(signal).reshape(-1).shape[0]))
+
+    #equivalent way of loading the data. both are correct
     X_train = np.array([])
     y_train = np.array([])
 
     #load in the ERP's for each condition an concatenate everything
-    for subject in subjects: 
-        for condition in conditions:
-            eeg_train_cond = []
-            meg_train_cond = []
-            
-            if split == 0:
-                eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
-                meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
-            elif split == 1:
-                eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_test.npy"))
-                meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_test.npy"))
-            #append archetypes and labels ERP's to training
-            signal = np.concatenate((np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C), axis=1)
-            y_train = np.append(y_train, condition)
-        
-            #concatenate ERP's to one long feature vector
-            X_train = np.append(X_train, np.concatenate(signal).reshape(-1))
+    X = Real_Data(range(1, 3))
 
-    #reshape: [s*cond, t*k*2] matrix
-    X_train = np.reshape(X_train, ((len(subjects) * len(conditions)), np.concatenate(signal).reshape(-1).shape[0]))
-
+    A_eeg = X.EEG_data@C
+    A_meg = X.MEG_data@C
+    
+    X_train_final = []
+    for subject in nr_subjects:
+        for cond in range(3):
+            erp_eeg = A_eeg[subject - 1][cond * 180:180 + cond * 180][:]
+            erp_meg = A_meg[subject - 1][cond * 180:180 + cond * 180][:]
+            erp = np.concatenate((erp_eeg, erp_meg), axis = 0)
+            X_train_final.append(erp.reshape((-1), order = "F"))
+    X_train = np.asarray(X_train_final)
+    
     #standardize
     mu = np.mean(X_train,axis=0,dtype=np.float64) 
     std = np.std(X_train,axis=0,dtype=np.float64)
-
-    X_train_final = (X_train - mu) / std
+    
+    X_train_final = (X_train - mu)
     
     n = len(X_train_final)
     pca = PCA(n_components=n)
@@ -73,21 +94,53 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
             break
 
     if plot:
+        _ = plt.figure()
+        plt.plot(np.mean(X_train_final[np.arange(0, len(subjects)*len(conditions), 3),:], axis = 0), alpha = 0.3, color = "red")
+        plt.plot(np.mean(X_train_final[np.arange(1, len(subjects)*len(conditions), 3),:], axis = 0) + 0.02, alpha = 0.3, color = "green")
+        plt.plot(np.mean(X_train_final[np.arange(2, len(subjects)*len(conditions), 3),:], axis = 0) - 0.02, alpha = 0.3, color = "purple")
+        plt.ylim([-0.03, 0.03])
+        plt.show()
+        
+        #plot an erp
+        # _ = plt.figure()
+        # plt.plot(X_train_final[0, :])
+        # plt.ylim([-5, 5])
+        # plt.show()
+        
         #plot how the observations are being projected
-        colors = ['r','k','b','lime','k','c','m','y','tab:purple','tab:pink','tab:gray','tab:orange','lime','tan','aquamarine','gold','lightgreen','tomato','papayawhip']
-        fig = plt.figure()
-        for i in range(len(conditions)):
-            for j in range(len(subjects)):
-                #plt.plot(range(V.shape[0]),V[:, 0], '-',color = colors[i], label = f"PC{i + 3 * j}") #plotting a principle component
-                plt.plot(range(X_pca.shape[1]),X_pca[i + 3 * j,:], '.',color = colors[i], label = conditions[i])
-        plt.legend()
-        #plt.ylim([-0.5, 0.5])
-        plt.xlabel('Principal component')
-        plt.ylabel('Projected value')
+        _, ax = plt.subplots()
+        for i, (color, condition) in enumerate(zip(['tab:blue', 'tab:orange', 'tab:green'], ["famous", "unfamous", "scrambled"])):
+            x = [np.arange(X_pca.shape[1]) for _ in range(len(subjects))]
+            y = X_pca[np.arange(i, len(subjects)*len(conditions), 3),:]
+
+            plt.scatter(x, y, c=color, label=condition,
+                    alpha=0.8, edgecolors='none')
+            #plt.plot(x, y)
+
+        ax.legend()
+        plt.show()
+        
+        #plot explained variance:
+        _ = plt.figure()
+        ax = plt.axes()
+        ax.set_title("Explained variance")
+        
+        plt.plot(np.arange(n), pca.explained_variance_ratio_.cumsum(), marker='o', linestyle='-', color='pink')
+        plt.ylim(0.0,1.1)
+        plt.xlabel('Number of Principal Components')
+        plt.xticks(np.arange(n, step=1)) 
+        plt.ylabel('Cumulative variance (%)')
+        
+        plt.axhline(y=0.95, color='grey', linestyle='--')
+        plt.text(1.1, 1, '95% threshold', color = 'black', fontsize=16)
+
+        ax.grid(axis='x')
+        plt.tight_layout()
+        
         plt.show()
 
         #plot datapoints on first three pc's
-        fig = plt.figure()
+        _ = plt.figure()
         ax = plt.axes(projection = "3d")
 
         ax.set_title('Plotting on 3 PCs')
@@ -96,13 +149,14 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
         ax.set_xlabel('pc1', labelpad=20)
         ax.set_ylabel('pc2', labelpad=20)
         ax.set_zlabel('pc3', labelpad=20)
-
+        
+        color = ["red", "blue", "green"]
         for i in range(len(conditions)):
             x = X_pca[np.arange(i, len(subjects)*len(conditions), 3), 0]
             y = X_pca[np.arange(i, len(subjects)*len(conditions), 3), 1]
             z = X_pca[np.arange(i, len(subjects)*len(conditions), 3), 2]
 
-            ax.scatter(x, y, z)
+            ax.scatter(x, y, z, c = color[i])
         plt.show()
 
     return X_pca, y_train, i_var
