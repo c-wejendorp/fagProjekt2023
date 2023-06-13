@@ -134,7 +134,7 @@ def train_LR(pca_data=True, multi=False, archetypes=None, seed=None):
         
     print("Overall generalization error:", np.mean(general_err_all))
     
-    return general_err_all, y_all_predicts
+    return general_err_all, y_all_predicts, y_trues
     
 if __name__ == '__main__':
     train_LR(pca_data = False, multi=True, archetypes=2, seed=0)
