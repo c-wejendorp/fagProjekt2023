@@ -3,7 +3,7 @@
 
 
             ### select queue 
-            #BSUB -q gpuv100
+            #BSUB -q hpc
 
             ### name of job, output file and err
             #BSUB -J MMAA_train_test
@@ -15,17 +15,15 @@
             #BSUB -n 1
 
             # request cpu
-            #BSUB -R "rusage[mem=16G]"
+            #BSUB -R "rusage[mem=32G]"
 
-            ### -- Select the resources: 1 gpu in exclusive process mode --
-            #BSUB -gpu "num=1:mode=exclusive_process"
+            ### we dont need gpu for the test. 
 
-            # request 32GB of GPU-memory
-            #BSUB -R "select[gpu32gb]"
+           
 
             ### wall time limit - the maximum time the job will run. For this tester only 5 min. 
 
-            #BSUB -W 00:05
+            #BSUB -W 00:10
 
             ##BSUB -u s204090@dtu.dk
             ### -- send notification at start -- 
