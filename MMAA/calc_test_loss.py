@@ -54,10 +54,10 @@ if __name__ == "__main__":
                         S = np.load(datapath_S + f"S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy")
                         
                         #calculate the loss for each modality
-                        for modality in modalityComb: 
+                        for idx,modality in enumerate(modalityComb): 
                                 if modality != "fmri":                           
                                     org = getattr(X_test, f"{modality}_data")
-                                    rec = np.linalg.multi_dot([getattr(X_train, f"{modality}_data"),C,S])
+                                    rec = np.linalg.multi_dot([getattr(X_train, f"{modality}_data"),C,S[idx,:,:]])
 
                                     modalities_loss[f"test_loss_{modality}"].append(np.linalg.norm(org - rec)**2)
 
