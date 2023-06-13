@@ -1,6 +1,6 @@
 import json
-def createArguments():
-    modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"]]
+def createArguments():    
+    modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"],["eeg"], ["meg"], ["fmri"]]
     for idx,modalityComb in enumerate(modalityCombs):    
         # i will implement that we read this from json file later 
         arguments = {    
