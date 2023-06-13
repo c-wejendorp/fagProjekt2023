@@ -126,6 +126,7 @@ def train_LR(pca_data=True, multi=False, archetypes=None, seed=None):
             acc = np.sum(y_pred == y_test)/len(y_test)
             
             y_all_predicts.append(y_pred)
+            y_trues.append(y_test)
             # print("Accuracy:", acc)
             
             general_err_split.append(acc)
