@@ -57,7 +57,7 @@ def createSubmitScripts():
             # NOTE: needs to have been built with the same SciPy version above!
             source MMAA/HPC_env/bin/activate
 
-            python MMAA/HPC/trainModels.py {split} {argNum}
+            python MMAA/trainModels.py {split} {argNum}
             '''
 
             script_content = script_template.format(split=splitNum, argNum=argumentsNum)

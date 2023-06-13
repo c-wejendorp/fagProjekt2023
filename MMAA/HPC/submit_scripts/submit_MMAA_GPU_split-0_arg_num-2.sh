@@ -47,5 +47,5 @@
             # NOTE: needs to have been built with the same SciPy version above!
             source MMAA/HPC_env/bin/activate
 
-            python MMAA/HPC/trainModels.py 0 2
+            python MMAA/trainModels.py 0 2
             
