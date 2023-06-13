@@ -1,14 +1,4 @@
-import json
-from createArguments import createArguments
-def createSubmitScripts():
-    # read the arguments
-    createArguments()
-    #loop over split
-    for splitNum in range(2):
-        # loop over the argument files
-        for argumentsNum in range(7):
-            # create the script
-            script_template = '''
+
             #!/bin/sh            
 
 
@@ -16,9 +6,9 @@ def createSubmitScripts():
             #BSUB -q gpuv100
 
             ### name of job, output file and err
-            #BSUB -J MMAA_train_split-{split}_arg_num-{argNum}
-            #BSUB -o MMAA_train_split-{split}_arg_num-{argNum}_%J.out
-            #BSUB -e MMAA_train_split-{split}_arg_num-{argNum}_J.err
+            #BSUB -J MMAA_train_split-1_arg_num-5
+            #BSUB -o MMAA_train_split-1_arg_num-5_%J.out
+            #BSUB -e MMAA_train_split-1_arg_num-5_J.err
 
 
             ### number of cores
@@ -57,26 +47,5 @@ def createSubmitScripts():
             # NOTE: needs to have been built with the same SciPy version above!
             source MMAA/HPC_env/bin/activate
 
-            python MMAA/HPC/trainModels.py {split} {argNum}
-            '''
-
-            script_content = script_template.format(split=splitNum, argNum=argumentsNum)
-            with open(f'MMAA/HPC/submit_scripts/submit_MMAA_GPU_split-{splitNum}_arg_num-{argumentsNum}.sh', 'w') as fp:
-                fp.write(script_content)
-
-if __name__ == "__main__":
-    createSubmitScripts()
-
+            python MMAA/HPC/trainModels.py 1 5
             
-
-
-
-
-
-
-
-
-
-
-    
-    
