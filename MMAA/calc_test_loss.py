@@ -46,29 +46,23 @@ if __name__ == "__main__":
                 # loop over all archetypes in correct stepSize
                 for numArcheTypes in range(arguments.get("archeTypeIntevalStart"),arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSize")):
                     # create dict based on modalityComb in compressed form except if modaility is fmri
-                    modalityCombDict = {f"test_loss_{modality}": [] for modality in modalityComb if modality != "fmri"}
+                    modalities_loss = {f"test_loss_{modality}": [] for modality in modalityComb if modality != "fmri"}
 
                     #now find the loss for each seed 
                     for seed in seeds:
                         C = np.load(datapath_C + f"C_split-{split}_k-{numArcheTypes}_seed-{seed}.npy")
                         S = np.load(datapath_S + f"S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy")
-
+                        
                         #calculate the loss for each modality
-                        for modality in modalityComb:
-                            if modality == "eeg":
-                                modalityCombDict[f"test_loss_{modality}"].append(np.linalg.norm(X_test[0] - np.linalg.multi_dot(X_train[0],C,S))**2)
-                            elif modality == "meg":
-                                modalityCombDict[f"test_loss_{modality}"].append(np.linalg.norm(X_test[1] - np.linalg.multi_dot(X_train[1],C,S))**2)
-                            
-                            # again if we have a M/EEg and fmri combination we do not have fmri_testloss
-                            #elif modality == "fmri":
-                            #    modalityCombDict[f"{modality}_loss_test"].append(np.linalg.norm(X_test[2] - np.linalg.multi_dot(X_train,C,S))**2)
-                            # we wont have fmri_testloss as this identical to train loss
-                            else:
-                                print("Error in modalityComb")
-                                break
-                    # calculate the mean and std for each number of archetypes
-                    for key, loss_list in modalityCombDict.items():
+                        for modality in modalityComb: 
+                                if modality != "fmri":                           
+                                    org = getattr(X_test, f"{modality}_data")
+                                    rec = np.linalg.multi_dot(getattr(X_train, f"{modality}_data"),C,S)
+
+                                    modalities_loss[f"test_loss_{modality}"].append(np.linalg.norm(org - rec)**2)
+
+                    # calculate the mean and std over seeds for current num of archetypes
+                    for key, loss_list in modalities_loss.items():
                         mean = np.mean(loss_list)
                         std = np.std(loss_list)
                         #find the smallest loss for each modality across seeds
