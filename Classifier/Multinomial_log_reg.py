@@ -4,52 +4,14 @@ import numpy as np
 from pca import pca
 from dtaidistance import dtw
 from tqdm import tqdm
-# Nice to have: two layer cv to get best number of neighbors
+from sklearn.linear_model import LogisticRegression
+# TODO: Make crossvalidation for subjects     
 
-class Nearest_Neighbor():
-    def __init__(self, distance_measure = 'Euclidean', K_neighbors = 1):
-        self.distance_measure = distance_measure
-        self.K_neighbors = K_neighbors
-        
-
-    def fit(self, X_train, y_train):
-        self.X_train = X_train
-        self.y_train = np.array(y_train)
-        
-    def predict(self, X_test_inp, y_test):
-        distances = np.zeros(len(self.X_train))
-        predicts = []
-        for x_test in X_test_inp:
-            for i, x in enumerate(self.X_train):
-                if self.distance_measure == 'Euclidean':
-                    distances[i] = np.sqrt(np.sum((x - x_test)**2))
-                    
-                if self.distance_measure == 'DTW': # this takes ages to run, but is theoretically better for time series
-                    distances[i] = dtw.distance(x_test, x)
-            
-            # get the indices that are the closest matches
-            neighbor_dist = np.argsort(distances)[:self.K_neighbors]
-            
-            # Count the votes
-            neighbor, counts = np.unique(self.y_train[neighbor_dist], return_counts=True)
-            vote = neighbor[counts == np.amax(counts)]
-            
-            if len(vote) > 1:
-                # If there is a tie, pick the closest neighbor with those votes
-                vote = next((i for i in self.y_train[neighbor_dist] if i in vote), None)
-            else: vote = vote[0]
-            
-            predicts.append(vote)
-        # print(predicts)
-        accuracy = np.sum(np.array(predicts) == np.array(y_test))/len(y_test)
-        return predicts, accuracy
-    
-
-def train_KNN(K_neighbors, distance_measure, pca_data=True, multi=False, archetypes=2, seed=0):
+def train_LR(pca_data=True, multi=False, archetypes=None, seed=None):
     trainPath = Path("data/trainingDataSubset")
     testPath = Path("data/testDataSubset")
 
-    knn_clf=Nearest_Neighbor(distance_measure = distance_measure, K_neighbors = K_neighbors)
+    model_LR = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
 
     splits = range(2)
 
@@ -80,6 +42,7 @@ def train_KNN(K_neighbors, distance_measure, pca_data=True, multi=False, archety
             else:
                 C = np.load(f"data/MMAA_results/split_{split}/C_matrix.npy")
 
+            #S = np.load("data/MMAA_results/S_matrix.npy")
             
             ## if pca
             if pca_data:
@@ -120,7 +83,7 @@ def train_KNN(K_neighbors, distance_measure, pca_data=True, multi=False, archety
                             ## it is perhaps a bit of waste only to evaluate on a single subject when we have data for all of them. Uncomment if wanted to evaluate on all.
                             # eeg_test_cond.append(np.load(testPath / f"{subject}/eeg/{condition}_test.npy"))  
                             # meg_test_cond.append(np.load(testPath / f"{subject}/meg/{condition}_test.npy"))
-
+                        
                         elif split == 1:
                             # eeg_test_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
                             # meg_test_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
@@ -141,24 +104,29 @@ def train_KNN(K_neighbors, distance_measure, pca_data=True, multi=False, archety
                     X_train.extend(np.concatenate([np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C], axis=1)) #X_train.append(np.concatenate([np.mean(np.array(eeg_train_cond), axis=0)@C, np.mean(np.array(meg_train_cond), axis=0)@C])) # append the archetypes
                     X_test.extend(np.concatenate([np.array(eeg_test_cond)@C, np.array(meg_test_cond)@C], axis=1))
                     
-                    y_test.extend([condition])
+                    y_test.extend([condition]) # TODO make 360 general
                     y_train.extend([condition] * len(train_subjects))
-            
+        
+
+                    
             if not pca_data:
                 X_train = np.array(X_train)
                 X_test = np.array(X_test)
                 
                 X_train = X_train.reshape((X_train.shape[0],X_train.shape[1] * X_train.shape[2]))
                 X_test = X_test.reshape((X_test.shape[0],X_test.shape[1] * X_test.shape[2]))
-                
+                # Concatenate the subjects 
+                # X_train = X_train.reshape((3*(len(subjects)-1),X_train.shape[1]*X_train.shape[2]))
                 y_test = np.array(y_test)
                 y_train = np.array(y_train)
             
-            knn_clf.fit(X_train, y_train)
-            y_pred, acc = knn_clf.predict(X_test, y_test)
+            model_LR.fit(X_train, y_train)
+            y_pred = model_LR.predict(X_test)
             
-            y_trues.append(y_test)
+            acc = np.sum(y_pred == y_test)/len(y_test)
+            
             y_all_predicts.append(y_pred)
+            y_trues.append(y_test)
             # print("Accuracy:", acc)
             
             general_err_split.append(acc)
@@ -170,5 +138,6 @@ def train_KNN(K_neighbors, distance_measure, pca_data=True, multi=False, archety
     return general_err_all, y_all_predicts, y_trues
     
 if __name__ == '__main__':
-    train_KNN(K_neighbors=8, distance_measure = 'Euclidean', pca_data = False)
+    train_LR(pca_data = False, multi=True, archetypes=2, seed=0)
+    train_LR(pca_data = False, multi=False)
     
