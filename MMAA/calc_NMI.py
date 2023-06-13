@@ -39,33 +39,26 @@ if __name__ == "__main__":
                     # calculate the NMI for S1 and S2, S2 and S3, etc and last S10 and S1
                     # this needs to be done for each modality
 
-                    eeg_NMIs = []
-                    meg_NMIs = []
-                    fmri_NMIs = []
+                    # create dict based on modalityComb in compressed form except if modaility is fmri
+                    NMIS = {f"{modality}_NMIS": [] for modality in modalityComb}
+
                     number_of_seeds = len(seeds)
                     for s in range(number_of_seeds):
-                        eeg_NMIs.append(nmi(S_matrices[s][0], S_matrices[(s+1)%number_of_seeds][0]))
-                        meg_NMIs.append(nmi(S_matrices[s][1], S_matrices[(s+1)%number_of_seeds][1]))
-                        fmri_NMIs.append(nmi(S_matrices[s][2], S_matrices[(s+1)%number_of_seeds][2]))
 
-                    # calculate the average NMI for each modality
-                    eeg_NMI_mean = np.mean(eeg_NMIs)
-                    meg_NMI_mean = np.mean(meg_NMIs)
-                    fmri_NMI_mean = np.mean(fmri_NMIs)
-                    # calculate the standard deviation for each modality
-                    eeg_NMI_std = np.std(eeg_NMIs)
-                    meg_NMI_std = np.std(meg_NMIs)
-                    fmri_NMI_std = np.std(fmri_NMIs)
-
-                    #find the largest NMI for each modality
-                    eeg_NMI_max = np.max(eeg_NMIs)
-                    meg_NMI_max = np.max(meg_NMIs)
-                    fmri_NMI_max = np.max(fmri_NMIs)         
+                        # add to dict through list comprehension
+                        for idx,modality in enumerate(modalityComb):
+                            NMIS[f"NMI_{modality}"].append(nmi(S_matrices[s][idx], S_matrices[(s+1)%number_of_seeds][idx]))
                     
-                    #save the mean,std and max NMI for each modality'
-                    np.save(savepath + f'NMI_split-{split}_k-{numArcheTypes}_type-eeg', np.array([eeg_NMI_mean, eeg_NMI_std, eeg_NMI_max]))
-                    np.save(savepath + f'NMI_split-{split}_k-{numArcheTypes}_type-meg', np.array([meg_NMI_mean, meg_NMI_std, meg_NMI_max]))
-                    np.save(savepath + f'NMI_split-{split}_k-{numArcheTypes}_type-fmri', np.array([fmri_NMI_mean, fmri_NMI_std, fmri_NMI_max]))
+                    # calculate the average NMI for each modality
+                    for NMI_name,nmis in NMIS.items():
+                        # calculate the average NMI for each modality
+                        mean = np.mean(nmis)
+                        # calculate the standard deviation for each modality
+                        std = np.std(nmis)
+                        #find the largest NMI for each modality
+                        max = np.max(nmis)
+                        #save the mean,std and max NMI for each modality'
+                        np.save(savepath + f'{NMI_name}_split-{split}_k-{numArcheTypes}', np.array([mean, std, max]))
 
-        
+
 
