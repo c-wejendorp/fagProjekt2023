@@ -1,6 +1,9 @@
 import json
 import sys
 import getopt
+import sys
+#add the path to the folder one level above
+sys.path.append('../')
 from loadData import Real_Data
 from MMA_model_CUDA import MMAA, trainModel
 import ast

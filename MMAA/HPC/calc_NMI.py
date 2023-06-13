@@ -1,5 +1,8 @@
 import numpy as np
 import json
+# import from the nmi.py in a folder on lvl above
+import sys
+sys.path.append('../')
 from nmi import nmi
 import os
 
