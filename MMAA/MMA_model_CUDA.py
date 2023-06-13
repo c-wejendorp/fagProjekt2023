@@ -176,8 +176,8 @@ if __name__ == "__main__":
     k = 2 
     iterations = 2
     lossRobust = True
-    #modalities = ["eeg", "meg"]
-    modalities = ["eeg", "meg", "fmri"]
+    modalities = ["eeg", "meg"]
+    #modalities = ["eeg", "meg", "fmri"]
     
     #X = Real_Data(subjects=range(1, 17), split=split) 
     X = Real_Data(subjects=range(1, 3), split=split)   
@@ -200,7 +200,7 @@ if __name__ == "__main__":
     # save all the S matrices
     # filename for sub: S_split-x_k-x_seed-x_sub-x_mod-m
     # filename for average: S_split-x_k-x_seed-x_sub-avg
-    modalities = ['eeg', 'meg', 'fmri']
+    #modalities = ['eeg', 'meg', 'fmri']
     m,sub,k,_ = Sms.shape
     for i in range(m):
         for j in range(sub):
