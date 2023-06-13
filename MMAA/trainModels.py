@@ -1,6 +1,7 @@
 import json
 import sys
 import getopt
+import sys
 from loadData import Real_Data
 from MMA_model_CUDA import MMAA, trainModel
 import ast

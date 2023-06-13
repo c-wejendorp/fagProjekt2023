@@ -1,5 +1,7 @@
 import numpy as np
 import json
+# import from the nmi.py in a folder on lvl above
+import sys
 from nmi import nmi
 import os
 
