@@ -15,15 +15,15 @@ if __name__ == "__main__":
     
     #loop through all modalities combinations
     for modalityComb in modalityCombs:
-         #check the folder exists
+         #check the folder exists        dir
         path = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalityComb)}/'
         if os.path.exists(path): 
   
             for split in [0,1]:
                 # loop over split  
-                datapath = f'/work3/s204090/data/MMAA_results/multiple_runs/{dir}/split_{split}/'
+                datapath = path + f'/split_{split}/'
                 
-                savepath = f'/work3/s204090/data/MMAA_results/multiple_runs/{dir}/split_{split}/NMI/'
+                savepath = path + f'/split_{split}/NMI/'
                 if not os.path.exists(savepath):
                     os.makedirs(savepath)
 
