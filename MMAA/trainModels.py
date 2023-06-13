@@ -25,11 +25,11 @@ if __name__ == "__main__":
         arguments = json.load(f)
 
     #split = arguments.get("split")
-        
-    X = Real_Data(subjects=arguments.get("subjects"),split=split)
-    # loop over seeds
 
     modalities = arguments.get("modalities")
+        
+    X = Real_Data(subjects=arguments.get("subjects"),split=split, modalities=modalities)
+    # loop over seeds    
          
     save_path = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/'
     if not os.path.exists(save_path):
