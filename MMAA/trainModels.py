@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     modalities = arguments.get("modalities")
         
-    X = Real_Data(subjects=arguments.get("subjects"),split=split, modalities=modalities)
+    X = Real_Data(subjects=arguments.get("subjects"),split=split)
     # loop over seeds    
          
     save_path = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/'
@@ -64,7 +64,8 @@ if __name__ == "__main__":
                     plotDistributions=False,
                     learningRate=1e-1,
                     numIterations=arguments.get("iterations"), 
-                    loss_robust=arguments.get("lossRobust"))    
+                    loss_robust=arguments.get("lossRobust"),
+                    modalities=modalities)
             
             # save the C matrix
             np.save(save_path_Cs + f'C_split-{split}_k-{numArcheTypes}_seed-{seed}', C)
