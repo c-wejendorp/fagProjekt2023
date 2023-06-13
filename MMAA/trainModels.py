@@ -14,6 +14,9 @@ if __name__ == "__main__":
     
     # get the split and  argumentNum (which argument file to read) from from the command line
     # if these two are not given the program will stop
+
+    # for the real train model: 
+    
     if len(sys.argv) != 3:
          assert False, "Give split and argumentNum as command line arguments" 
     else:
@@ -23,7 +26,16 @@ if __name__ == "__main__":
     #load arguments from json file
     with open(f'MMAA/HPC/arguments/arguments{argumentsNum}.json') as f:
         arguments = json.load(f)
+    
 
+    #for the tests 
+    #load arguments from json file
+    """
+    with open(f'MMAA/HPC/arguments/arguments_tester.json') as f:
+        arguments = json.load(f)
+    split = 0
+    """
+    
     #split = arguments.get("split")
 
     modalities = arguments.get("modalities")
@@ -73,9 +85,7 @@ if __name__ == "__main__":
             # save all the S matrices
             # filename for sub: S_split-x_k-x_seed-x_sub-x_mod-m
             # filename for average: S_split-x_k-x_seed-x_sub-avg
-
-            assert len(modalities) == Sms.shape[0], "The number of modalities does not match the number of modalities in the S matrix"
-            
+            assert len(modalities) == Sms.shape[0], "The number of modalities does not match the number of modalities in the S matrix"            
             m,sub,k,_ = Sms.shape
             for i in range(m):
                 for j in range(sub):
