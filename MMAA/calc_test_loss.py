@@ -57,7 +57,7 @@ if __name__ == "__main__":
                         for modality in modalityComb: 
                                 if modality != "fmri":                           
                                     org = getattr(X_test, f"{modality}_data")
-                                    rec = np.linalg.multi_dot(getattr(X_train, f"{modality}_data"),C,S)
+                                    rec = np.linalg.multi_dot([getattr(X_train, f"{modality}_data"),C,S])
 
                                     modalities_loss[f"test_loss_{modality}"].append(np.linalg.norm(org - rec)**2)
 
