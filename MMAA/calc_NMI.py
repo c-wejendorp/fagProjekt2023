@@ -12,8 +12,9 @@ if __name__ == "__main__":
     seeds = arguments.get("seeds")    
 
     # iterate over all directories in the MMAA_results directory    
-    path = '/work3/s204090/data/MMAA_results/multiple_runs/'    
-    for dir in path:
+    path = '/work3/s204090/data/MMAA_results/multiple_runs/'
+    directories = os.listdir(path)    
+    for dir in directories:
         # loop over split
         for split in [0,1]:
              # loop over split  
