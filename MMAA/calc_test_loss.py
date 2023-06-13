@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
                     #now find the loss for each seed 
                     for seed in seeds:
-                        C = np.load(datapath_C + f"C_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy")
+                        C = np.load(datapath_C + f"C_split-{split}_k-{numArcheTypes}_seed-{seed}.npy")
                         S = np.load(datapath_S + f"S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy")
 
                         #calculate the loss for each modality
