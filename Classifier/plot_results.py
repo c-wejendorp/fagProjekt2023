@@ -10,12 +10,12 @@ from pathlib import Path
 import numpy as np
 from pca import pca
 from dtaidistance import dtw
-from tqdm import tqdm
+#from tqdm import tqdm
 from sklearn.linear_model import LogisticRegression
 
 
 
-def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0):
+def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"]):
     
     trainPath = Path("data/trainingDataSubset")
     testPath = Path("data/testDataSubset")
@@ -46,7 +46,9 @@ def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0)
         LR_general_err_split = []
         LR_pca_general_err_split = []
         # Leave one out subject cross validation
-        for test_subject_idx, test_subject in tqdm(enumerate(subjects)):
+        for test_subject_idx, test_subject in enumerate(subjects):
+        #for test_subject_idx, test_subject in tqdm(enumerate(subjects)):
+            
             all_subjects = range(1,17)
             train_subjects_idx = list(range(0,16))
             train_subjects_idx.remove(test_subject_idx)
@@ -54,7 +56,7 @@ def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0)
             train_subjects = subjects[:]
             train_subjects.remove(test_subject)
             
-            C = np.load(f"data/MMAA_results/multiple_runs/eeg-meg-fmri/split_{split}/C/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
+            C = np.load(f"data/MMAA_results/multiple_runs/{'-'.join(modalityComb)}/split_{split}/C/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
             
             # pca
             if split == 0:
@@ -186,8 +188,11 @@ def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0)
     return np.mean(LR_general_err_all), np.mean(LR_pca_general_err_all), np.mean(KNN_general_err_all), np.mean(KNN_pca_general_err_all)
 
 
-def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/eeg-meg-fmri/split_0/C/", savepath = "Classifier/plots/"):
+def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "Classifier/plots/",modalityComb=["eeg", "meg", "fmri"]):
     
+    datapath = Path(datapath) / Path(f"/{'-'.join(modalityComb)}/split_0/C/")   
+    
+
     # make save diractory
     if not os.path.exists(savepath):
         os.makedirs(savepath)
@@ -198,17 +203,21 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/eeg-meg-fmri/spl
     LR_loss = defaultdict(lambda: [])
     LR_pca_loss = defaultdict(lambda: [])
 
-    for file in tqdm(os.listdir(datapath)): # I'm just going to assume that split_0 and split_1 has the same seeds and archetypes, if not, fight me >:(
+    seeds = [0,10]
+    for file in os.listdir(datapath):
+        #for file in tqdm(os.listdir(datapath)): # I'm just going to assume that split_0 and split_1 has the same seeds and archetypes, if not, fight me >:(
         split, archetype, seed = re.findall(r'\d+', file)
-        
-        LR_gen_acc, LR_pca_gen_acc, KNN_gen_acc, KNN_pca_gen_acc = train_all(K_neighbors=10, distance_measure='Euclidean', archetypes=archetype, seed=seed)
+        if seed not in seeds:
+            continue
+             
+        LR_gen_acc, LR_pca_gen_acc, KNN_gen_acc, KNN_pca_gen_acc = train_all(K_neighbors=10, distance_measure='Euclidean', archetypes=archetype, seed=seed,modalityComb=modalityComb)
         
         KNN_pca_loss[archetype].append(KNN_pca_gen_acc)
         KNN_loss[archetype].append(KNN_gen_acc)
         LR_pca_loss[archetype].append(LR_pca_gen_acc)
         LR_loss[archetype].append(LR_gen_acc)
         
-        f = open("Classifier/checkpoints.txt", "a")
+        f = open(f"Classifier/checkpoints_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
         print(f"____________Checkpoint archetype: {archetype}, seed: {seed}__________", file=f)
         print("KNN_pca_loss = " + str(KNN_pca_loss), file=f)
         print("KNN_loss = " + str(KNN_loss), file=f)
@@ -217,7 +226,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/eeg-meg-fmri/spl
         f.close()
     
     # idk why, I just randomly call it loss instead of accuracy all the time
-    f = open("Classifier/results.txt", "a")
+    f = open("Classifier/results_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
     print("KNN_pca_loss = " + str(KNN_pca_loss), file=f)
     print("KNN_loss = " + str(KNN_loss), file=f)
     print("LR_pca_loss = " + str(LR_pca_loss), file=f)
@@ -257,12 +266,12 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/eeg-meg-fmri/spl
     plt.title("Final classification loss for different number of archetypes training data")
     plt.xlabel("Number of archetypes")
     plt.ylabel("Final loss")
-    plt.savefig(savepath + "class_error.png")    
-    plt.show()    
+    plt.savefig(savepath + f"class_error__{'-'.join(modalityComb)}.txt.png")    
+    #plt.show()    
 
    
    
 if __name__ == "__main__":
-    createLossPlot1()
+    createLossPlot1(datapath="/work3/s204090/data/MMAA_results/multiple_runs/", modalityComb=["eeg", "meg", "fmri"])
     #close all plots
     plt.close("all")

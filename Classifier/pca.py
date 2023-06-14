@@ -3,7 +3,7 @@ from sklearn.decomposition import PCA
 from pathlib import Path
 from matplotlib import pyplot as plt
 from scipy.linalg import svd
-import seaborn as sns
+#import seaborn as sns
 from loadData import Real_Data
 
 def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
@@ -21,46 +21,46 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
     # X_train = np.array([])
     # y_train = np.array([])
 
-    # #load in the ERP's for each condition an concatenate everything
-    # for subject in subjects: 
-    #     for condition in conditions:
-    #         eeg_train_cond = []
-    #         meg_train_cond = []
-            
-    #         if split == 0:
-    #             eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
-    #             meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
-    #         elif split == 1:
-    #             eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_test.npy"))
-    #             meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_test.npy"))
-    #         #append archetypes and labels ERP's to training
-    #         signal = np.concatenate((np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C), axis=1)
-    #         y_train = np.append(y_train, condition)
-        
-    #         #concatenate ERP's to one long feature vector
-    #         X_train = np.append(X_train, np.concatenate(signal).reshape(-1, order = "F"))
-
-    # #reshape: [s*cond, t*k*2] matrix
-    # X_train = np.reshape(X_train, ((len(subjects) * len(conditions)), np.concatenate(signal).reshape(-1).shape[0]))
-
-    #equivalent way of loading the data. both are correct
-    X_train = np.array([])
-    y_train = np.array([])
-
     #load in the ERP's for each condition an concatenate everything
-    X = Real_Data(range(1, 3))
+    for subject in subjects: 
+        for condition in conditions:
+            eeg_train_cond = []
+            meg_train_cond = []
+            
+            if split == 0:
+                eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
+                meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
+            elif split == 1:
+                eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_test.npy"))
+                meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_test.npy"))
+            #append archetypes and labels ERP's to training
+            signal = np.concatenate((np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C), axis=1)
+            y_train = np.append(y_train, condition)
+        
+            #concatenate ERP's to one long feature vector
+            X_train = np.append(X_train, np.concatenate(signal).reshape(-1, order = "F"))
 
-    A_eeg = X.EEG_data@C
-    A_meg = X.MEG_data@C
+    #reshape: [s*cond, t*k*2] matrix
+    X_train = np.reshape(X_train, ((len(subjects) * len(conditions)), np.concatenate(signal).reshape(-1).shape[0]))
+
+    # #equivalent way of loading the data. both are correct
+    # X_train = np.array([])
+    # y_train = np.array([])
+
+    # #load in the ERP's for each condition an concatenate everything
+    # X = Real_Data(range(1, 3))
+
+    # A_eeg = X.EEG_data@C
+    # A_meg = X.MEG_data@C
     
-    X_train_final = []
-    for subject in nr_subjects:
-        for cond in range(3):
-            erp_eeg = A_eeg[subject - 1][cond * 180:180 + cond * 180][:]
-            erp_meg = A_meg[subject - 1][cond * 180:180 + cond * 180][:]
-            erp = np.concatenate((erp_eeg, erp_meg), axis = 0)
-            X_train_final.append(erp.reshape((-1), order = "F"))
-    X_train = np.asarray(X_train_final)
+    # X_train_final = []
+    # for subject in nr_subjects:
+    #     for cond in range(3):
+    #         erp_eeg = A_eeg[subject - 1][cond * 180:180 + cond * 180][:]
+    #         erp_meg = A_meg[subject - 1][cond * 180:180 + cond * 180][:]
+    #         erp = np.concatenate((erp_eeg, erp_meg), axis = 0)
+    #         X_train_final.append(erp.reshape((-1), order = "F"))
+    # X_train = np.asarray(X_train_final)
     
     #standardize
     mu = np.mean(X_train,axis=0,dtype=np.float64) 
