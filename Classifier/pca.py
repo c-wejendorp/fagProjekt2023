@@ -18,8 +18,8 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
     #load c matrix for split 0 (training data)
     C = C
 
-    # X_train = np.array([])
-    # y_train = np.array([])
+    X_train = np.array([])
+    y_train = np.array([])
 
     #load in the ERP's for each condition an concatenate everything
     for subject in subjects: 
