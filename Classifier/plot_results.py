@@ -203,7 +203,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
     LR_loss = defaultdict(lambda: [])
     LR_pca_loss = defaultdict(lambda: [])
 
-    seeds = [0,10]
+    seeds = ["0","10"]
     for file in os.listdir(datapath):
         #for file in tqdm(os.listdir(datapath)): # I'm just going to assume that split_0 and split_1 has the same seeds and archetypes, if not, fight me >:(
         split, archetype, seed = re.findall(r'\d+', file)
@@ -226,7 +226,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
         f.close()
     
     # idk why, I just randomly call it loss instead of accuracy all the time
-    f = open("Classifier/results_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
+    f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
     print("KNN_pca_loss = " + str(KNN_pca_loss), file=f)
     print("KNN_loss = " + str(KNN_loss), file=f)
     print("LR_pca_loss = " + str(LR_pca_loss), file=f)
