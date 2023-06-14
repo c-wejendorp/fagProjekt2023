@@ -4,7 +4,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from scipy.linalg import svd
 #import seaborn as sns
-from loadData import Real_Data
+#from loadData import Real_Data
 
 def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
     
