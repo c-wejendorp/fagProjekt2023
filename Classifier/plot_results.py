@@ -15,7 +15,7 @@ from sklearn.linear_model import LogisticRegression
 
 
 
-def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"],pathToC="NoPathSet"):
+def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"]):
     
     trainPath = Path("data/trainingDataSubset")
     testPath = Path("data/testDataSubset")
@@ -56,7 +56,8 @@ def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0,
             train_subjects = subjects[:]
             train_subjects.remove(test_subject)
             
-            C = np.load(pathToC + f"/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
+            C = np.load(f"/work/s204090/data/MMAA_results/multiple_runs/{'-'.join(modalityComb)}/split_{split}/C/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
+            #C = np.load(pathToC + f"/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
             
             # pca
             if split == 0:
@@ -210,7 +211,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
         if seed not in seeds:
             continue
              
-        LR_gen_acc, LR_pca_gen_acc, KNN_gen_acc, KNN_pca_gen_acc = train_all(K_neighbors=10, distance_measure='Euclidean', archetypes=archetype, seed=seed,modalityComb=modalityComb,pathToC=datapath)
+        LR_gen_acc, LR_pca_gen_acc, KNN_gen_acc, KNN_pca_gen_acc = train_all(K_neighbors=10, distance_measure='Euclidean', archetypes=archetype, seed=seed,modalityComb=modalityComb)
         
         KNN_pca_loss[archetype].append(KNN_pca_gen_acc)
         KNN_loss[archetype].append(KNN_gen_acc)
