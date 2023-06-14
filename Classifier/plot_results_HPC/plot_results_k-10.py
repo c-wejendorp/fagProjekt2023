@@ -30,10 +30,12 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
     
     LR_pca_general_err_all = []
     # LR_pca_y_all_predicts= []
+    baseline_general_err_all = []
     
     # y_trues = []
     for split in splits: 
         LR_pca_general_err_split = []
+        baseline_general_err_split = []
         
         # Leave one out subject cross validation
         for test_subject_idx, test_subject in enumerate(subjects):
@@ -53,7 +55,7 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
             elif split == 1:
                 X, y, i_var = pca(testPath, all_subjects, C, False, False, split)
             
-            X = X[:,:i_var]
+            X = X[:,:(i_var+1)]
             X = X.reshape((len(all_subjects), 3, X.shape[1])) # 3 for nr number of conditions, let's hope this reshape is correct :))))))))))
             y = y.reshape((len(all_subjects), 3))
             # There is a better way to do this, but I'm tired, and I want sleep :)
@@ -110,6 +112,13 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
             y_test = np.array(y_test)
             y_train = np.array(y_train)
             
+            ## Baseline
+            #randomly choose labels as predictions
+            baseline_pred = np.random.choice(np.unique(y_train), len(y_test))
+            baseline_acc = np.sum(baseline_pred == y_test)/len(y_test)
+            baseline_general_err_split.append(baseline_acc)
+            
+            
             ##  Train logistic regression
             # ___________no pca_____________
             
@@ -141,11 +150,12 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
             
         # print(f"Generalization error split {split}: ", np.mean(LR_pca_general_err_split))
         LR_pca_general_err_all.append(np.mean(LR_pca_general_err_split))
+        baseline_general_err_all.append(np.mean(baseline_general_err_split))
         
     reg_result_means = {reg_p: np.mean(accs) for reg_p, accs in LR_general_err_all.items()}
     # print("Done!")
     
-    return reg_result_means, np.mean(LR_pca_general_err_all)
+    return reg_result_means, np.mean(LR_pca_general_err_all), np.mean(baseline_general_err_all)
 
 
 def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "Classifier/plots/",modalityComb=["eeg", "meg", "fmri"], reg_params=None, inp_archetype=2):
@@ -161,26 +171,30 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
     # Look, this looks stupid, but bear with me: LR_loss[Archetype][Reg_param][seed_result]   :)))  (sorry)
     LR_reg_ploss = defaultdict(lambda: defaultdict(lambda: []))  
     LR_pca_loss = defaultdict(lambda: [])
+    baseline_loss = defaultdict(lambda: [])
 
     for file in tqdm(os.listdir(C_datapath)): # I'm just going to assume that split_0 and split_1 has the same seeds and archetypes, if not, fight me >:(
         split, archetype, seed = re.findall(r'\d+', file)
         if not archetype == inp_archetype:
             continue
-        reg_result_means, LR_pca_gen_acc = train_all(archetypes=archetype, seed=seed, reg_params=reg_params, modalityComb=modalityComb, datapath=datapath)
+        reg_result_means, LR_pca_gen_acc, baseline_gen_acc = train_all(archetypes=archetype, seed=seed, reg_params=reg_params, modalityComb=modalityComb, datapath=datapath)
         
         LR_pca_loss[archetype].append(LR_pca_gen_acc)
+        baseline_loss[archetype].append(baseline_gen_acc)
         
         for reg_p, mean_res in reg_result_means.items(): 
             LR_reg_ploss[archetype][reg_p].append(mean_res)
         
         f = open(f"Classifier/checkpoints_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
         print(f"____________Checkpoint archetype: {archetype}, seed: {seed}__________", file=f)
+        print("baseline_loss = " + str(dict(baseline_loss)), file = f)
         print("LR_pca_loss = " + str(dict(LR_pca_loss)), file=f)
         print("LR_reg_ploss = " + str({k: dict(v) for k, v in dict(LR_reg_ploss).items()}), file=f)
         f.close()
     
     # idk why, I just randomly call it loss instead of accuracy all the time
-    f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
+    f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{inp_archetype}.txt", "a")
+    print("baseline_loss = " + str(dict(baseline_loss)), file = f)
     print("LR_pca_loss = " + str(dict(LR_pca_loss)), file=f)
     print("LR_reg_ploss = " + str({k: dict(v) for k, v in dict(LR_reg_ploss).items()}), file=f)
     f.close()
@@ -204,7 +218,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
         LR_best[archetype][best_reg_param] = best_reg_result
         LR_loss[archetype].append(best_reg_result)
         
-    f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
+    f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{inp_archetype}.txt", "a")
     print("_________Best choice of regularization parameters and their results_________", file=f)
     print("LR_best = " + str(dict(LR_best)), file=f)
     print("LR_loss = "  + str(dict(LR_loss)), file=f)
@@ -234,7 +248,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
 if __name__ == "__main__":
     reg_params = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
     inp_archetype = "10"
-    # datapath = "data/MMAA_results/multiple_runs/"
+    #datapath = "data/MMAA_results/multiple_runs/"
     data_path_HPC = "/work3/s204090/data/MMAA_results/multiple_runs/"
     createLossPlot1(datapath=data_path_HPC, modalityComb=["eeg", "meg", "fmri"], inp_archetype=inp_archetype, reg_params=reg_params)
     #close all plots
