@@ -347,4 +347,4 @@ def toyDataAA(numArchetypes=25,
     return loss_Adam
 
 if __name__ == "__main__":
-    toyDataAA(numArchetypes=3, torchSeed=10, plotDistributions=True, loss_type='mle_rob')
+    toyDataAA(numArchetypes=3, torchSeed=0, plotDistributions=True, loss_type='mle_rob')
