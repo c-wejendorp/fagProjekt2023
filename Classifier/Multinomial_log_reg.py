@@ -2,7 +2,7 @@
 from pathlib import Path
 import numpy as np
 from pca import pca
-from dtaidistance import dtw
+#from dtaidistance import dtw
 from tqdm import tqdm
 from sklearn.linear_model import LogisticRegression
 # TODO: Make crossvalidation for subjects     
@@ -38,7 +38,7 @@ def train_LR(pca_data=True, multi=False, archetypes=None, seed=None):
                 if None in [archetypes, seed]:
                     print("please set nr of used archetypes and seed for running multi")
                     raise InterruptedError
-                C = np.load(f"data/MMAA_results/multiple_runs/split_{split}/C/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
+                C = np.load(f"data/MMAA_results/multiple_runs/eeg-meg-fmri/split_{split}/C/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
             else:
                 C = np.load(f"data/MMAA_results/split_{split}/C_matrix.npy")
 

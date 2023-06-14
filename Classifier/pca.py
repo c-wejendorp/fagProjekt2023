@@ -4,7 +4,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from scipy.linalg import svd
 import seaborn as sns
-from loadData import Real_Data
+#from loadData import Real_Data
 
 def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
     
@@ -18,49 +18,49 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
     #load c matrix for split 0 (training data)
     C = C
 
-    # X_train = np.array([])
-    # y_train = np.array([])
-
-    # #load in the ERP's for each condition an concatenate everything
-    # for subject in subjects: 
-    #     for condition in conditions:
-    #         eeg_train_cond = []
-    #         meg_train_cond = []
-            
-    #         if split == 0:
-    #             eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
-    #             meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
-    #         elif split == 1:
-    #             eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_test.npy"))
-    #             meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_test.npy"))
-    #         #append archetypes and labels ERP's to training
-    #         signal = np.concatenate((np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C), axis=1)
-    #         y_train = np.append(y_train, condition)
-        
-    #         #concatenate ERP's to one long feature vector
-    #         X_train = np.append(X_train, np.concatenate(signal).reshape(-1, order = "F"))
-
-    # #reshape: [s*cond, t*k*2] matrix
-    # X_train = np.reshape(X_train, ((len(subjects) * len(conditions)), np.concatenate(signal).reshape(-1).shape[0]))
-
-    #equivalent way of loading the data. both are correct
     X_train = np.array([])
     y_train = np.array([])
 
     #load in the ERP's for each condition an concatenate everything
-    X = Real_Data(range(1, 3))
+    for subject in subjects: 
+        for condition in conditions:
+            eeg_train_cond = []
+            meg_train_cond = []
+            
+            if split == 0:
+                eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
+                meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
+            elif split == 1:
+                eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_test.npy"))
+                meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_test.npy"))
+            #append archetypes and labels ERP's to training
+            signal = np.concatenate((np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C), axis=1)
+            y_train = np.append(y_train, condition)
+        
+            #concatenate ERP's to one long feature vector
+            X_train = np.append(X_train, np.concatenate(signal).reshape(-1, order = "F"))
 
-    A_eeg = X.EEG_data@C
-    A_meg = X.MEG_data@C
+    #reshape: [s*cond, t*k*2] matrix
+    X_train = np.reshape(X_train, ((len(subjects) * len(conditions)), np.concatenate(signal).reshape(-1).shape[0]))
+
+    # #equivalent way of loading the data. both are correct
+    # X_train = np.array([])
+    # y_train = np.array([])
+
+    # #load in the ERP's for each condition an concatenate everything
+    # X = Real_Data(range(1, 3))
+
+    # A_eeg = X.EEG_data@C
+    # A_meg = X.MEG_data@C
     
-    X_train_final = []
-    for subject in nr_subjects:
-        for cond in range(3):
-            erp_eeg = A_eeg[subject - 1][cond * 180:180 + cond * 180][:]
-            erp_meg = A_meg[subject - 1][cond * 180:180 + cond * 180][:]
-            erp = np.concatenate((erp_eeg, erp_meg), axis = 0)
-            X_train_final.append(erp.reshape((-1), order = "F"))
-    X_train = np.asarray(X_train_final)
+    # X_train_final = []
+    # for subject in nr_subjects:
+    #     for cond in range(3):
+    #         erp_eeg = A_eeg[subject - 1][cond * 180:180 + cond * 180][:]
+    #         erp_meg = A_meg[subject - 1][cond * 180:180 + cond * 180][:]
+    #         erp = np.concatenate((erp_eeg, erp_meg), axis = 0)
+    #         X_train_final.append(erp.reshape((-1), order = "F"))
+    # X_train = np.asarray(X_train_final)
     
     #standardize
     mu = np.mean(X_train,axis=0,dtype=np.float64) 
@@ -94,18 +94,30 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
             break
 
     if plot:
-        _ = plt.figure()
-        plt.plot(np.mean(X_train_final[np.arange(0, len(subjects)*len(conditions), 3),:], axis = 0), alpha = 0.3, color = "red")
-        plt.plot(np.mean(X_train_final[np.arange(1, len(subjects)*len(conditions), 3),:], axis = 0) + 0.02, alpha = 0.3, color = "green")
-        plt.plot(np.mean(X_train_final[np.arange(2, len(subjects)*len(conditions), 3),:], axis = 0) - 0.02, alpha = 0.3, color = "purple")
-        plt.ylim([-0.03, 0.03])
+        #plot ERP's as an average over the subjects
+        fig, ax = plt.subplots(3, sharex = True)
+        fig.suptitle("Centered ERP's for each condition")
+        ax[0].plot(np.mean(X_train_final[np.arange(0, len(subjects)*len(conditions), 3),:], axis = 0), alpha = 0.3, color = "red", label = "famous")
+        ax[1].plot(np.mean(X_train_final[np.arange(1, len(subjects)*len(conditions), 3),:], axis = 0), alpha = 0.3, color = "green", label = "scrambled")
+        ax[2].plot(np.mean(X_train_final[np.arange(2, len(subjects)*len(conditions), 3),:], axis = 0), alpha = 0.3, color = "purple", label = "nonfamous")
+        ax[0].set_ylim([-0.0006, 0.0006])
+        ax[1].set_ylim([-0.0006, 0.0006])
+        ax[2].set_ylim([-0.0006, 0.0006])
+        ax[0].legend(loc = "upper right")
+        ax[1].legend(loc = "upper right")
+        ax[2].legend(loc = "upper right")
+        ax[0].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
+        ax[1].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
+        ax[2].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
         plt.show()
         
-        #plot an erp
-        # _ = plt.figure()
-        # plt.plot(X_train_final[0, :])
-        # plt.ylim([-5, 5])
-        # plt.show()
+        #plot an how the first principal component looks
+        fig = plt.figure()
+        plt.plot(np.arange(X_train_final.shape[1]), pca.components_[0,:], alpha = 0.5, color = "lightblue", label = "pc1")
+        plt.ylim([-0.1, 0.1])
+        plt.legend(loc = "upper right")
+        plt.vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.06, ymax = 0.06, linestyle = "dashed", color = "gainsboro")
+        plt.show()
         
         #plot how the observations are being projected
         _, ax = plt.subplots()
@@ -164,6 +176,6 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
 if __name__ == "__main__":
     trainPath = Path("data/trainingDataSubset")
     subjects = range(1,3)
-    C = np.load(f"data/MMAA_results/split_0/C_matrix.npy")
+    C = np.load("data/MMAA_results/multiple_runs/eeg-meg-fmri/split_0/C/C_split-0_k-2_seed-0.npy")
     
     pca(trainPath, subjects, C, plot = True, verbose=True)
