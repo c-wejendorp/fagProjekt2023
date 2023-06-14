@@ -5,9 +5,9 @@
             #BSUB -q hpc
 
             ### name of job, output file and err
-            #BSUB -J Classifier
-            #BSUB -o Classifier_%J.out
-            #BSUB -e Classifier_%J.err
+            #BSUB -J Classifier_k-8
+            #BSUB -o Classifier_k-8_%J.out
+            #BSUB -e Classifier_k-8_%J.err
 
 
             ### number of cores

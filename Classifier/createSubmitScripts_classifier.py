@@ -3,7 +3,7 @@ import json
 def createSubmitScripts():
     # read the arguments    
     #loop over arhetypes
-    for numArch in range(2,20+1,2):
+    for numArch in range(2,40+1,2):
             script_template = """
 
             #!/bin/sh
@@ -11,9 +11,9 @@ def createSubmitScripts():
             #BSUB -q hpc
 
             ### name of job, output file and err
-            #BSUB -J Classifier
-            #BSUB -o Classifier_%J.out
-            #BSUB -e Classifier_%J.err
+            #BSUB -J Classifier_k-{k}
+            #BSUB -o Classifier_k-{k}_%J.out
+            #BSUB -e Classifier_k-{k}_%J.err
 
 
             ### number of cores
