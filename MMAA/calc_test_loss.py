@@ -2,6 +2,7 @@ import numpy as np
 import os
 import json
 from loadData import Real_Data
+import sys
 
 if __name__ == "__main__":
     # we assume that all models are trained with the same seeds and splits and stepsize
@@ -52,6 +53,11 @@ if __name__ == "__main__":
                     for seed in seeds:
                         C = np.load(datapath_C + f"C_split-{split}_k-{numArcheTypes}_seed-{seed}.npy")
                         S = np.load(datapath_S + f"S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy")
+
+                        print("debugging",file=sys.stderr)
+                        print(modalityComb,file=sys.stderr)
+                        print(f"seed: {seed}, C: {C.shape}, S: {S.shape}",file=sys.stderr)
+                        
                         
                         #calculate the loss for each modality
                         for idx,modality in enumerate(modalityComb): 
