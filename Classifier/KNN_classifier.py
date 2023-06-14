@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from pca import pca
 from dtaidistance import dtw
-from tqdm import tqdm
+#from tqdm import tqdm
 # Nice to have: two layer cv to get best number of neighbors
 
 class Nearest_Neighbor():
@@ -64,7 +64,8 @@ def train_KNN(K_neighbors, distance_measure, pca_data=True, multi=False, archety
         general_err_split = []
         
         # Leave one out subject cross validation
-        for test_subject_idx, test_subject in tqdm(enumerate(subjects)):
+        #for test_subject_idx, test_subject in tqdm(enumerate(subjects)):
+        for test_subject_idx, test_subject in enumerate(subjects):
             all_subjects = range(1,17)
             train_subjects_idx = list(range(0,16))
             train_subjects_idx.remove(test_subject_idx)
