@@ -4,6 +4,8 @@ import numpy as np
 from pca import pca
 from dtaidistance import dtw
 from tqdm import tqdm
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import GridSearchCV
 # Nice to have: two layer cv to get best number of neighbors
 
 class Nearest_Neighbor():
@@ -49,7 +51,6 @@ def train_KNN(K_neighbors, distance_measure, pca_data=True, multi=False, archety
     trainPath = Path("data/trainingDataSubset")
     testPath = Path("data/testDataSubset")
 
-    knn_clf=Nearest_Neighbor(distance_measure = distance_measure, K_neighbors = K_neighbors)
 
     splits = range(2)
 
@@ -154,9 +155,19 @@ def train_KNN(K_neighbors, distance_measure, pca_data=True, multi=False, archety
                 y_test = np.array(y_test)
                 y_train = np.array(y_train)
             
-            knn_clf.fit(X_train, y_train)
-            y_pred, acc = knn_clf.predict(X_test, y_test)
             
+            # knn_clf=Nearest_Neighbor(distance_measure = distance_measure, K_neighbors = K_neighbors)
+            knn_clf = KNeighborsClassifier()
+            k_range = list(range(2, 17, 2))
+            param_grid = dict(n_neighbors=k_range)
+            grid = GridSearchCV(knn_clf, param_grid, cv=10, scoring='accuracy', return_train_score=False,verbose=1)
+            grid_search=grid.fit(X_train, y_train)
+            print(grid_search.best_params_)
+            
+            knn_clf.fit(X_train, y_train)
+            # y_pred, acc = knn_clf.predict(X_test, y_test)
+            y_pred = knn_clf.predict(X_test)
+            acc = np.sum(y_pred == y_test)/len(y_test)
             y_trues.append(y_test)
             y_all_predicts.append(y_pred)
             # print("Accuracy:", acc)
@@ -170,5 +181,5 @@ def train_KNN(K_neighbors, distance_measure, pca_data=True, multi=False, archety
     return general_err_all, y_all_predicts, y_trues
     
 if __name__ == '__main__':
-    train_KNN(K_neighbors=8, distance_measure = 'Euclidean', pca_data = False)
+    train_KNN(K_neighbors=3, distance_measure = 'Euclidean', pca_data = False)
     

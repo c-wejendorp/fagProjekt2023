@@ -38,7 +38,7 @@ def train_LR(pca_data=True, multi=False, archetypes=None, seed=None):
                 if None in [archetypes, seed]:
                     print("please set nr of used archetypes and seed for running multi")
                     raise InterruptedError
-                C = np.load(f"data/MMAA_results/multiple_runs/split_{split}/C/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
+                C = np.load(f"data/MMAA_results/multiple_runs/eeg-meg-fmri/split_{split}/C/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
             else:
                 C = np.load(f"data/MMAA_results/split_{split}/C_matrix.npy")
 
@@ -138,6 +138,6 @@ def train_LR(pca_data=True, multi=False, archetypes=None, seed=None):
     return general_err_all, y_all_predicts, y_trues
     
 if __name__ == '__main__':
-    train_LR(pca_data = False, multi=True, archetypes=2, seed=0)
-    train_LR(pca_data = False, multi=False)
+    train_LR(pca_data = False, multi=True, archetypes=2, seed=10)
+    # train_LR(pca_data = False, multi=False)
     
