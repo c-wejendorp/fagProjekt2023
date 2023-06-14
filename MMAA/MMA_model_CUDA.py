@@ -62,7 +62,7 @@ class MMAA(torch.nn.Module):
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
             if self.loss_robust:
-                beta  = 1/(self.V) * self.epsilon
+                beta  = 3/2 * self.epsilon
                 # find the highest number of time points across all modalities               
                 max_T = np.max(self.T)
                 alpha = 1 + max_T/2  - self.T[m]/2
