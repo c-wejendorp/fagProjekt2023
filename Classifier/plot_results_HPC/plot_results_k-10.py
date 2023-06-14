@@ -53,7 +53,7 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
             elif split == 1:
                 X, y, i_var = pca(testPath, all_subjects, C, False, False, split)
             
-            X = X[:,:i_var]
+            X = X[:,:(i_var+1)]
             X = X.reshape((len(all_subjects), 3, X.shape[1])) # 3 for nr number of conditions, let's hope this reshape is correct :))))))))))
             y = y.reshape((len(all_subjects), 3))
             # There is a better way to do this, but I'm tired, and I want sleep :)
@@ -204,7 +204,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
         LR_best[archetype][best_reg_param] = best_reg_result
         LR_loss[archetype].append(best_reg_result)
         
-    f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
+    f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{inp_archetype}.txt", "a")
     print("_________Best choice of regularization parameters and their results_________", file=f)
     print("LR_best = " + str(dict(LR_best)), file=f)
     print("LR_loss = "  + str(dict(LR_loss)), file=f)
