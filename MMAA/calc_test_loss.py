@@ -63,7 +63,13 @@ if __name__ == "__main__":
                         for idx,modality in enumerate(modalityComb): 
                                 if modality != "fmri":                           
                                     org = getattr(X_test, f"{modality}_data")
-                                    rec = np.linalg.multi_dot([getattr(X_train, f"{modality}_data"),C,S[idx,:,:]])
+                                    print(f"shape_org: {org}, C: {C.shape}",file=sys.stderr)
+                                    XC = np.linalg.multi_dot([getattr(X_train, f"{modality}_data"),C])
+                                    print(f"shape_XC: {XC}",file=sys.stderr)
+                                    print(f"shape_S: {S[idx,:,:]}",file=sys.stderr)
+                                    rec = np.linalg.multi_dot([XC,S[idx,:,:]])
+
+                                    #rec = np.linalg.multi_dot([getattr(X_train, f"{modality}_data"),C,S[idx,:,:]])
 
                                     modalities_loss[f"test_loss_{modality}"].append(np.linalg.norm(org - rec)**2)
 
