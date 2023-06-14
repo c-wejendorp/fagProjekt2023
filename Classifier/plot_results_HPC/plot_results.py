@@ -15,7 +15,7 @@ from sklearn.linear_model import LogisticRegression
 
 
 
-def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0):
+def train_all(archetypes=2, seed=0, reg_params=None, random_state=10):
     
     trainPath = Path("data/trainingDataSubset")
     testPath = Path("data/testDataSubset")
@@ -27,13 +27,8 @@ def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0)
 
     conditions = ["famous", "scrambled", "unfamiliar"]
     
-    KNN_general_err_all = []
-    # KNN_y_all_predicts= []
-    
-    KNN_pca_general_err_all = []
-    # KNN_pca_y_all_predicts= []
-    
-    LR_general_err_all = []
+    # we'll just concatenate the results from split 0 and 1 inside this
+    LR_general_err_all = defaultdict(lambda: [])
     # LR_y_all_predicts= []
     
     LR_pca_general_err_all = []
@@ -41,10 +36,8 @@ def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0)
     
     # y_trues = []
     for split in splits: 
-        KNN_general_err_split = []
-        KNN_pca_general_err_split = []
-        LR_general_err_split = []
         LR_pca_general_err_split = []
+        
         # Leave one out subject cross validation
         for test_subject_idx, test_subject in tqdm(enumerate(subjects)):
             all_subjects = range(1,17)
@@ -89,26 +82,16 @@ def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0)
                     if split == 0:
                         eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
                         meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
-                        
-                        ## it is perhaps a bit of waste only to evaluate on a single subject when we have data for all of them. Uncomment if wanted to evaluate on all.
-                        # eeg_test_cond.append(np.load(testPath / f"{subject}/eeg/{condition}_test.npy"))  
-                        # meg_test_cond.append(np.load(testPath / f"{subject}/meg/{condition}_test.npy"))
-                    
                     elif split == 1:
-                        # eeg_test_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
-                        # meg_test_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
-
                         eeg_train_cond.append(np.load(testPath / f"{subject}/eeg/{condition}_test.npy"))
                         meg_train_cond.append(np.load(testPath / f"{subject}/meg/{condition}_test.npy"))
                 
-                ## Comment this if we want to evaluate on all test subjects
                 if split == 0: 
                         eeg_test_cond.append(np.load(testPath / f"{test_subject}/eeg/{condition}_test.npy"))
                         meg_test_cond.append(np.load(testPath / f"{test_subject}/meg/{condition}_test.npy"))
                 elif split == 1:
                         eeg_test_cond.append(np.load(trainPath / f"{test_subject}/eeg/{condition}_train.npy"))
                         meg_test_cond.append(np.load(trainPath / f"{test_subject}/meg/{condition}_train.npy"))
-                
                 
                 
                 X_train.extend(np.concatenate([np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C], axis=1)) #X_train.append(np.concatenate([np.mean(np.array(eeg_train_cond), axis=0)@C, np.mean(np.array(meg_train_cond), axis=0)@C])) # append the archetypes
@@ -130,18 +113,21 @@ def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0)
             y_train = np.array(y_train)
             
             ##  Train logistic regression
-            # no pca
-            model_LR = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
-            model_LR.fit(X_train, y_train)
-            y_pred = model_LR.predict(X_test)
+            # ___________no pca_____________
             
-            acc = np.sum(y_pred == y_test)/len(y_test)
+            for reg_param in reg_params:
+                
+                model_LR = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000, C=1/reg_param, random_state=random_state)
+                model_LR.fit(X_train, y_train)
+                y_pred = model_LR.predict(X_test)
+                
+                acc = np.sum(y_pred == y_test)/len(y_test)
+                
+                # LR_y_all_predicts.append(y_pred)
+                LR_general_err_all[reg_param].append(acc)
             
-            # LR_y_all_predicts.append(y_pred)
-            LR_general_err_split.append(acc)
-            
-            # pca
-            model_LR = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
+            # __________pca____________
+            model_LR = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000, random_state=random_state)
             model_LR.fit(X_pca_train, y_pca_train)
             y_pred = model_LR.predict(X_pca_test)
             
@@ -154,72 +140,47 @@ def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0)
             
             LR_pca_general_err_split.append(acc)
             
-            ## KNN
-            # pca
-            model = Nearest_Neighbor(distance_measure=distance_measure, K_neighbors=K_neighbors)
-            model.fit(X_train, y_train)
-            y_pred, acc = model.predict(X_test, y_test)
-            KNN_general_err_split.append(acc)
-            # KNN_y_all_predicts.append(y_pred)
-            # no pca
-            model = Nearest_Neighbor(distance_measure=distance_measure, K_neighbors=K_neighbors)
-            model.fit(X_pca_train, y_pca_train)
-            y_pred, acc = model.predict(X_pca_test, y_pca_test)
             
-            KNN_pca_general_err_split.append(acc)
-            # KNN_pca_y_all_predicts.append(y_pred)
-            
-        # print(f"Generalization error split {split}: ", np.mean(LR_general_err_split))
-        LR_general_err_all.append(np.mean(LR_general_err_split))
-        
         # print(f"Generalization error split {split}: ", np.mean(LR_pca_general_err_split))
         LR_pca_general_err_all.append(np.mean(LR_pca_general_err_split))
         
-        # print(f"Generalization error split {split}: ", np.mean(KNN_general_err_split))
-        KNN_general_err_all.append(np.mean(KNN_general_err_split))
-        
-        # print(f"Generalization error split {split}: ", np.mean(KNN_pca_general_err_split))
-        KNN_pca_general_err_all.append(np.mean(KNN_pca_general_err_split))
-        
-    print("Done!")
+    reg_result_means = {reg_p: np.mean(accs) for reg_p, accs in LR_general_err_all.items()}
+    # print("Done!")
     
-    return np.mean(LR_general_err_all), np.mean(LR_pca_general_err_all), np.mean(KNN_general_err_all), np.mean(KNN_pca_general_err_all)
+    return reg_result_means, np.mean(LR_pca_general_err_all)
 
 
-def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/eeg-meg-fmri/split_0/C/", savepath = "Classifier/plots/"):
+def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/eeg-meg-fmri/split_0/C/", savepath = "Classifier/plots/", inp_archetype=2, reg_params = None):
     
     # make save diractory
     if not os.path.exists(savepath):
         os.makedirs(savepath)
         
     #open all files starting with eeg
-    KNN_loss = defaultdict(lambda: [])
-    KNN_pca_loss = defaultdict(lambda: [])
-    LR_loss = defaultdict(lambda: [])
+    # Look, this looks stupid, but bear with me: LR_loss[Archetype][Reg_param][seed_result]   :)))  (sorry)
+    LR_loss = defaultdict(lambda: defaultdict(lambda: []))  
     LR_pca_loss = defaultdict(lambda: [])
 
     for file in tqdm(os.listdir(datapath)): # I'm just going to assume that split_0 and split_1 has the same seeds and archetypes, if not, fight me >:(
         split, archetype, seed = re.findall(r'\d+', file)
+        if not archetype == inp_archetype:
+            continue
+        reg_result_means, LR_pca_gen_acc = train_all(archetypes=archetype, seed=seed, reg_params=reg_params)
         
-        LR_gen_acc, LR_pca_gen_acc, KNN_gen_acc, KNN_pca_gen_acc = train_all(K_neighbors=10, distance_measure='Euclidean', archetypes=archetype, seed=seed)
-        
-        KNN_pca_loss[archetype].append(KNN_pca_gen_acc)
-        KNN_loss[archetype].append(KNN_gen_acc)
         LR_pca_loss[archetype].append(LR_pca_gen_acc)
-        LR_loss[archetype].append(LR_gen_acc)
         
-        f = open("Classifier/checkpoints.txt", "a")
+        for reg_p, mean_res in reg_result_means: 
+            LR_loss[archetype][reg_p].append(mean_res)
+        
+        f = open("Classifier/checkpoints_{}.txt", "a")
         print(f"____________Checkpoint archetype: {archetype}, seed: {seed}__________", file=f)
-        print("KNN_pca_loss = " + str(KNN_pca_loss), file=f)
-        print("KNN_loss = " + str(KNN_loss), file=f)
-        print("LR_pca_loss = " + str(LR_pca_loss), file=f)
-        print("LR_loss = " + str(LR_loss), file=f)
+        print("LR_pca_loss = " + str(dict(LR_pca_loss)), file=f)
+        print("LR_loss = " + str({k: dict(v) for k, v in dict(LR_loss).items()}), file=f)
         f.close()
-    
+    # # # best_reg_param = max(reg_result_means, reg_result_means.get)
+    # # # best_reg_result = reg_result_means[best_reg_param]
     # idk why, I just randomly call it loss instead of accuracy all the time
     f = open("Classifier/results.txt", "a")
-    print("KNN_pca_loss = " + str(KNN_pca_loss), file=f)
-    print("KNN_loss = " + str(KNN_loss), file=f)
     print("LR_pca_loss = " + str(LR_pca_loss), file=f)
     print("LR_loss = " + str(LR_loss), file=f)
     f.close()
