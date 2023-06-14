@@ -180,7 +180,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
         f.close()
     
     # idk why, I just randomly call it loss instead of accuracy all the time
-    f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
+    f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{inp_archetype}.txt", "a")
     print("LR_pca_loss = " + str(dict(LR_pca_loss)), file=f)
     print("LR_reg_ploss = " + str({k: dict(v) for k, v in dict(LR_reg_ploss).items()}), file=f)
     f.close()
