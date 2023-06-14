@@ -176,13 +176,13 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
         f = open(f"Classifier/checkpoints_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
         print(f"____________Checkpoint archetype: {archetype}, seed: {seed}__________", file=f)
         print("LR_pca_loss = " + str(dict(LR_pca_loss)), file=f)
-        print("LR_reg_results = " + str({k: dict(v) for k, v in dict(LR_reg_ploss).items()}), file=f)
+        print("LR_reg_ploss = " + str({k: dict(v) for k, v in dict(LR_reg_ploss).items()}), file=f)
         f.close()
     
     # idk why, I just randomly call it loss instead of accuracy all the time
     f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
     print("LR_pca_loss = " + str(dict(LR_pca_loss)), file=f)
-    print("LR_reg_results = " + str({k: dict(v) for k, v in dict(LR_reg_ploss).items()}), file=f)
+    print("LR_reg_ploss = " + str({k: dict(v) for k, v in dict(LR_reg_ploss).items()}), file=f)
     f.close()
 
 
@@ -198,35 +198,36 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
         for reg_p, seed_results in reg_dict.items():
             LR_reg_results[reg_p] = np.mean(seed_results)
         
-        best_reg_param = max(LR_reg_results, LR_reg_results.get)
+        best_reg_param = max(LR_reg_results, key=LR_reg_results.get)
         best_reg_result = LR_reg_results[best_reg_param]
         
         LR_best[archetype][best_reg_param] = best_reg_result
         LR_loss[archetype].append(best_reg_result)
         
     f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
-    print("_________Best choice of regularization parameters and their results_________")
-    print("LR_best = " + str(dict(LR_best)))
+    print("_________Best choice of regularization parameters and their results_________", file=f)
+    print("LR_best = " + str(dict(LR_best)), file=f)
+    print("LR_loss = "  + str(dict(LR_loss)), file=f)
     f.close()
     
-    # calculate the mean and std for each number of archetypes 
-    LR_pca_mean = np.array([[archetype, np.mean(loss)] for archetype, loss in LR_pca_loss.items()], dtype="float64")
-    LR_pca_std = np.array([np.std(loss) for archetype, loss in LR_pca_loss.items()])
+    # # calculate the mean and std for each number of archetypes 
+    # LR_pca_mean = np.array([[archetype, np.mean(loss)] for archetype, loss in LR_pca_loss.items()], dtype="float64")
+    # LR_pca_std = np.array([np.std(loss) for archetype, loss in LR_pca_loss.items()])
     
-    LR_mean = np.array([[archetype, np.mean(loss)] for archetype, loss in LR_loss.items()], dtype="float64")
-    LR_std = np.array([np.std(loss) for archetype, loss in LR_loss.items()])
+    # LR_mean = np.array([[archetype, np.mean(loss)] for archetype, loss in LR_loss.items()], dtype="float64")
+    # LR_std = np.array([np.std(loss) for archetype, loss in LR_loss.items()])
     
-    #plot the mean values with std
-    plt.errorbar(LR_pca_mean[:,0], LR_pca_mean[:,1], yerr = LR_pca_std, label = "LR_pca")
-    plt.errorbar(LR_mean[:,0], LR_mean[:,1], yerr = LR_std, label = "LR")
-    plt.legend()
-    # make the x ticks integers 
-    plt.xticks(LR_pca_mean[:,0])
-    plt.title("Final classification loss for different number of archetypes training data")
-    plt.xlabel("Number of archetypes")
-    plt.ylabel("Final loss")
-    plt.savefig(savepath + f"class_error__{'-'.join(modalityComb)}.txt.png")    
-    #plt.show()     
+    # #plot the mean values with std
+    # plt.errorbar(LR_pca_mean[:,0], LR_pca_mean[:,1], yerr = LR_pca_std, label = "LR_pca")
+    # plt.errorbar(LR_mean[:,0], LR_mean[:,1], yerr = LR_std, label = "LR")
+    # plt.legend()
+    # # make the x ticks integers 
+    # plt.xticks(LR_pca_mean[:,0])
+    # plt.title("Final classification loss for different number of archetypes training data")
+    # plt.xlabel("Number of archetypes")
+    # plt.ylabel("Final loss")
+    # plt.savefig(savepath + f"class_error__{'-'.join(modalityComb)}.txt.png")    
+    # #plt.show()     
 
    
    
