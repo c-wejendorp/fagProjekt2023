@@ -190,8 +190,8 @@ def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0,
 
 def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "Classifier/plots/",modalityComb=["eeg", "meg", "fmri"]):
     
-    datapath = Path(datapath) / Path(f"/{'-'.join(modalityComb)}/split_0/C/")   
-    
+    #datapath = Path(datapath) / Path(f"/{'-'.join(modalityComb)}/split_0/C/")   
+    datapath = datapath + f"{'-'.join(modalityComb)}/split_0/C/"   
 
     # make save diractory
     if not os.path.exists(savepath):
