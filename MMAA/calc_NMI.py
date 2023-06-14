@@ -39,8 +39,8 @@ if __name__ == "__main__":
                     # calculate the NMI for S1 and S2, S2 and S3, etc and last S10 and S1
                     # this needs to be done for each modality
 
-                    # create dict based on modalityComb in compressed form except if modaility is fmri
-                    NMIS = {f"{modality}_NMIS": [] for modality in modalityComb}
+                    # create dict based on modalityCom 
+                    NMIS = {f"NMI_{modality}": [] for modality in modalityComb}
 
                     number_of_seeds = len(seeds)
                     for s in range(number_of_seeds):
