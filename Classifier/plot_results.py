@@ -56,7 +56,11 @@ def train_all(K_neighbors=10,distance_measure='Euclidean', archetypes=2, seed=0,
             train_subjects = subjects[:]
             train_subjects.remove(test_subject)
             
-            C = np.load(f"/work/s204090/data/MMAA_results/multiple_runs/{'-'.join(modalityComb)}/split_{split}/C/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
+                       
+            C = np.load(f"/work3/s204090/data/MMAA_results/multiple_runs/{'-'.join(modalityComb)}/split_{split}/C/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
+
+            #C_split-0_k-2_seed-0.npy
+            #C = np.load(f"/work/s204090/data/MMAA_results/multiple_runs/{'-'.join(modalityComb)}/split_{split}/C/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
             #C = np.load(pathToC + f"/C_split-{split}_k-{archetypes}_seed-{seed}.npy")
             
             # pca
