@@ -73,6 +73,7 @@ def plotNMI(number_of_seeds = 10,mods = ["eeg", "meg", "fmri"],train=0,showPlot=
     plt.close()
 
 if __name__ == "__main__":
+    #modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"],["eeg"], ["meg"], ["fmri"]]
     modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"],["eeg"], ["meg"], ["fmri"]]
     for modalityComb in modalityCombs:
         for split in [0,1]:
