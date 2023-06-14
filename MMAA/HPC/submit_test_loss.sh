@@ -20,10 +20,12 @@
 
 #BSUB -R "rusage[mem=24GB]"
 
-### wall time limit - the maximum time the job will run. Currently 30 min. 
-### this might need to be adjusted
+### wall time limit - the maximum time the job will run. Currently 2 hours 30 min. 
+### one modal comb takes longer than 30 min
 
-#BSUB -W 00:30
+### this might need to be adjusted 
+
+#BSUB -W 02:30
 
 ##BSUB -u s204090@dtu.dk
 ### -- send notification at start -- 
