@@ -94,18 +94,30 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
             break
 
     if plot:
-        _ = plt.figure()
-        plt.plot(np.mean(X_train_final[np.arange(0, len(subjects)*len(conditions), 3),:], axis = 0), alpha = 0.3, color = "red")
-        plt.plot(np.mean(X_train_final[np.arange(1, len(subjects)*len(conditions), 3),:], axis = 0) + 0.02, alpha = 0.3, color = "green")
-        plt.plot(np.mean(X_train_final[np.arange(2, len(subjects)*len(conditions), 3),:], axis = 0) - 0.02, alpha = 0.3, color = "purple")
-        plt.ylim([-0.03, 0.03])
+        #plot ERP's as an average over the subjects
+        fig, ax = plt.subplots(3, sharex = True)
+        fig.suptitle("Centered ERP's for each condition")
+        ax[0].plot(np.mean(X_train_final[np.arange(0, len(subjects)*len(conditions), 3),:], axis = 0), alpha = 0.3, color = "red", label = "famous")
+        ax[1].plot(np.mean(X_train_final[np.arange(1, len(subjects)*len(conditions), 3),:], axis = 0), alpha = 0.3, color = "green", label = "scrambled")
+        ax[2].plot(np.mean(X_train_final[np.arange(2, len(subjects)*len(conditions), 3),:], axis = 0), alpha = 0.3, color = "purple", label = "nonfamous")
+        ax[0].set_ylim([-0.0006, 0.0006])
+        ax[1].set_ylim([-0.0006, 0.0006])
+        ax[2].set_ylim([-0.0006, 0.0006])
+        ax[0].legend(loc = "upper right")
+        ax[1].legend(loc = "upper right")
+        ax[2].legend(loc = "upper right")
+        ax[0].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
+        ax[1].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
+        ax[2].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
         plt.show()
         
-        #plot an erp
-        # _ = plt.figure()
-        # plt.plot(X_train_final[0, :])
-        # plt.ylim([-5, 5])
-        # plt.show()
+        #plot an how the first principal component looks
+        fig = plt.figure()
+        plt.plot(np.arange(X_train_final.shape[1]), pca.components_[0,:], alpha = 0.5, color = "lightblue", label = "pc1")
+        plt.ylim([-0.1, 0.1])
+        plt.legend(loc = "upper right")
+        plt.vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.06, ymax = 0.06, linestyle = "dashed", color = "gainsboro")
+        plt.show()
         
         #plot how the observations are being projected
         _, ax = plt.subplots()
@@ -164,6 +176,6 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
 if __name__ == "__main__":
     trainPath = Path("data/trainingDataSubset")
     subjects = range(1,3)
-    C = np.load(f"data/MMAA_results/split_0/C_matrix.npy")
+    C = np.load("data/MMAA_results/multiple_runs/eeg-meg-fmri/split_0/C/C_split-0_k-2_seed-0.npy")
     
     pca(trainPath, subjects, C, plot = True, verbose=True)
