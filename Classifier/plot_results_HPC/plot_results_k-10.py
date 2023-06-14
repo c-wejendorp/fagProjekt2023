@@ -113,9 +113,8 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
             y_train = np.array(y_train)
             
             ## Baseline
-            #find most likely label
-            label = max(set(y_train), key=list(y_train).count)
-            baseline_pred = np.full(len(y_test), label)
+            #randomly choose labels as predictions
+            baseline_pred = np.random.choice(np.unique(y_train), len(y_test))
             baseline_acc = np.sum(baseline_pred == y_test)/len(y_test)
             baseline_general_err_split.append(baseline_acc)
             
@@ -249,7 +248,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
 if __name__ == "__main__":
     reg_params = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
     inp_archetype = "10"
-    # datapath = "data/MMAA_results/multiple_runs/"
+    #datapath = "data/MMAA_results/multiple_runs/"
     data_path_HPC = "/work3/s204090/data/MMAA_results/multiple_runs/"
     createLossPlot1(datapath=data_path_HPC, modalityComb=["eeg", "meg", "fmri"], inp_archetype=inp_archetype, reg_params=reg_params)
     #close all plots
