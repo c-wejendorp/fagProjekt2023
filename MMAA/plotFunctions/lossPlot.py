@@ -7,35 +7,40 @@ from loadData import Real_Data
 # currently i'm just testing stuff regarding the HPC
 #read in the information from the models
 
+datapath = "data/MMAA_results/multiple_runs/split_0/loss/"
+
+# filename loss_split-0_k-2_seed-0_type-eeg.npy
+
 #datapath = "MMAA/data/MMAA_results/multiple_runs/split_0/"
 
 def readLossFromFile(datapath,file,array = False):
-    numArch = int(file.split("_")[1][4:])   
+    #read in the loss from the file
+    numArch = int(file.split("_")[2].split("-")[1])        
     if array:
         loss = np.load(datapath + file)   
     else :
         loss = np.load(datapath + file)[-1]
 
-    modelSeed = int(file.split("_")[2][1:])
+    modelSeed = int(file.split("_")[3].split("-")[1])  
 
     return [numArch,loss,modelSeed]
 
-def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/split_0/",savepath = "MMAA/plots/"):
+def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/split_0/loss/",savepath = "MMAA/plots/"):
     #open all files starting with eeg
     eeg_loss = []
     meg_loss = []
     fmri_loss = []
     adam_loss = []
     for file in os.listdir(datapath):
-        if file.startswith("eeg"):
-            eeg_loss.append(readLossFromFile(datapath,file))            
-        elif file.startswith("meg"):
+        if file.endswith("eeg.npy"):
+            eeg_loss.append(readLossFromFile(datapath,file))
+        elif file.endswith("meg.npy"):
             meg_loss.append(readLossFromFile(datapath,file))
-        elif file.startswith("fmri"):
+        elif file.endswith("fmri.npy"):
             fmri_loss.append(readLossFromFile(datapath,file))
-        elif file.startswith("loss_adam"):
-            adam_loss.append(readLossFromFile(datapath,file))
-
+        elif file.endswith("sum.npy"):
+            adam_loss.append(readLossFromFile(datapath,file))     
+ 
     #sort the lists
     eeg_loss.sort(key = lambda x: x[0])
     meg_loss.sort(key = lambda x: x[0])
@@ -66,21 +71,22 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/split_0/",savepa
     plt.savefig(savepath + "finalLoss.png")    
     #plt.show()    
 
-def createLossPlot2(datapath = "data/MMAA_results/multiple_runs/split_0/",savepath = "MMAA/plots/"):
+def createLossPlot2(datapath = "data/MMAA_results/multiple_runs/split_0/loss/",savepath = "MMAA/plots/"):
     #open all files starting with eeg
     eeg_loss = []
     meg_loss = []
     fmri_loss = []
     adam_loss = []
+
     for file in os.listdir(datapath):
-        if file.startswith("eeg"):
-            eeg_loss.append(readLossFromFile(datapath,file,array = True))            
-        elif file.startswith("meg"):
-            meg_loss.append(readLossFromFile(datapath,file,array = True))
-        elif file.startswith("fmri"):
+        if file.endswith("eeg.npy"):
+            eeg_loss.append(readLossFromFile(datapath,file,array=True))
+        elif file.endswith("meg.npy"):
+            meg_loss.append(readLossFromFile(datapath,file,array=True))
+        elif file.endswith("fmri.npy"):
             fmri_loss.append(readLossFromFile(datapath,file,array=True))
-        elif file.startswith("loss_adam"):
-            adam_loss.append(readLossFromFile(datapath,file,array=True))
+        elif file.endswith("sum.npy"):
+            adam_loss.append(readLossFromFile(datapath,file,array=True))  
     
     #sort the lists
     eeg_loss.sort(key = lambda x: x[0])
