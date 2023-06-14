@@ -2,156 +2,100 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from scipy.special import softmax
-from loadData import Real_Data
-#This is work in progress.
-# currently i'm just testing stuff regarding the HPC
-#read in the information from the models
+#from loadData import Real_Data
 
-datapath = "data/MMAA_results/multiple_runs/split_0/loss/"
+def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMAA/plots/",modalityComb=["eeg","meg","fmri"]):
+    folder = path + f'{"-".join(modalityComb)}/'
+    savepath = savepath + f'{"-".join(modalityComb)}/'
 
-# filename loss_split-0_k-2_seed-0_type-eeg.npy
+    color_dict = {"eeg":"blue","meg":"red","fmri":"green","sum":"black"}
 
-#datapath = "MMAA/data/MMAA_results/multiple_runs/split_0/"
+    for split in [0,1]:
 
-def readLossFromFile(datapath,file,array = False):
-    #read in the loss from the file
-    numArch = int(file.split("_")[2].split("-")[1])        
-    if array:
-        loss = np.load(datapath + file)   
-    else :
-        loss = np.load(datapath + file)[-1]
+        """
+        #lets start with trainloss, note this value has not been averaged over seeds
+        datapath = folder + f"split_{split}/loss/"
 
-    modelSeed = int(file.split("_")[3].split("-")[1])  
+        # for the train loss
+        all_train_losses = []
 
-    return [numArch,loss,modelSeed]
+        for modality in modalityComb:
+            means_train=[]
+            stds_train=[]
+            #now over archetypes
+            for k in range(2,20+1,2):
+                loss_list = []
+                for seed in range(0,91,10):
+                    loss_pr_iterations=np.load(datapath + f"loss_split-{split}_k-{k}_seed-{seed}_type-{modality}.npy")
+                    loss_list.append(loss_pr_iterations[-1])
+                
+                # now find the mean and std
+                means_train.append(np.mean(loss_list))
+                stds_train.append(np.std(loss_list))
+                
+                # plot it
+            plt.errorbar(np.arange(2,20+1,2),means_train,yerr=stds_train,label=f"{modality}_train",color=color_dict[modality],linestyle="solid")
+            # add to all train losses
+            all_train_losses.append(means_train)       
 
-def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/split_0/loss/",savepath = "MMAA/plots/"):
-    #open all files starting with eeg
-    eeg_loss = []
-    meg_loss = []
-    fmri_loss = []
-    adam_loss = []
-    for file in os.listdir(datapath):
-        if file.endswith("eeg.npy"):
-            eeg_loss.append(readLossFromFile(datapath,file))
-        elif file.endswith("meg.npy"):
-            meg_loss.append(readLossFromFile(datapath,file))
-        elif file.endswith("fmri.npy"):
-            fmri_loss.append(readLossFromFile(datapath,file))
-        elif file.endswith("sum.npy"):
-            adam_loss.append(readLossFromFile(datapath,file))     
- 
-    #sort the lists
-    eeg_loss.sort(key = lambda x: x[0])
-    meg_loss.sort(key = lambda x: x[0])
-    fmri_loss.sort(key = lambda x: x[0])
-    adam_loss.sort(key = lambda x: x[0])
+        #plot summarized train loss
+        # sum over modalities
+        all_train_losses = np.array(all_train_losses)
+        all_train_losses = np.sum(all_train_losses,axis=0)
 
-    # calculate the mean and std for each number of archetypes
-    eeg_mean = np.mean([x[1] for x in eeg_loss])
-    eeg_std = np.std([x[1] for x in eeg_loss])
-    meg_mean = np.mean([x[1] for x in meg_loss])
-    meg_std = np.std([x[1] for x in meg_loss])
-    fmri_mean = np.mean([x[1] for x in fmri_loss])
-    fmri_std = np.std([x[1] for x in fmri_loss])
-    adam_mean = np.mean([x[1] for x in adam_loss])
-    adam_std = np.std([x[1] for x in adam_loss])
-    
-    #plot the mean values with std
-    plt.errorbar([x[0] for x in eeg_loss], [x[1] for x in eeg_loss], yerr = eeg_std, label = "eeg")
-    plt.errorbar([x[0] for x in meg_loss], [x[1] for x in meg_loss], yerr = meg_std, label = "meg")
-    plt.errorbar([x[0] for x in fmri_loss], [x[1] for x in fmri_loss], yerr = fmri_std, label = "fmri")
-    plt.errorbar([x[0] for x in adam_loss], [x[1] for x in adam_loss], yerr = adam_std, label = "adam")
-    plt.legend()
-    # make the x ticks integers 
-    plt.xticks([x[0] for x in eeg_loss])
-    plt.title("Final loss for different number of archetypes training data")
-    plt.xlabel("Number of archetypes")
-    plt.ylabel("Final loss")
-    plt.savefig(savepath + "finalLoss.png")    
-    #plt.show()    
+        plt.plot(np.arange(2,20+1,2),all_train_losses,label="sum_train",color=color_dict["sum"],linestyle="solid")
+        """
 
-def createLossPlot2(datapath = "data/MMAA_results/multiple_runs/split_0/loss/",savepath = "MMAA/plots/"):
-    #open all files starting with eeg
-    eeg_loss = []
-    meg_loss = []
-    fmri_loss = []
-    adam_loss = []
+        # now for the test loss
+        # update datapath
+        datapath = folder + f"split_{split}/test_loss/"
 
-    for file in os.listdir(datapath):
-        if file.endswith("eeg.npy"):
-            eeg_loss.append(readLossFromFile(datapath,file,array=True))
-        elif file.endswith("meg.npy"):
-            meg_loss.append(readLossFromFile(datapath,file,array=True))
-        elif file.endswith("fmri.npy"):
-            fmri_loss.append(readLossFromFile(datapath,file,array=True))
-        elif file.endswith("sum.npy"):
-            adam_loss.append(readLossFromFile(datapath,file,array=True))  
-    
-    #sort the lists
-    eeg_loss.sort(key = lambda x: x[0])
-    meg_loss.sort(key = lambda x: x[0])
-    fmri_loss.sort(key = lambda x: x[0])
-    adam_loss.sort(key = lambda x: x[0])
+        all_test_losses = []
+        # loop over modalities except fmri
+        for modality in modalityComb:
+            if modality == "fmri":
+                 continue
+            means_test=[]
+            stds_test=[]
+            min_test_loss = []
+            
+            for k in range(2,20+1,2):
+                # the loss tuple is (test_loss, test_loss_std ,min_loss based on seeds)
+                loss_tuple = np.load(datapath + f"test_loss_{modality}_for_split-{split}_k-{k}.npy")
+                means_test.append(loss_tuple[0])
+                stds_test.append(loss_tuple[1])
+                min_test_loss.append(loss_tuple[2])
 
-    # for each number of archetypes, calculate the mean and std for each seed
-    eeg_mean = []    
-    meg_mean = []
-    fmri_mean = []
-    adam_mean = []
-    
-    for i in range(2,20+1,2):
-        # the loss arrays are of different length
-        # we we use the lenght of the shortest array
-        # this is not the best solution, but it works
-        #eeg
-        eeg_losses=[x[1] for x in eeg_loss if x[0] == i]
-        eeg_its=min([len(x) for x in eeg_losses])
-        eeg_mean.append(np.mean([x[:eeg_its] for x in eeg_losses],axis = 0))
+            print(means_test)    
+            
+            plt.errorbar(np.arange(2,20+1,2),means_test,yerr=stds_test,label=f"{modality}_test",linestyle="dashed",color=color_dict[modality])
+            # plot the min test loss
+            plt.plot(np.arange(2,20+1,2),min_test_loss,label=f"{modality}_min_test",linestyle="dotted",color=color_dict[modality])
+            # add to all train losses
+            all_test_losses.append(means_test)
 
-        #meg
-        meg_losses=[x[1] for x in meg_loss if x[0] == i]
-        meg_its=min([len(x) for x in meg_losses])
-        meg_mean.append(np.mean([x[:meg_its] for x in meg_losses],axis = 0))
+        #plot summarized test loss
+        # sum over modalities
+        all_test_losses = np.array(all_test_losses)
+        all_test_losses = np.sum(all_test_losses,axis=0)
 
-        #fmri
-        fmri_losses=[x[1] for x in fmri_loss if x[0] == i]
-        fmri_its=min([len(x) for x in fmri_losses])
-        fmri_mean.append(np.mean([x[:fmri_its] for x in fmri_losses],axis = 0))
+        plt.plot(np.arange(2,20+1,2),all_test_losses,label="sum_test",color=color_dict["sum"],linestyle="dashed")         
 
-        #adam
-        adam_losses=[x[1] for x in adam_loss if x[0] == i]
-        adam_its=min([len(x) for x in adam_losses])
-        adam_mean.append(np.mean([x[:adam_its] for x in adam_losses],axis = 0))
-        
-    
-    #plot the loss curve for each number of archetypes
-    for i in range(len(eeg_mean)):
-    #for i in range(len(eeg_mean)):
-        #if i > 8:
-        plt.plot(range(len(eeg_mean[i])),eeg_mean[i],label = f"eeg_k={2*(i+1)}")
-        plt.plot(range(len(meg_mean[i])),meg_mean[i],label = f"meg_k={2*(i+1)}")
-        plt.plot(range(len(fmri_mean[i])),fmri_mean[i],label = f"fmri_k={2*(i+1)}")
-        plt.plot(range(len(adam_mean[i])),adam_mean[i],label = f"adam_k={2*(i+1)}")
-        
+        plt.legend()
+        plt.title(f"Train and test loss for different number of archetypes split {split}")
+        plt.xticks(np.arange(2,20+1,2))
+        plt.xlabel("Number of archetypes")
+        plt.ylabel("Loss")
+        plt.savefig(savepath + f"loss_split_{split}.png")        
+        plt.close()
 
-   
-    plt.legend()
-    # make the x ticks integers
-    plt.title("Mean Loss curve for different number of archetypes")
-    plt.xlabel("Iteration")
-    plt.ylabel("Final loss")
-    plt.savefig(savepath + "lossCurve.png")
-    #plt.show()
+if __name__ == "__main__":    
+    modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"],["eeg"], ["meg"], ["fmri"]]
+    for modalityComb in modalityCombs:        
+            loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMAA/plots/",modalityComb=modalityComb)
+            
+            
 
 
-    
 
 
-   
-   
-if __name__ == "__main__":
-    createLossPlot1()
-    #close all plots
-    plt.close("all")
-    createLossPlot2()
