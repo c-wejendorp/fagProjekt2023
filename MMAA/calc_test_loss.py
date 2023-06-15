@@ -49,7 +49,7 @@ if __name__ == "__main__":
                     X_test = Real_Data(subjects=arguments.get("subjects"),split=0)
                     T = np.array([getattr(X_train, f"{m}_data").shape[1] for m in modalityComb])
 
-                
+                                
 
                 # loop over all archetypes in correct stepSize
                 for numArcheTypes in range(2,40+1,2):
@@ -64,13 +64,7 @@ if __name__ == "__main__":
 
                         # C is the same for all subjects and modalities
                         C_tensor = torch.from_numpy(C)
-                        C_tensor = C_tensor.double()
-
-                        X_test_tensor = torch.from_numpy(getattr(X_test, f"{modality}_data"))
-                        X_train_tensor = torch.from_numpy(getattr(X_train, f"{modality}_data"))
-                        #make all  tensors double
-                        X_test_tensor = X_test_tensor.double()
-                        X_train_tensor = X_train_tensor.double()
+                        C_tensor = C_tensor.double()                       
 
                         #print("debugging",file=sys.stderr)
                         #print(modalityComb,file=sys.stderr)
@@ -85,6 +79,12 @@ if __name__ == "__main__":
                                 # S is unique for each subject and modality
                                 S_tensor = torch.from_numpy(S[idx,:,:])                               
                                 S_tensor = S_tensor.double()
+
+                                X_test_tensor = torch.from_numpy(getattr(X_test, f"{modality}_data"))
+                                X_train_tensor = torch.from_numpy(getattr(X_train, f"{modality}_data"))
+                                #make all  tensors double
+                                X_test_tensor = X_test_tensor.double()
+                                X_train_tensor = X_train_tensor.double()
                                 
                                 print("debugging",file=sys.stderr)
                                 # print the current torch dtype
