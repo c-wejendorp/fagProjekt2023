@@ -15,7 +15,7 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
 
     for split in [0,1]:
 
-        """
+        
         #lets start with trainloss, note this value has not been averaged over seeds
         datapath = folder + f"split_{split}/loss/"
 
@@ -47,7 +47,7 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
         all_train_losses = np.sum(all_train_losses,axis=0)
 
         plt.plot(archetypRange,all_train_losses,label="sum_train",color=color_dict["sum"],linestyle="solid")
-        """
+        
 
         # now for the test loss
         # update datapath
@@ -62,7 +62,7 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
             stds_test=[]
             min_test_loss = []
             
-            archetypRange = np.arange(2,4+1,2)
+            
             #for k in range(2,4+1,2):
             for k in archetypRange:
                 # the loss tuple is (test_loss, test_loss_std ,min_loss based on seeds)
@@ -91,7 +91,8 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
         plt.xticks(archetypRange)
         plt.xlabel("Number of archetypes")
         plt.ylabel("Loss")
-        plt.savefig(savepath + f"loss_split_{split}.png")        
+        # increase the dpi for better quality
+        plt.savefig(savepath + f"loss_split_{split}.png",dpi=300)        
         plt.close()
 
 if __name__ == "__main__":    
