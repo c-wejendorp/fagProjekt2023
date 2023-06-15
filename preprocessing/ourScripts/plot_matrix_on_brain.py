@@ -101,11 +101,12 @@ def plot_s_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/fr
                     #overlay_plot.add_foci(overlay.rh_vertno[list(overlay.data[9354:]).index(max(overlay.data[9354:]))], coords_as_verts=True, hemi=h, color="white", scale_factor=0.2)
                     print("Checkpoint! Add a breakpoint here and take a picture!")
 
-overlay_path = "data/MMAA_results/multiple_runs"
-trimodal_path = overlay_path + "/eeg-meg-fmri"       
+if __name__ == "__main__":
+    overlay_path = "data/MMAA_results/multiple_runs"
+    trimodal_path = overlay_path + "/eeg-meg-fmri"       
 
-split = 0
+    split = 0
+    k = 12
 
-for k in range(2, 42, 2):
     plot_c_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10))
     plot_s_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10))
