@@ -11,7 +11,7 @@ def reconstructMatrix(path_to_multiple_runs="", modalityComb=[], k=0, seed=0):
 
         Sms = []
 
-        for idx,modality in modalityComb:             
+        for modality in modalityComb:             
             matrices_per_modalities = []
             #the matrices are saved as sub 0 to sub 15
             for j in range(16):
