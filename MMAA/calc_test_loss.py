@@ -62,6 +62,16 @@ if __name__ == "__main__":
                         C = np.load(datapath_C + f"C_split-{split}_k-{numArcheTypes}_seed-{seed}.npy")
                         S = np.load(datapath_S + f"S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy")
 
+                        # C is the same for all subjects and modalities
+                        C_tensor = torch.from_numpy(C)
+                        C_tensor = C_tensor.double()
+
+                        X_test_tensor = torch.from_numpy(getattr(X_test, f"{modality}_data"))
+                        X_train_tensor = torch.from_numpy(getattr(X_train, f"{modality}_data"))
+                        #make all  tensors double
+                        X_test_tensor = X_test_tensor.double()
+                        X_train_tensor = X_train_tensor.double()
+
                         #print("debugging",file=sys.stderr)
                         #print(modalityComb,file=sys.stderr)
                         #print(f"seed: {seed}, C: {C.shape}, S: {S.shape}",file=sys.stderr)
@@ -70,21 +80,11 @@ if __name__ == "__main__":
                         #calculate the loss for each modality
                         for idx,modality in enumerate(modalityComb): 
                                 if modality == "fmri":  
-                                    continue                    
-                                    
-                                X_test_tensor = torch.from_numpy(getattr(X_test, f"{modality}_data"))
-                                X_train_tensor = torch.from_numpy(getattr(X_train, f"{modality}_data"))
-
-                                # C is the same for all subjects and modalities
-                                C = torch.from_numpy(C)
+                                    continue                   
+                             
                                 # S is unique for each subject and modality
-                                S = torch.from_numpy(S[idx,:,:])
-
-                                #make all  tensors double
-                                X_test_tensor = X_test_tensor.double()
-                                X_train_tensor = X_train_tensor.double()
-                                C = C.double()
-                                S = S.double()
+                                S_tensor = torch.from_numpy(S[idx,:,:])                               
+                                S_tensor = S_tensor.double()
                                 
                                 print("debugging",file=sys.stderr)
                                 # print the current torch dtype
@@ -94,8 +94,8 @@ if __name__ == "__main__":
                                 print(f"S dtype: {S.dtype}",file=sys.stderr)                                                           
 
 
-                                A = X_train_tensor@C
-                                rec = A@S                                
+                                A = X_train_tensor@C_tensor
+                                rec = A@S_tensor                             
                                 loss_per_sub = torch.linalg.matrix_norm(X_test_tensor-rec)**2
 
                                 # roboust loss
