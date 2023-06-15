@@ -51,7 +51,8 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
 
         # now for the test loss
         # update datapath
-        datapath = folder + f"split_{split}/test_loss/"
+        #datapath = folder + f"split_{split}/test_loss/"
+        datapath = folder + f"split_{split}/test_loss_SMS/"
 
         all_test_losses = []
         # loop over modalities except fmri
