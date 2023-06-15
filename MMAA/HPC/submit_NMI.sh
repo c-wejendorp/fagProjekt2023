@@ -18,9 +18,9 @@
 ### -- specify that we need 8GB of Memory  more than enough for this task
 #BSUB -R "rusage[mem=8GB]"
 
-### wall time limit - the maximum time the job will run. Currently 30 min. 
+### wall time limit - the maximum time the job will run. Currently 2 hours, 30 min. 
 
-#BSUB -W 00:30
+#BSUB -W 02:30
 
 ##BSUB -u s204090@dtu.dk
 ### -- send notification at start -- 
