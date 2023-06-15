@@ -43,4 +43,4 @@ module load cuda/11.8
 # NOTE: needs to have been built with the same SciPy version above!
 source MMAA/HPC_env/bin/activate
 
-python MMAA/reconstructSMS.py
+python MMAA/reconstructSms.py

@@ -8,7 +8,8 @@ def reconstructMatrix(path_to_multiple_runs="", modalityComb=[], k=0, seed=0):
     modelDir = path_to_multiple_runs + f"{'-'.join(modalityComb)}/"
     # loop over splits
     for split in [0,1]:
-        S_dir = modelDir + f"split_{split}/SprSub/"
+        split_dir = modelDir + f"split_{split}/"
+        S_dir = split_dir + "SprSub/"        
 
         Sms = []
 
@@ -24,13 +25,13 @@ def reconstructMatrix(path_to_multiple_runs="", modalityComb=[], k=0, seed=0):
         #save the Sms
         Sms = np.array(Sms)
         #crate folder called Sms
-        if not os.path.exists(modelDir + f'Sms/'):
-            os.makedirs(modelDir + f'Sms/')
+        if not os.path.exists(split_dir + f'Sms/'):
+            os.makedirs(split_dir + f'Sms/')
         # check if shape is correct
         #print("This is the shape of Sms: ",Sms.shape,file=sys.stderr)
         #assert Sms.shape[:2] == [len(modalityComb),16, k]
 
-        np.save(modelDir + f'Sms/Sms_split-{split}_k-{k}_seed-{seed}', Sms)
+        np.save(split_dir + f'Sms/Sms_split-{split}_k-{k}_seed-{seed}', Sms)
 
 if __name__ == "__main__":
     path_to_multiple_runs = "/work3/s204090/data/MMAA_results/multiple_runs/"
