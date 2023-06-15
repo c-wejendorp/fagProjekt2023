@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import tqdm
+import sys
 
 def reconstructMatrix(path_to_multiple_runs="", modalityComb=[], k=0, seed=0):
 
@@ -26,6 +27,7 @@ def reconstructMatrix(path_to_multiple_runs="", modalityComb=[], k=0, seed=0):
         if not os.path.exists(modelDir + f'Sms/'):
             os.makedirs(modelDir + f'Sms/')
         # check if shape is correct
+        print("This is the shape of Sms: ",Sms.shape,file=sys.stderr)
         assert Sms.shape[:2] == [len(modalityComb),16, k]
 
         np.save(modelDir + f'Sms/Sms_split-{split}_k-{k}_seed-{seed}', Sms)
