@@ -16,6 +16,8 @@ def plotNMI(number_of_seeds = 10,mods = ["eeg", "meg", "fmri"],train=0,showPlot=
 
     colors = ["green", "red", "blue"]
 
+    archetypRange = np.arange(2,40+1,2)
+
     #path = f"data/MMAA_results/multiple_runs/{'-'.join(mods)}/"
     if train == 1:
         test = 0
@@ -32,7 +34,7 @@ def plotNMI(number_of_seeds = 10,mods = ["eeg", "meg", "fmri"],train=0,showPlot=
         NMI_tuples = []
         #now over archetypes
         
-        for k in range(2,20+1,2):            
+        for k in archetypRange:            
             NMI_tuples.append(np.load(datapath + f"NMI_{modality}_split-{train}_k-{k}.npy"))
             #NMI_tuples.append(np.load(datapath + f"NMI_split-{train}_k-{k}_type-{modality}.npy"))
         
@@ -40,7 +42,7 @@ def plotNMI(number_of_seeds = 10,mods = ["eeg", "meg", "fmri"],train=0,showPlot=
         # we want to plot the mean with error bars
         NMI_mean = [t[0] for t in NMI_tuples]
         NMI_std = [t[1] for t in NMI_tuples]
-        plt.errorbar(np.arange(2,20+1,2)+offset, NMI_mean, yerr=NMI_std, fmt='o', capsize=5,color=colors[idx], label=f"{modality}_split_{train}")
+        plt.errorbar(archetypRange+offset, NMI_mean, yerr=NMI_std, fmt='o', capsize=5,color=colors[idx], label=f"{modality}_split_{train}")
         offset += 0.3
 
     # now for the best NMI across splits for EEG and MEG
@@ -51,22 +53,23 @@ def plotNMI(number_of_seeds = 10,mods = ["eeg", "meg", "fmri"],train=0,showPlot=
     for idx, modality in enumerate(["eeg", "meg"]):
         NMI_best = []
         #now over archetypes
-        for k in range(2,20+1,2):     
+        for k in archetypRange:     
   
             NMI_best.append(max([np.load(f"data/MMAA_results/multiple_runs/{'-'.join(mods)}/split_{split}/NMI/NMI_{modality}_split-{split}_k-{k}.npy")[2] for split in [train, test]]))
             #NMI_best.append(max([np.load(path + f"split_{split}/NMI/NMI_split-{split}_k-{k}_type-{modality}.npy")[2] for split in [train, test]]))
 
 
         # plot it as a dotted line
-        plt.plot(np.arange(2,20+1,2)+offset, NMI_best, '--', color=colors[idx], label=f"{modality}_best btw splits")
+        plt.plot(archetypRange+offset, NMI_best, '--', color=colors[idx], label=f"{modality}_best btw splits")
         
         offset += 0.3   
 
-    plt.xticks(np.arange(2,20+1,2))    
+    plt.xticks(archetypRange)    
 
     plt.legend()
     plt.xlabel("Number of archetypes")
     plt.ylabel("NMI")
+    plt.title(f"Normalized Mutual Information, model: {'-'.join(modalityComb)}, split: {split}")
     plt.savefig(saveFolder + f"/NMI_split={train}.png", dpi=300)
     if showPlot:
         plt.show()

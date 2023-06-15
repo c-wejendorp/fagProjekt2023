@@ -87,7 +87,7 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
         plt.plot(archetypRange,all_test_losses,label="sum_test",color=color_dict["sum"],linestyle="dashed")         
 
         plt.legend()
-        plt.title(f"Train and test loss for different number of archetypes split {split}")
+        plt.title(f"Train and test loss pr number of archetypes, model: {'-'.join(modalityComb)}, split: {split}")
         plt.xticks(archetypRange)
         plt.xlabel("Number of archetypes")
         plt.ylabel("Loss")
