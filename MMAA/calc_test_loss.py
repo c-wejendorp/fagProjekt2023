@@ -75,9 +75,9 @@ if __name__ == "__main__":
                                 X_train_tensor = torch.from_numpy(getattr(X_train, f"{modality}_data"))
 
                                 # C is the same for all subjects and modalities
-                                C = torch.from_numpy(C)
+                                C = torch.from_numpy(C, dtype=torch.double)
                                 # S is unique for each subject and modality
-                                S = torch.from_numpy(S[idx,:,:])
+                                S = torch.from_numpy(S[idx,:,:], dtype=torch.double)
                                 A = X_train_tensor@C
                                 rec = A@S                                
                                 loss_per_sub = torch.linalg.matrix_norm(X_test_tensor-rec)**2
