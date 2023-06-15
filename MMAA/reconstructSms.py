@@ -36,8 +36,8 @@ def reconstructMatrix(path_to_multiple_runs="", modalityComb=[], k=0, seed=0):
 if __name__ == "__main__":
     path_to_multiple_runs = "/work3/s204090/data/MMAA_results/multiple_runs/"
     for modalityComb in [["eeg", "meg", "fmri"],["eeg", "meg"],]:
-        for k in range(2,2+1,2):
-        #for k in range(2,40+1,2):
+        #for k in range(2,2+1,2):
+        for k in range(2,40+1,2):
             for s in tqdm.tqdm(range(0,10)):
                 seed = s * 10
                 reconstructMatrix(path_to_multiple_runs=path_to_multiple_runs, modalityComb=modalityComb, k=k, seed=seed)
