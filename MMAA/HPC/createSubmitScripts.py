@@ -35,7 +35,7 @@ def createSubmitScripts():
 
             ### wall time limit - the maximum time the job will run. Currently 3.5 hours. 
 
-            #BSUB -W 03:30
+            #BSUB -W 02:30
 
             ##BSUB -u s204090@dtu.dk
             ### -- send notification at start -- 
