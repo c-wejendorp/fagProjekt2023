@@ -10,6 +10,9 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
 
     color_dict = {"eeg":"blue","meg":"red","fmri":"green","sum":"black"}
 
+    archetypRange = np.arange(2,40+1,2)
+    
+
     for split in [0,1]:
 
         """
@@ -23,7 +26,7 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
             means_train=[]
             stds_train=[]
             #now over archetypes
-            for k in range(2,20+1,2):
+            for k in archetypRange:
                 loss_list = []
                 for seed in range(0,91,10):
                     loss_pr_iterations=np.load(datapath + f"loss_split-{split}_k-{k}_seed-{seed}_type-{modality}.npy")
@@ -34,7 +37,7 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
                 stds_train.append(np.std(loss_list))
                 
                 # plot it
-            plt.errorbar(np.arange(2,20+1,2),means_train,yerr=stds_train,label=f"{modality}_train",color=color_dict[modality],linestyle="solid")
+            plt.errorbar(archetypRange,means_train,yerr=stds_train,label=f"{modality}_train",color=color_dict[modality],linestyle="solid")
             # add to all train losses
             all_train_losses.append(means_train)       
 
@@ -43,7 +46,7 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
         all_train_losses = np.array(all_train_losses)
         all_train_losses = np.sum(all_train_losses,axis=0)
 
-        plt.plot(np.arange(2,20+1,2),all_train_losses,label="sum_train",color=color_dict["sum"],linestyle="solid")
+        plt.plot(archetypRange,all_train_losses,label="sum_train",color=color_dict["sum"],linestyle="solid")
         """
 
         # now for the test loss
@@ -59,7 +62,9 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
             stds_test=[]
             min_test_loss = []
             
-            for k in range(2,20+1,2):
+            archetypRange = np.arange(2,4+1,2)
+            #for k in range(2,4+1,2):
+            for k in archetypRange:
                 # the loss tuple is (test_loss, test_loss_std ,min_loss based on seeds)
                 loss_tuple = np.load(datapath + f"test_loss_{modality}_for_split-{split}_k-{k}.npy")
                 means_test.append(loss_tuple[0])
@@ -68,9 +73,9 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
 
             print(means_test)    
             
-            plt.errorbar(np.arange(2,20+1,2),means_test,yerr=stds_test,label=f"{modality}_test",linestyle="dashed",color=color_dict[modality])
+            plt.errorbar(archetypRange,means_test,yerr=stds_test,label=f"{modality}_test",linestyle="dashed",color=color_dict[modality])
             # plot the min test loss
-            plt.plot(np.arange(2,20+1,2),min_test_loss,label=f"{modality}_min_test",linestyle="dotted",color=color_dict[modality])
+            plt.plot(archetypRange,min_test_loss,label=f"{modality}_min_test",linestyle="dotted",color=color_dict[modality])
             # add to all train losses
             all_test_losses.append(means_test)
 
@@ -79,11 +84,11 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
         all_test_losses = np.array(all_test_losses)
         all_test_losses = np.sum(all_test_losses,axis=0)
 
-        plt.plot(np.arange(2,20+1,2),all_test_losses,label="sum_test",color=color_dict["sum"],linestyle="dashed")         
+        plt.plot(archetypRange,all_test_losses,label="sum_test",color=color_dict["sum"],linestyle="dashed")         
 
         plt.legend()
         plt.title(f"Train and test loss for different number of archetypes split {split}")
-        plt.xticks(np.arange(2,20+1,2))
+        plt.xticks(archetypRange)
         plt.xlabel("Number of archetypes")
         plt.ylabel("Loss")
         plt.savefig(savepath + f"loss_split_{split}.png")        

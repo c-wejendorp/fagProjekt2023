@@ -86,12 +86,12 @@ if __name__ == "__main__":
                                 X_test_tensor = X_test_tensor.double()
                                 X_train_tensor = X_train_tensor.double()
                                 
-                                print("debugging",file=sys.stderr)
+                                #print("debugging",file=sys.stderr)
                                 # print the current torch dtype
-                                print(f"X_test_tensor dtype: {X_test_tensor.dtype}",file=sys.stderr)
-                                print(f"X_train_tensor dtype: {X_train_tensor.dtype}",file=sys.stderr)
-                                print(f"C dtype: {C.dtype}",file=sys.stderr)
-                                print(f"S dtype: {S.dtype}",file=sys.stderr)                                                           
+                                #print(f"X_test_tensor dtype: {X_test_tensor.dtype}",file=sys.stderr)
+                                #print(f"X_train_tensor dtype: {X_train_tensor.dtype}",file=sys.stderr)
+                                #print(f"C dtype: {C.dtype}",file=sys.stderr)
+                                #print(f"S dtype: {S.dtype}",file=sys.stderr)                                                           
 
 
                                 A = X_train_tensor@C_tensor
