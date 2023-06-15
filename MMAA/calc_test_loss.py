@@ -3,8 +3,13 @@ import os
 import json
 from loadData import Real_Data
 import sys
+import torch
 
 if __name__ == "__main__":
+
+    #ensure that all tensors are on the GPU
+    if torch.cuda.is_available():
+        torch.set_default_device("cuda:0")
     # we assume that all models are trained with the same seeds and splits and stepsize
 
     with open('MMAA/HPC/arguments/arguments0.json') as f:
@@ -38,9 +43,11 @@ if __name__ == "__main__":
                 if split == 0:
                     X_train = Real_Data(subjects=arguments.get("subjects"),split=0)
                     X_test = Real_Data(subjects=arguments.get("subjects"),split=1)
+                    T = np.array([getattr(X_train, f"{m}_data").shape[1] for m in modalityComb])
                 else:
                     X_train = Real_Data(subjects=arguments.get("subjects"),split=1)
                     X_test = Real_Data(subjects=arguments.get("subjects"),split=0)
+                    T = np.array([getattr(X_train, f"{m}_data").shape[1] for m in modalityComb])
 
                 
 
@@ -54,25 +61,39 @@ if __name__ == "__main__":
                         C = np.load(datapath_C + f"C_split-{split}_k-{numArcheTypes}_seed-{seed}.npy")
                         S = np.load(datapath_S + f"S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy")
 
-                        print("debugging",file=sys.stderr)
-                        print(modalityComb,file=sys.stderr)
-                        print(f"seed: {seed}, C: {C.shape}, S: {S.shape}",file=sys.stderr)
+                        #print("debugging",file=sys.stderr)
+                        #print(modalityComb,file=sys.stderr)
+                        #print(f"seed: {seed}, C: {C.shape}, S: {S.shape}",file=sys.stderr)
                         
                         
                         #calculate the loss for each modality
                         for idx,modality in enumerate(modalityComb): 
-                                if modality != "fmri":                           
-                                    org = getattr(X_test, f"{modality}_data")
-                                    #print(f"shape_org: {org.shape}, C: {C.shape}",file=sys.stderr)
-                                    XC = np.matmul(getattr(X_train, f"{modality}_data"),C)
-                                    #print(f"shape_XC: {XC.shape}",file=sys.stderr)
-                                    #print(f"shape_S: {S[idx,:,:].shape}",file=sys.stderr)
-                                    rec = np.matmul(XC,S[idx,:,:])
+                                if modality == "fmri":  
+                                    continue                    
+                                    
+                                X_test_tensor = torch.from_numpy(getattr(X_test, f"{modality}_data"))
+                                X_train_tensor = torch.from_numpy(getattr(X_train, f"{modality}_data"))
 
-                                    #rec = np.linalg.multi_dot([getattr(X_train, f"{modality}_data"),C,S[idx,:,:]])
+                                # C is the same for all subjects and modalities
+                                C = torch.from_numpy(C)
+                                # S is unique for each subject and modality
+                                S = torch.from_numpy(S[idx,:,:])
+                                A = X_train_tensor@C
+                                rec = A@S                                
+                                loss_per_sub = torch.linalg.matrix_norm(X_test_tensor-rec)**2
 
-                                    modalities_loss[f"test_loss_{modality}"].append(np.linalg.norm(org - rec)**2)
-
+                                # roboust loss
+                                epsilon = 1e-3
+                                beta  = 3/2 * epsilon
+                                # find the highest number of time points across all modalities                                               
+                                max_T = np.max(T)
+                                alpha = 1 + max_T/2  - T[idx]/2
+                                mle_loss_m = - (2 * (alpha + 1) + T[idx])/2 * torch.sum(torch.log(torch.add(loss_per_sub, 2 * beta)))
+                                # cast tensor to cpu  and convert to numpy
+                                mle_loss_m = mle_loss_m.cpu().detach().numpy()
+                                
+                                modalities_loss[f"test_loss_{modality}"].append(-mle_loss_m)                             
+                
                     # calculate the mean and std over seeds for current num of archetypes
                     for key, loss_list in modalities_loss.items():
                         mean = np.mean(loss_list)

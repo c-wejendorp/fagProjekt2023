@@ -8,24 +8,24 @@
 #BSUB -o test_loss_%J.out
 #BSUB -e test_loss_%J.err
 
-
 ### number of cores
 #BSUB -n 1
 
+# request cpu
+#BSUB -R "rusage[mem=16G]"
 
-### -- specify that the cores must be on the same host -- 
-#BSUB -R "span[hosts=1]"
-### -- specify that we need rather large amount of of Memory 
-### as we need to load the X matrix and perform calculations on it
+### -- Select the resources: 1 gpu in exclusive process mode --
+#BSUB -gpu "num=1:mode=exclusive_process"
 
-#BSUB -R "rusage[mem=24GB]"
+# request 32GB of GPU-memory
+#BSUB -R "select[gpu32gb]"
 
-### wall time limit - the maximum time the job will run. Currently 2 hours 30 min. 
+### wall time limit - the maximum time the job will run. Currently 30 min. 
 ### one modal comb takes longer than 30 min
 
 ### this might need to be adjusted 
 
-#BSUB -W 02:30
+#BSUB -W 0:30
 
 ##BSUB -u s204090@dtu.dk
 ### -- send notification at start -- 
