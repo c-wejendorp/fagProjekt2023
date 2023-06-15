@@ -76,7 +76,7 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
             
             plt.errorbar(archetypRange,means_test,yerr=stds_test,label=f"{modality}_test",linestyle="dashed",color=color_dict[modality])
             # plot the min test loss
-            plt.plot(archetypRange,min_test_loss,label=f"{modality}_min_test",linestyle="dotted",color=color_dict[modality])
+            #plt.plot(archetypRange,min_test_loss,label=f"{modality}_min_test",linestyle="dotted",color=color_dict[modality])
             # add to all train losses
             all_test_losses.append(means_test)
 
