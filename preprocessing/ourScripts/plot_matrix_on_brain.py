@@ -1,0 +1,111 @@
+from pathlib import Path
+import mne
+import numpy as np
+
+#path to the freesurfer directory
+fs_dir = Path("data/freesurfer")
+subject = "sub-01"
+
+#read labels for corpus callosum
+label_lh = mne.read_label(fs_dir / "fsaverage/label/lh.Medial_wall.label",subject=subject)
+label_rh = mne.read_label(fs_dir / "fsaverage/label/rh.Medial_wall.label",subject=subject)
+label_both = np.concatenate((label_lh.vertices, label_rh.vertices + 10242))
+
+#remove corpus callosum vertices from total number of vertices
+dipoles = np.arange(20484) 
+dipoles = np.delete(dipoles, label_both) 
+
+def plot_c_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/freesurfer")):
+    #load data
+    split_path = path + f"/split_{split}"
+    matrix_path = split_path + f"/C"
+    
+    #load all seed matrices
+    data = []
+
+    for s in seed:
+        data.append(np.load(matrix_path + f"/C_split-{split}_k-{k}_seed-{s}.npy"))
+        
+    #average c matrix across all seeds
+    data = np.mean(np.asarray(data), axis = 0)
+
+    hemi = ["lh", "rh"]
+    for h in hemi:
+        #make a plot for each archetype
+        for archetypes in range(k):
+            arch = data[:, archetypes]
+            
+            # #min-max normalize data
+            # arch = (arch - min(arch)) / (max(arch) - min(arch))
+
+            #load data as a source estimate object and plot
+            overlay = mne.SourceEstimate(arch, vertices = [dipoles[:9354], dipoles[9354:] - 10242], tmin = 0, tstep = 1)
+            
+            #plot for both hemispheres and add most activated source as foci
+            if h == "lh":
+                overlay_plot = overlay.plot(subject="fsaverage", subjects_dir=fs_dir, 
+                                            surface="white", time_viewer=True, views = 'auto', 
+                                            hemi = h, title = f"c_hemi_{h}_k_{archetypes}/{k}", 
+                                            add_data_kwargs = dict(fmin = 0, fmid = max(overlay.data[:9354]) * 0.7, fmax = max(overlay.data[:9354]), smoothing_steps = 0))       
+                #overlay_plot.add_foci(overlay.lh_vertno[list(overlay.data[:9354]).index(max(overlay.data[:9354]))], coords_as_verts=True, hemi=h, color="white", scale_factor=0.2)
+                print("Checkpoint! Add a breakpoint here and take a picture!")
+            else:
+                overlay_plot = overlay.plot(subject="fsaverage", subjects_dir=fs_dir, 
+                                            surface="white", time_viewer=True, views = 'auto', 
+                                            hemi = h, title = ["eeg", "meg", "fmri"][m] + f"_hemi_{h}_k_{archetypes}/{k}",
+                                            add_data_kwargs = dict(fmin = 0, fmid = max(overlay.data[9354:]) * 0.7, fmax = max(overlay.data[9354:]), smoothing_steps = 0))       
+                #overlay_plot.add_foci(overlay.rh_vertno[list(overlay.data[9354:]).index(max(overlay.data[9354:]))], coords_as_verts=True, hemi=h, color="white", scale_factor=0.2)
+                print("Checkpoint! Add a breakpoint here and take a picture!")
+
+def plot_s_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/freesurfer")):
+    #load data
+    split_path = path + f"/split_{split}"
+    matrix_path = split_path + f"/S"
+    
+    #load all seed matrices
+    data = []
+    for s in seed:
+        data.append(np.load(matrix_path + f"/S_split-{split}_k-{k}_seed-{s}_sub-avg.npy"))
+        
+    #average c/s matrix across all seeds
+    data = np.mean(np.asarray(data), axis = 0)
+    
+    for m in range(data.shape[0]):
+        data_mod = data[m].T
+
+        hemi = ["lh", "rh"]
+        for h in hemi:
+            #make a plot for each archetype
+            for archetypes in range(k):
+                arch = data_mod[:, archetypes]
+                
+                # #min-max normalize data
+                # arch = (arch - min(arch)) / (max(arch) - min(arch))
+
+                #load data as a source estimate object and plot
+                overlay = mne.SourceEstimate(arch, vertices = [dipoles[:9354], dipoles[9354:] - 10242], tmin = 0, tstep = 1)
+                
+                #plot for both hemispheres and add most activated source as foci
+                if h == "lh":
+                    overlay_plot = overlay.plot(subject="fsaverage", subjects_dir=fs_dir, 
+                                                surface="white", time_viewer=True, views = 'auto', 
+                                                hemi = h, title = ["eeg", "meg", "fmri"][m] + f"_hemi_{h}_k_{archetypes}/{k}", 
+                                                add_data_kwargs = dict(fmin = 0, fmid = max(overlay.data[:9354]) * 0.9, fmax = max(overlay.data[:9354]), smoothing_steps = 0))       
+                    #overlay_plot.add_foci(overlay.lh_vertno[list(overlay.data[:9354]).index(max(overlay.data[:9354]))], coords_as_verts=True, hemi=h, color="white", scale_factor=0.2)
+                    print("Checkpoint! Add a breakpoint here and take a picture!")
+                else:
+                    overlay_plot = overlay.plot(subject="fsaverage", subjects_dir=fs_dir, 
+                                                surface="white", time_viewer=True, views = 'auto', 
+                                                hemi = h, title = ["eeg", "meg", "fmri"][m] + f"_hemi_{h}_k_{archetypes}/{k}", 
+                                                add_data_kwargs = dict(fmin = 0, fmid = max(overlay.data[9354:]) * 0.9, fmax = max(overlay.data[9354:]), smoothing_steps = 0))       
+                    #overlay_plot.add_foci(overlay.rh_vertno[list(overlay.data[9354:]).index(max(overlay.data[9354:]))], coords_as_verts=True, hemi=h, color="white", scale_factor=0.2)
+                    print("Checkpoint! Add a breakpoint here and take a picture!")
+
+overlay_path = "data/MMAA_results/multiple_runs"
+trimodal_path = overlay_path + "/eeg-meg-fmri"       
+
+split = 0
+
+for k in range(2, 42, 2):
+    plot_c_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10))
+    plot_s_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10))
