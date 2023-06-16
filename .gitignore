@@ -3,6 +3,7 @@
 data/
 .vscode/
 projectModule/
+Classifier/results/
 
 
 # The standard python .gitignore starts from below this line
