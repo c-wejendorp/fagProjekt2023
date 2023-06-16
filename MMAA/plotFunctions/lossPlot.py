@@ -51,7 +51,8 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
 
         # now for the test loss
         # update datapath
-        datapath = folder + f"split_{split}/test_loss/"
+        #datapath = folder + f"split_{split}/test_loss/"
+        datapath = folder + f"split_{split}/test_loss_SMS/"
 
         all_test_losses = []
         # loop over modalities except fmri
@@ -75,7 +76,7 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
             
             plt.errorbar(archetypRange,means_test,yerr=stds_test,label=f"{modality}_test",linestyle="dashed",color=color_dict[modality])
             # plot the min test loss
-            plt.plot(archetypRange,min_test_loss,label=f"{modality}_min_test",linestyle="dotted",color=color_dict[modality])
+            #plt.plot(archetypRange,min_test_loss,label=f"{modality}_min_test",linestyle="dotted",color=color_dict[modality])
             # add to all train losses
             all_test_losses.append(means_test)
 
@@ -87,7 +88,7 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
         plt.plot(archetypRange,all_test_losses,label="sum_test",color=color_dict["sum"],linestyle="dashed")         
 
         plt.legend()
-        plt.title(f"Train and test loss for different number of archetypes split {split}")
+        plt.title(f"Train and test loss pr number of archetypes, model: {'-'.join(modalityComb)}, split: {split}")
         plt.xticks(archetypRange)
         plt.xlabel("Number of archetypes")
         plt.ylabel("Loss")
