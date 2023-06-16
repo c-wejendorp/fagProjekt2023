@@ -35,8 +35,8 @@ def plot_c_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/fr
         for archetypes in range(k):
             arch = data[:, archetypes]
             
-            # #min-max normalize data
-            # arch = (arch - min(arch)) / (max(arch) - min(arch))
+            #min-max normalize data
+            arch = (arch - min(arch)) / (max(arch) - min(arch))
 
             #load data as a source estimate object and plot
             overlay = mne.SourceEstimate(arch, vertices = [dipoles[:9354], dipoles[9354:] - 10242], tmin = 0, tstep = 1)
@@ -57,18 +57,26 @@ def plot_c_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/fr
                 #overlay_plot.add_foci(overlay.rh_vertno[list(overlay.data[9354:]).index(max(overlay.data[9354:]))], coords_as_verts=True, hemi=h, color="white", scale_factor=0.2)
                 print("Checkpoint! Add a breakpoint here and take a picture!")
 
-def plot_s_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/freesurfer")):
+def plot_s_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/freesurfer"), mean = False, std = False, subject = None):
     #load data
     split_path = path + f"/split_{split}"
-    matrix_path = split_path + f"/S"
+    matrix_path = split_path + f"/Sms"
     
     #load all seed matrices
     data = []
+    
     for s in seed:
-        data.append(np.load(matrix_path + f"/S_split-{split}_k-{k}_seed-{s}_sub-avg.npy"))
+        data.append(np.load(matrix_path + f"/Sms_split-{split}_k-{k}_seed-{s}.npy"))
         
-    #average c/s matrix across all seeds
+    #average s matrix across all seeds
     data = np.mean(np.asarray(data), axis = 0)
+    if mean:
+        #average across 
+        data = np.mean(data, axis = 1)
+    elif std:
+        data = np.std(data, axis = 1)
+    elif subject is not None:
+        data = data[:, subject, :, :]
     
     for m in range(data.shape[0]):
         data_mod = data[m].T
@@ -79,8 +87,8 @@ def plot_s_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/fr
             for archetypes in range(k):
                 arch = data_mod[:, archetypes]
                 
-                # #min-max normalize data
-                # arch = (arch - min(arch)) / (max(arch) - min(arch))
+                #min-max normalize data
+                arch = (arch - min(arch)) / (max(arch) - min(arch))
 
                 #load data as a source estimate object and plot
                 overlay = mne.SourceEstimate(arch, vertices = [dipoles[:9354], dipoles[9354:] - 10242], tmin = 0, tstep = 1)
@@ -102,11 +110,20 @@ def plot_s_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/fr
                     print("Checkpoint! Add a breakpoint here and take a picture!")
 
 if __name__ == "__main__":
-    overlay_path = "data/MMAA_results/multiple_runs"
+    overlay_path = "data/MMAA_results/Data_til_helena"
     trimodal_path = overlay_path + "/eeg-meg-fmri"       
 
     split = 0
-    k = 12
+    k = 16
 
+    #plot c matric on the brain
     plot_c_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10))
-    plot_s_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10))
+    
+    #plot mean value for subjects on the brain
+    plot_s_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10), mean = True)
+    #plot std value for subjects on the brain
+    plot_s_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10), std = True)
+    
+    #plot s matrix for one subject
+    plot_s_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10), mean = True, subject = 0)
+    plot_s_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10), mean = True, subject = 1)
