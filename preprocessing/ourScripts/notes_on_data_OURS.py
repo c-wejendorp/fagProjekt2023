@@ -67,6 +67,35 @@ MEGstc_morphed.vertices[0] = np.delete(MEGstc_morphed.vertices[0], label_lh.vert
 MEGstc_morphed.vertices[1] = np.delete(MEGstc_morphed.vertices[1], label_rh.vertices)
 MEGstc_morphed.data = np.delete(MEGstc_morphed.data, label_both, axis = 0)
 
+
+#plot the sources (after removing)
+# this is just a way to plot the brain with the removed corpus callosum from different angles
+# note that we also dont need the the time_viewer=True, since we are not plotting the time series, color bar will be nice for arcehtype plots
+
+#
+#plot both hemispheres at once
+region_plot = MEGstc_morphed.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=False,colorbar=False, hemi="both")
+region_plot.add_foci(MEGstc_morphed.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.15) 
+region_plot.add_foci(MEGstc_morphed.rh_vertno, coords_as_verts=True, hemi="rh", color="blue",scale_factor=0.15) 
+for orientaionView in ["lateral","medial","rostral","caudal","dorsal","ventral","frontal","parietal","axial"]:
+    # save the view as a png file with correct view
+    region_plot.show_view(orientaionView)
+    region_plot.save_image(f'data/brain_plots/all_sources_both_{orientaionView}.png')
+
+region_plot.close()
+
+#plot the left hemisphere
+region_plot = MEGstc_morphed.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=False,colorbar=False, hemi="lh")
+region_plot.add_foci(MEGstc_morphed.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.15) 
+for orientaionView in ["lateral","medial","rostral","caudal","dorsal","ventral","frontal","parietal","axial"]:
+    # save the view as a png file with correct view
+    region_plot.show_view(orientaionView)
+    region_plot.save_image(f'data/brain_plots/all_sources_lh_{orientaionView}.png')
+region_plot.close()
+
+ 
+
+
 def plot_sources_on_brain(m, stc_morph, fs_dir, thresh = 0, plot_per_arch = True, plotting_S = False):
     #transpose s to match dimension of c (original code was made for c plotting only)
     if plotting_S:
