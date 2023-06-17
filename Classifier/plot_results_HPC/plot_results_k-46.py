@@ -206,6 +206,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
     # LR_loss =  {'10': [0.4583333333333333, 0.44791666666666663, 0.47916666666666663, 0.4583333333333333, 0.44791666666666663, 0.44791666666666663, 0.43749999999999994, 0.41666666666666663, 0.44791666666666663, 0.46875], '12': [0.40625, 0.4895833333333333, 0.44791666666666663, 0.44791666666666663, 0.48958333333333326, 0.41666666666666663, 0.4583333333333333, 0.4270833333333333, 0.45833333333333326, 0.44791666666666663], '14': [0.4895833333333333, 0.44791666666666663, 0.4375, 0.44791666666666663, 0.4375, 0.4583333333333333]}
 
     LR_best = defaultdict(lambda: {})
+    LR_best_loss = defaultdict(lambda: [])
     LR_loss = defaultdict(lambda: [])
     for archetype, reg_dict in LR_reg_ploss.items():
         LR_reg_results= {}
@@ -216,8 +217,8 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
         best_reg_result = LR_reg_results[best_reg_param]
         
         LR_best[archetype][best_reg_param] = best_reg_result
-        LR_loss[archetype].append(best_reg_result)
-        
+        LR_best_loss[archetype].append(best_reg_result)
+        LR_loss[archetype] = LR_reg_ploss[archetype][best_reg_param]
     f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{inp_archetype}.txt", "a")
     print("_________Best choice of regularization parameters and their results_________", file=f)
     print("LR_best = " + str(dict(LR_best)), file=f)
@@ -246,8 +247,8 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
    
    
 if __name__ == "__main__":
-    reg_params = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
-    inp_archetype = "38"
+    reg_params = [10, 5, 1, 1e-1, 1e-2, 1e-3, 1e-4]
+    inp_archetype = "46"
     # datapath = "data/MMAA_results/multiple_runs/"
     data_path_HPC = "/work3/s204090/data/MMAA_results/multiple_runs/"
     createLossPlot1(datapath=data_path_HPC, modalityComb=["eeg", "meg", "fmri"], inp_archetype=inp_archetype, reg_params=reg_params)

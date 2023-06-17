@@ -5,9 +5,9 @@
             #BSUB -q hpc
 
             ### name of job, output file and err
-            #BSUB -J Classifier_k-32
-            #BSUB -o Classifier_k-32_%J.out
-            #BSUB -e Classifier_k-32_%J.err
+            #BSUB -J Classifier_k-46
+            #BSUB -o Classifier_k-46_%J.out
+            #BSUB -e Classifier_k-46_%J.err
 
 
             ### number of cores
@@ -41,4 +41,4 @@
             # NOTE: needs to have been built with the same SciPy version above!
             source MMAA/HPC_env/bin/activate
 
-            python Classifier/plot_results_HPC/plot_results_k-32.py
+            python Classifier/plot_results_HPC/plot_results_k-46.py
