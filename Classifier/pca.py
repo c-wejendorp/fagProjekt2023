@@ -23,6 +23,7 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
 
     #load in the ERP's for each condition an concatenate everything
     for subject in subjects: 
+        count = 0
         for condition in conditions:
             eeg_train_cond = []
             meg_train_cond = []
@@ -34,11 +35,12 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
                 eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_test.npy"))
                 meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_test.npy"))
             #append archetypes and labels ERP's to training
-            signal = np.concatenate((np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C), axis=1)
+            signal = np.concatenate((np.array(eeg_train_cond)@C[count * C.shape[0] // 3: (count+1) * C.shape[0] // 3, :], np.array(meg_train_cond)@C[count * C.shape[0] // 3: (count+1) * C.shape[0] // 3, :]), axis=1)
             y_train = np.append(y_train, condition)
         
             #concatenate ERP's to one long feature vector
             X_train = np.append(X_train, np.concatenate(signal).reshape(-1, order = "F"))
+            count += 1
 
     #reshape: [s*cond, t*k*2] matrix
     X_train = np.reshape(X_train, ((len(subjects) * len(conditions)), np.concatenate(signal).reshape(-1).shape[0]))
@@ -111,7 +113,7 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
         ax[2].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
         plt.show()
         
-        #plot an how the first principal component looks
+        #plot how the first principal component looks
         fig = plt.figure()
         plt.plot(np.arange(X_train_final.shape[1]), pca.components_[0,:], alpha = 0.5, color = "lightblue", label = "pc1")
         plt.ylim([-0.1, 0.1])
