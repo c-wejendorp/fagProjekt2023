@@ -57,6 +57,30 @@ print("The shape of the fMRI data is: ", FMRIstc_morphed.data.shape)
 # når man morpher direkte i scriptet, som der gøres her med FMRI, så skal subject ikke angives i plotfunktionen
 # men hvis man derimod henter et morph objekt fra en fil, så skal subject angives som "fsaverage" i plot funktionen
 
+# plots the sources before removing corpus callosum
+#plot both hemispheres at once
+region_plot = MEGstc_morphed.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=False,colorbar=False, hemi="both")
+region_plot.add_foci(MEGstc_morphed.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.15) 
+region_plot.add_foci(MEGstc_morphed.rh_vertno, coords_as_verts=True, hemi="rh", color="blue",scale_factor=0.15) 
+for orientaionView in ["lateral","medial","rostral","caudal","dorsal","ventral","frontal","parietal","axial"]:
+    # save the view as a png file with correct view
+    region_plot.show_view(orientaionView)
+    region_plot.save_image(f'data/brain_plots/all_sources_both_{orientaionView}.png')
+
+region_plot.close()
+
+#plot the left hemisphere
+region_plot = MEGstc_morphed.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=False,colorbar=False, hemi="lh")
+region_plot.add_foci(MEGstc_morphed.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.15) 
+for orientaionView in ["lateral","medial","rostral","caudal","dorsal","ventral","frontal","parietal","axial"]:
+    # save the view as a png file with correct view
+    region_plot.show_view(orientaionView)
+    region_plot.save_image(f'data/brain_plots/all_sources_lh_{orientaionView}.png')
+region_plot.close()
+
+
+
+
 #read labels for corpus callosum
 label_lh = mne.read_label(fs_dir / "fsaverage/label/lh.Medial_wall.label",subject=subject)
 label_rh = mne.read_label(fs_dir / "fsaverage/label/rh.Medial_wall.label",subject=subject)
@@ -66,6 +90,34 @@ label_both = np.concatenate((label_lh.vertices, label_rh.vertices + 10242))
 MEGstc_morphed.vertices[0] = np.delete(MEGstc_morphed.vertices[0], label_lh.vertices)
 MEGstc_morphed.vertices[1] = np.delete(MEGstc_morphed.vertices[1], label_rh.vertices)
 MEGstc_morphed.data = np.delete(MEGstc_morphed.data, label_both, axis = 0)
+
+
+#plot the sources (after removing)
+# this is just a way to plot the brain with the removed corpus callosum from different angles
+# note that we also dont need the the time_viewer=True, since we are not plotting the time series, color bar will be nice for arcehtype plots
+#
+#plot both hemispheres at once
+region_plot = MEGstc_morphed.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=False,colorbar=False, hemi="both")
+region_plot.add_foci(MEGstc_morphed.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.15) 
+region_plot.add_foci(MEGstc_morphed.rh_vertno, coords_as_verts=True, hemi="rh", color="blue",scale_factor=0.15) 
+for orientaionView in ["lateral","medial","rostral","caudal","dorsal","ventral","frontal","parietal","axial"]:
+    # save the view as a png file with correct view
+    region_plot.show_view(orientaionView)
+    region_plot.save_image(f'data/brain_plots/corpus_removed_both_{orientaionView}.png')
+
+region_plot.close()
+
+#plot the left hemisphere
+region_plot = MEGstc_morphed.plot(subject="fsaverage", subjects_dir=fs_dir, surface="white", time_viewer=False,colorbar=False, hemi="lh")
+region_plot.add_foci(MEGstc_morphed.lh_vertno, coords_as_verts=True, hemi="lh", color="blue",scale_factor=0.15) 
+for orientaionView in ["lateral","medial","rostral","caudal","dorsal","ventral","frontal","parietal","axial"]:
+    # save the view as a png file with correct view
+    region_plot.show_view(orientaionView)
+    region_plot.save_image(f'data/brain_plots/corpus_removed_lh_{orientaionView}.png')
+region_plot.close()
+
+ 
+
 
 def plot_sources_on_brain(m, stc_morph, fs_dir, thresh = 0, plot_per_arch = True, plotting_S = False):
     #transpose s to match dimension of c (original code was made for c plotting only)
