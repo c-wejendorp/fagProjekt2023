@@ -116,5 +116,5 @@ if __name__ == "__main__":
             if numArcheTypes > 16: break
             train_archetypes(numArcheTypes=numArcheTypes)
             
-        for numArcheTypes in range(arguments.get("archeTypeIntevalStart"),arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSizeEnd")):
+        for numArcheTypes in range(21, arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSizeEnd")):
             train_archetypes(numArcheTypes=numArcheTypes)
