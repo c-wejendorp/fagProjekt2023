@@ -83,30 +83,30 @@ if __name__ == "__main__":
 
     modalities = arguments.get("modalities")
         #arguments.get("subjects")
-    X = Real_Data(subjects=range(1,3),split=split)
+    X = Real_Data(subjects=range(1,17),split=split)
     # loop over seeds    
-    save_path = f'data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/'
-    save_path_Cs = f'data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/C/'
-    save_path_Ss = f'data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/S/'
-    save_path_SprSub = f'data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/SprSub/'
-    save_path_loss = f'data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/loss/'
-    # save_path = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/'
+    # save_path = f'data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/'
+    # save_path_Cs = f'data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/C/'
+    # save_path_Ss = f'data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/S/'
+    # save_path_SprSub = f'data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/SprSub/'
+    # save_path_loss = f'data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/loss/'
+    save_path = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/'
     if not os.path.exists(save_path):
             os.makedirs(save_path)
     
-    # save_path_Cs = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/C/'
+    save_path_Cs = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/C/'
     if not os.path.exists(save_path_Cs):
             os.makedirs(save_path_Cs)
 
-    # save_path_Ss = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/S/'
+    save_path_Ss = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/S/'
     if not os.path.exists(save_path_Ss):
             os.makedirs(save_path_Ss)
 
-    # save_path_SprSub = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/SprSub/'
+    save_path_SprSub = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/SprSub/'
     if not os.path.exists(save_path_SprSub):
             os.makedirs(save_path_SprSub)
     
-    # save_path_loss = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/loss/'
+    save_path_loss = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/loss/'
     if not os.path.exists(save_path_loss):
             os.makedirs(save_path_loss) 
 
