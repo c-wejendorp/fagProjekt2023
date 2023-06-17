@@ -38,7 +38,7 @@ def train_archetypes(numArcheTypes):
     # this takes loads of memory, so lets not do it
 
     assert len(modalities) == Sms.shape[0], "The number of modalities does not match the number of modalities in the S matrix"            
-    #m,sub,k,_ = Sms.shape
+    m,sub,k,_ = Sms.shape
     #for i in range(m):
     #    for j in range(sub):
     #        np.save(save_path_SprSub + f'S_split-{split}_k-{k}_seed-{seed}_sub-{j}_mod-{modalities[i]}', Sms[i,j,:,:])
