@@ -8,6 +8,7 @@ import ast
 import os
 import numpy as np
 import torch
+import tqdm
 
 
 def train_archetypes(numArcheTypes):
@@ -26,6 +27,9 @@ def train_archetypes(numArcheTypes):
     
     # save the C matrix
     np.save(save_path_Cs + f'C_split-{split}_k-{numArcheTypes}_seed-{seed}', C)
+
+    # lets try and just save Sms as well
+    np.save(save_path_Sms + f'Sms_split-{split}_k-{numArcheTypes}_seed-{seed}', Sms)
 
     # save all the S matrices
     # filename for sub: S_split-x_k-x_seed-x_sub-x_mod-m
@@ -109,9 +113,15 @@ if __name__ == "__main__":
     save_path_loss = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/loss/'
     if not os.path.exists(save_path_loss):
             os.makedirs(save_path_loss) 
+    
+    save_path_Sms = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/Sms/'
+    if not os.path.exists(save_path_Sms):
+            os.makedirs(save_path_Sms)
 
     # loop over seeds
-    for seed in arguments.get("seeds"):
+    # print the torch default device
+    print(torch.cuda.current_device())
+    for seed in tqdm(arguments.get("seeds")):
         for numArcheTypes in range(arguments.get("archeTypeIntevalStart"),arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSizeStart")):
             if numArcheTypes > 16: break
             train_archetypes(numArcheTypes=numArcheTypes)
