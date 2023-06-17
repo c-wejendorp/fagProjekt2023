@@ -34,11 +34,14 @@ def train_archetypes(numArcheTypes):
     # save all the S matrices
     # filename for sub: S_split-x_k-x_seed-x_sub-x_mod-m
     # filename for average: S_split-x_k-x_seed-x_sub-avg
+
+    # this takes loads of memory, so lets not do it
+
     assert len(modalities) == Sms.shape[0], "The number of modalities does not match the number of modalities in the S matrix"            
-    m,sub,k,_ = Sms.shape
-    for i in range(m):
-        for j in range(sub):
-            np.save(save_path_SprSub + f'S_split-{split}_k-{k}_seed-{seed}_sub-{j}_mod-{modalities[i]}', Sms[i,j,:,:])
+    #m,sub,k,_ = Sms.shape
+    #for i in range(m):
+    #    for j in range(sub):
+    #        np.save(save_path_SprSub + f'S_split-{split}_k-{k}_seed-{seed}_sub-{j}_mod-{modalities[i]}', Sms[i,j,:,:])
 
     S_avg = np.mean(Sms, axis = 1)
     np.save(save_path_Ss + f'S_split-{split}_k-{k}_seed-{seed}_sub-avg', S_avg)
