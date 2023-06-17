@@ -8,7 +8,7 @@ import ast
 import os
 import numpy as np
 import torch
-import tqdm
+import tqdm as tqdm
 
 
 def train_archetypes(numArcheTypes):
