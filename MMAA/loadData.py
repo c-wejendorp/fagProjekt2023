@@ -23,8 +23,8 @@ class Real_Data:
                 for condition in conditions:
                     EEG_condition.append(np.load(trainPath / f"{subject}/eeg/{condition}_train.npy"))
                     MEG_condition.append(np.load(trainPath / f"{subject}/meg/{condition}_train.npy"))
-                EEG_data.append(np.concatenate(EEG_condition))
-                MEG_data.append(np.concatenate(MEG_condition))
+                EEG_data.append(np.concatenate(EEG_condition, axis = 1))
+                MEG_data.append(np.concatenate(MEG_condition, axis = 1))
                 
             elif split ==1:
                 EEG_condition = []
@@ -32,11 +32,11 @@ class Real_Data:
                 for condition in conditions:
                     EEG_condition.append(np.load(testPath / f"{subject}/eeg/{condition}_test.npy"))
                     MEG_condition.append(np.load(testPath / f"{subject}/meg/{condition}_test.npy"))
-                EEG_data.append(np.concatenate(EEG_condition))
-                MEG_data.append(np.concatenate(MEG_condition))      
+                EEG_data.append(np.concatenate(EEG_condition, axis = 1))
+                MEG_data.append(np.concatenate(MEG_condition, axis = 1))      
            
-            #fMRI data is the same for both splits:            
-            fMRI_data.append(np.load(trainPath / f"{subject}/fMRI_train.npy"))
+            #fMRI data is the same for both splits:
+            fmri_temp = np.load(trainPath / f"{subject}/fMRI_train.npy")            
 
             # some addtional preprocessing of FMRI data
             # for some reason for subject 15, the fMRI data is 1 time point longer.
@@ -48,6 +48,11 @@ class Real_Data:
             # we extend the fMRI data with zeroes to make it the same length as the other runs
             if subject == "sub-10":
                 fMRI_data[idx] = np.concatenate((fMRI_data[idx], np.zeros((38, fMRI_data[idx].shape[1]))), axis=0)
+            
+            t = fmri_temp.shape[0] // 3
+            fmri_arr = np.concatenate([fmri_temp[:t], fmri_temp[t:2*t], fmri_temp[2*t:]], axis = 1)
+            
+            fMRI_data.append(fmri_arr)
 
 
         #convert the lists to numpy arrays
@@ -62,7 +67,7 @@ class Real_Data:
         self.fMRI_data = self.fmri_data  
           
 if __name__ == "__main__":
-    X = Real_Data()
+    X = Real_Data(subjects=range(1,3))
     print(X.eeg_data.shape)
     print(X.meg_data.shape)
     print(X.fmri_data.shape)

@@ -29,7 +29,7 @@ def plot_c_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/fr
     #average c matrix across all seeds
     data = np.mean(np.asarray(data), axis = 0)
 
-    hemi = ["lh", "rh"]
+    hemi = ["both", "lh", "rh"]
     for h in hemi:
         #make a plot for each archetype
         for archetypes in range(k):
@@ -46,13 +46,20 @@ def plot_c_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/fr
                 overlay_plot = overlay.plot(subject="fsaverage", subjects_dir=fs_dir, 
                                             surface="white", time_viewer=True, views = 'auto', 
                                             hemi = h, title = f"c_hemi_{h}_k_{archetypes}/{k}", 
-                                            add_data_kwargs = dict(fmin = 0, fmid = max(overlay.data[:9354]) * 0.7, fmax = max(overlay.data[:9354]), smoothing_steps = 0))       
+                                            add_data_kwargs = dict(fmin = 0, fmid = max(overlay.data[:9354]) * 0.7, fmax = max(overlay.data[:9354]), smoothing_steps = 0))  
+                #overlay_plot.add_foci(overlay.lh_vertno[list(overlay.data[:9354]).index(max(overlay.data[:9354]))], coords_as_verts=True, hemi=h, color="white", scale_factor=0.2)
+                print("Checkpoint! Add a breakpoint here and take a picture!")
+            elif h == "both":
+                overlay_plot = overlay.plot(subject="fsaverage", subjects_dir=fs_dir, 
+                                            surface="white", time_viewer=True, views = 'auto', 
+                                            hemi = h, title = f"c_hemi_{h}_k_{archetypes}/{k}", 
+                                            add_data_kwargs = dict(fmin = 0, fmid = max(overlay.data) * 0.7, fmax = max(overlay.data), smoothing_steps = 0))  
                 #overlay_plot.add_foci(overlay.lh_vertno[list(overlay.data[:9354]).index(max(overlay.data[:9354]))], coords_as_verts=True, hemi=h, color="white", scale_factor=0.2)
                 print("Checkpoint! Add a breakpoint here and take a picture!")
             else:
                 overlay_plot = overlay.plot(subject="fsaverage", subjects_dir=fs_dir, 
                                             surface="white", time_viewer=True, views = 'auto', 
-                                            hemi = h, title = ["eeg", "meg", "fmri"][m] + f"_hemi_{h}_k_{archetypes}/{k}",
+                                            hemi = h, title = f"c_hemi_{h}_k_{archetypes}/{k}",
                                             add_data_kwargs = dict(fmin = 0, fmid = max(overlay.data[9354:]) * 0.7, fmax = max(overlay.data[9354:]), smoothing_steps = 0))       
                 #overlay_plot.add_foci(overlay.rh_vertno[list(overlay.data[9354:]).index(max(overlay.data[9354:]))], coords_as_verts=True, hemi=h, color="white", scale_factor=0.2)
                 print("Checkpoint! Add a breakpoint here and take a picture!")
@@ -81,7 +88,7 @@ def plot_s_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/fr
     for m in range(data.shape[0]):
         data_mod = data[m].T
 
-        hemi = ["lh", "rh"]
+        hemi = ["both", "lh", "rh"]
         for h in hemi:
             #make a plot for each archetype
             for archetypes in range(k):
@@ -101,6 +108,13 @@ def plot_s_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/fr
                                                 add_data_kwargs = dict(fmin = 0, fmid = max(overlay.data[:9354]) * 0.9, fmax = max(overlay.data[:9354]), smoothing_steps = 0))       
                     #overlay_plot.add_foci(overlay.lh_vertno[list(overlay.data[:9354]).index(max(overlay.data[:9354]))], coords_as_verts=True, hemi=h, color="white", scale_factor=0.2)
                     print("Checkpoint! Add a breakpoint here and take a picture!")
+                elif h == "both":
+                    overlay_plot = overlay.plot(subject="fsaverage", subjects_dir=fs_dir, 
+                                                surface="white", time_viewer=True, views = 'auto', 
+                                                hemi = h, title = f"c_hemi_{h}_k_{archetypes}/{k}", 
+                                                add_data_kwargs = dict(fmin = 0, fmid = max(overlay.data) * 0.9, fmax = max(overlay.data), smoothing_steps = 0))  
+                    #overlay_plot.add_foci(overlay.lh_vertno[list(overlay.data[:9354]).index(max(overlay.data[:9354]))], coords_as_verts=True, hemi=h, color="white", scale_factor=0.2)
+                    print("Checkpoint! Add a breakpoint here and take a picture!")
                 else:
                     overlay_plot = overlay.plot(subject="fsaverage", subjects_dir=fs_dir, 
                                                 surface="white", time_viewer=True, views = 'auto', 
@@ -117,7 +131,7 @@ if __name__ == "__main__":
     k = 16
 
     #plot c matric on the brain
-    plot_c_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10))
+    #plot_c_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10))
     
     #plot mean value for subjects on the brain
     plot_s_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10), mean = True)
