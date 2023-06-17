@@ -93,13 +93,21 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
                         eeg_test_cond.append(np.load(trainPath / f"{test_subject}/eeg/{condition}_train.npy"))
                         meg_test_cond.append(np.load(trainPath / f"{test_subject}/meg/{condition}_train.npy"))
                 
+                if condition == "famous":
+                    C_cond = C[:18715]
+                    
+                elif condition == "scrambled":
+                    C_cond = C[18715:2*18715]
                 
-                X_train.extend(np.concatenate([np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C], axis=1)) #X_train.append(np.concatenate([np.mean(np.array(eeg_train_cond), axis=0)@C, np.mean(np.array(meg_train_cond), axis=0)@C])) # append the archetypes
-                X_test.extend(np.concatenate([np.array(eeg_test_cond)@C, np.array(meg_test_cond)@C], axis=1))
+                elif condition == "unfamiliar":
+                    C_cond = C[2*18715:]
+                    
+                X_train.extend(np.concatenate([np.array(eeg_train_cond)@C_cond, np.array(meg_train_cond)@C_cond], axis=1)) #X_train.append(np.concatenate([np.mean(np.array(eeg_train_cond), axis=0)@C, np.mean(np.array(meg_train_cond), axis=0)@C])) # append the archetypes
+                X_test.extend(np.concatenate([np.array(eeg_test_cond)@C_cond, np.array(meg_test_cond)@C_cond], axis=1))
                 
                 y_test.extend([condition]) # TODO make 360 general
                 y_train.extend([condition] * len(train_subjects))
-    
+
 
                     
 
@@ -111,7 +119,7 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
 
             y_test = np.array(y_test)
             y_train = np.array(y_train)
-            
+
             ## Baseline
             #randomly choose labels as predictions
             baseline_pred = np.random.choice(np.unique(y_train), len(y_test))
@@ -248,7 +256,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
    
 if __name__ == "__main__":
     reg_params = [10, 5, 1, 1e-1, 1e-2, 1e-3, 1e-4]
-    inp_archetype = "2"
+    inp_archetype = "26"
     # datapath = "data/MMAA_results/multiple_runs/"
     data_path_HPC = "/work3/s204090/data/MMAA_results/multiple_runs/"
     createLossPlot1(datapath=data_path_HPC, modalityComb=["eeg", "meg", "fmri"], inp_archetype=inp_archetype, reg_params=reg_params)
