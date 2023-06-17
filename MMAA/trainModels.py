@@ -123,8 +123,8 @@ if __name__ == "__main__":
     print(torch.cuda.current_device())
     for seed in tqdm(arguments.get("seeds")):
         for numArcheTypes in range(arguments.get("archeTypeIntevalStart"),arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSizeStart")):
-            if numArcheTypes > 16: break
+            #if numArcheTypes > 16: break
             train_archetypes(numArcheTypes=numArcheTypes)
             
-        for numArcheTypes in range(21, arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSizeEnd")):
-            train_archetypes(numArcheTypes=numArcheTypes)
+        #for numArcheTypes in range(21, arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSizeEnd")):
+        #    train_archetypes(numArcheTypes=numArcheTypes)

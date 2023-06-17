@@ -8,7 +8,7 @@ def createArguments():
         #'iterations': 5,
         'iterations': 300,
         'archeTypeIntevalStart': 2,
-        'archeTypeIntevalStop': 76,
+        'archeTypeIntevalStop': 20,
         'archeTypeStepSizeStart': 2,
         'archeTypeStepSizeEnd': 5,
         #'seeds': list(range(0, 11, 10)),

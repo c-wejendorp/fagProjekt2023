@@ -18,7 +18,7 @@ def createSubmitScripts():
             ### name of job, output file and err
             #BSUB -J MMAA_train_split-{split}_arg_num-{argNum}
             #BSUB -o MMAA_train_split-{split}_arg_num-{argNum}_%J.out
-            #BSUB -e MMAA_train_split-{split}_arg_num-{argNum}_J.err
+            #BSUB -e MMAA_train_split-{split}_arg_num-{argNum}_%J.err
 
 
             ### number of cores
