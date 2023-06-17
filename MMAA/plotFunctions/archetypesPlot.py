@@ -11,9 +11,9 @@ datapath = "MMAA/modelsInfo/"
 
 
 #C = np.load(datapath + "C_matrix_k14_s0_split0.npy")
-C = np.load("data\MMAA_results\multiple_runs\split_0\C\C_split-0_k-14_seed-0.npy")
+C = np.load("data\MMAA_results\multiple_runs\eeg-meg-fmri\split_0\C\C_split-0_k-40_seed-0.npy")
 #S = np.load(datapath + "S_matrix_k14_s0_split0.npy")
-S = np.load("data\MMAA_results\multiple_runs\split_0\S\S_split-0_k-14_seed-0_sub-avg.npy")
+# S = np.load("data\MMAA_results\multiple_runs\eeg-meg-fmri\split_0\S\S_split-0_k-14_seed-0_sub-avg.npy")
 
 #plot the different archetypes
 split = 0

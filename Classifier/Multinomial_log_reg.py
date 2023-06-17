@@ -7,11 +7,11 @@ from dtaidistance import dtw
 from sklearn.linear_model import LogisticRegression
 # TODO: Make crossvalidation for subjects     
 
-def train_LR(pca_data=True, multi=False, archetypes=None, seed=None):
+def train_LR(pca_data=True, multi=False, archetypes=None, seed=None, random_state=0, reg_param=None):
     trainPath = Path("data/trainingDataSubset")
     testPath = Path("data/testDataSubset")
 
-    model_LR = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
+    model_LR = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000, random_state=random_state, C=1/reg_param)
 
     splits = range(2)
 
@@ -22,6 +22,7 @@ def train_LR(pca_data=True, multi=False, archetypes=None, seed=None):
     general_err_all = []
     y_all_predicts= []
     y_trues = []
+    baseline_all_preds = []
     for split in splits: 
         general_err_split = []
         
@@ -127,6 +128,11 @@ def train_LR(pca_data=True, multi=False, archetypes=None, seed=None):
             acc = np.sum(y_pred == y_test)/len(y_test)
             
             y_all_predicts.append(y_pred)
+            
+            #baseline extra
+            baseline_pred = np.random.choice(np.unique(y_train), len(y_test))
+            baseline_all_preds.append(baseline_pred)
+            
             y_trues.append(y_test)
             # print("Accuracy:", acc)
             
@@ -136,9 +142,9 @@ def train_LR(pca_data=True, multi=False, archetypes=None, seed=None):
         
     print("Overall generalization error:", np.mean(general_err_all))
     
-    return general_err_all, y_all_predicts, y_trues
+    return general_err_all, y_all_predicts, y_trues, baseline_all_preds
     
 if __name__ == '__main__':
-    train_LR(pca_data = False, multi=True, archetypes=2, seed=10)
+    train_LR(pca_data = False, multi=True, archetypes=26, seed=10,reg_param=1)
     # train_LR(pca_data = False, multi=False)
     
