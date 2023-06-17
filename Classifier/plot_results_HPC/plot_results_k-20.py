@@ -256,7 +256,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
    
 if __name__ == "__main__":
     reg_params = [10, 5, 1, 1e-1, 1e-2, 1e-3, 1e-4]
-    inp_archetype = "56"
+    inp_archetype = "20"
     # datapath = "data/MMAA_results/multiple_runs/"
     data_path_HPC = "/work3/s204090/data/MMAA_results/multiple_runs/"
     createLossPlot1(datapath=data_path_HPC, modalityComb=["eeg", "meg", "fmri"], inp_archetype=inp_archetype, reg_params=reg_params)
