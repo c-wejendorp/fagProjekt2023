@@ -180,7 +180,7 @@ if __name__ == "__main__":
     #modalities = ["eeg", "meg", "fmri"]
     
     #X = Real_Data(subjects=range(1, 17), split=split) 
-    X = Real_Data(subjects=range(1, 3), split=split)   
+    X = Real_Data(subjects=range(1, 17), split=split)   
         
     C, Sms, eeg_loss, meg_loss, fmri_loss, loss_Adam = trainModel(X, 
                                                                 numArchetypes=k,
