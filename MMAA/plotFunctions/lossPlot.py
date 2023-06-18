@@ -10,7 +10,7 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
 
     color_dict = {"eeg":"blue","meg":"red","fmri":"green","sum":"black"}
 
-    archetypRange = np.concatenate((np.arange(2,16+1,2), np.arange(21, 76, 5)))
+    archetypRange = np.arange(2,20+1,2)
     
 
     for split in [0,1]:
