@@ -13,9 +13,9 @@ if __name__ == "__main__":
 
     seeds = arguments.get("seeds")    
 
-    #modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"],["eeg"], ["meg"], ["fmri"]]
+    modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"],["eeg"], ["meg"], ["fmri"]]
     # just for fmri
-    modalityCombs = [["fmri"]]
+    #modalityCombs = [["fmri"]]
     #loop through all modalities combinations
     for modalityComb in modalityCombs:
          #check the folder exists        dir

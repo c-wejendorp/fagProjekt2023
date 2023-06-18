@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # here we do not include the one with only fmri 
     #modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"],["eeg"], ["meg"]]    
     
-    # for simple test of script. :
+    # define the modalities we want to use
     modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"]]
 
     #loop through all modalities combinations
