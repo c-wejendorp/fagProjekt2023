@@ -64,9 +64,12 @@ def plotNMI(number_of_seeds = 10,mods = ["eeg", "meg", "fmri"],train=0,showPlot=
         
         offset += 0.3   
 
-    plt.xticks(archetypRange)    
-
-    plt.legend()
+    #set the y axis ticks
+    plt.yticks(np.arange(0.2,1.1,0.1))
+    
+    plt.xticks(archetypRange)   
+    plt.legend(loc="lower right")
+    #plt.legend()
     plt.xlabel("Number of archetypes")
     plt.ylabel("NMI")
     plt.title(f"Normalized Mutual Information, model: {'-'.join(modalityComb)}, split: {split}")
