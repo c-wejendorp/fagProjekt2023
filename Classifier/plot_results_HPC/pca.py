@@ -35,7 +35,7 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
                 eeg_train_cond.append(np.load(trainPath / f"{subject}/eeg/{condition}_test.npy"))
                 meg_train_cond.append(np.load(trainPath / f"{subject}/meg/{condition}_test.npy"))
             #append archetypes and labels ERP's to training
-            signal = np.concatenate((np.array(eeg_train_cond)@C[count * C.shape[0] // 3: (count+1) * C.shape[0] // 3, :], np.array(meg_train_cond)@C[count * C.shape[0] // 3: (count+1) * C.shape[0] // 3, :]), axis=1)
+            signal = np.concatenate((np.array(eeg_train_cond), np.array(meg_train_cond)), axis=1)
             y_train = np.append(y_train, condition)
         
             #concatenate ERP's to one long feature vector
@@ -71,7 +71,7 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
     X_train_final = (X_train - mu)
     
     n = len(X_train_final)
-    pca = PCA(n_components=n)
+    pca = PCA(n_components=48)
 
     #find the number of components need to exceed 95% variance for each subject
     X_pca = pca.fit_transform(X_train_final)
@@ -108,9 +108,9 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
         ax[0].legend(loc = "upper right")
         ax[1].legend(loc = "upper right")
         ax[2].legend(loc = "upper right")
-        ax[0].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
-        ax[1].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
-        ax[2].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
+        # ax[0].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
+        # ax[1].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
+        # ax[2].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
         plt.show()
         
         #plot how the first principal component looks
@@ -118,7 +118,7 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
         plt.plot(np.arange(X_train_final.shape[1]), pca.components_[0,:], alpha = 0.5, color = "lightblue", label = "pc1")
         plt.ylim([-0.1, 0.1])
         plt.legend(loc = "upper right")
-        plt.vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.06, ymax = 0.06, linestyle = "dashed", color = "gainsboro")
+        # plt.vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.06, ymax = 0.06, linestyle = "dashed", color = "gainsboro")
         plt.show()
         
         #plot how the observations are being projected
@@ -177,7 +177,7 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
 
 if __name__ == "__main__":
     trainPath = Path("data/trainingDataSubset")
-    subjects = range(1,3)
+    subjects = range(1,17)
     C = np.load("data/MMAA_results/multiple_runs/eeg-meg-fmri/split_0/C/C_split-0_k-2_seed-0.npy")
     
     pca(trainPath, subjects, C, plot = True, verbose=True)

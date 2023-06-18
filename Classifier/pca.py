@@ -96,6 +96,7 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
             break
 
     if plot:
+        save_path = 'Classifier/plots/'
         #plot ERP's as an average over the subjects
         fig, ax = plt.subplots(3, sharex = True)
         fig.suptitle("Centered ERP's for each condition")
@@ -111,6 +112,7 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
         ax[0].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
         ax[1].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
         ax[2].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
+        plt.savefig(save_path + 'ERPs.png')
         plt.show()
         
         #plot how the first principal component looks
@@ -119,6 +121,7 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
         plt.ylim([-0.1, 0.1])
         plt.legend(loc = "upper right")
         plt.vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.06, ymax = 0.06, linestyle = "dashed", color = "gainsboro")
+        plt.savefig(save_path + 'first_pc.png')
         plt.show()
         
         #plot how the observations are being projected
@@ -132,6 +135,7 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
             #plt.plot(x, y)
 
         ax.legend()
+        plt.savefig(save_path + 'projected_obs.png')
         plt.show()
         
         #plot explained variance:
@@ -151,6 +155,7 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
         ax.grid(axis='x')
         plt.tight_layout()
         
+        plt.savefig(save_path + 'exp_variance.png')
         plt.show()
 
         #plot datapoints on first three pc's
@@ -171,13 +176,14 @@ def pca(path, nr_subjects, C, plot = False, verbose = False, split=0):
             z = X_pca[np.arange(i, len(subjects)*len(conditions), 3), 2]
 
             ax.scatter(x, y, z, c = color[i])
+        plt.savefig(save_path + 'plot_3_pcs.png')
         plt.show()
 
     return X_pca, y_train, i_var
 
 if __name__ == "__main__":
     trainPath = Path("data/trainingDataSubset")
-    subjects = range(1,3)
-    C = np.load("data/MMAA_results/multiple_runs/eeg-meg-fmri/split_0/C/C_split-0_k-2_seed-0.npy")
+    subjects = range(1,17)
+    C = np.load("data/MMAA_results/multiple_runs/eeg-meg-fmri/split_0/C/C_split-0_k-4_seed-0.npy")
     
     pca(trainPath, subjects, C, plot = True, verbose=True)
