@@ -127,12 +127,12 @@ def toyDataAA(numArchetypes=25,
             arg_eeg_sources=[np.arange(0,4), np.arange(7,11), np.arange(14,18)], 
             arg_meg_sources=[np.array([0+i*7, 1+i*7, 4+i*7, 5+i*7]) for i in range(3)], 
             arg_fmri_sources=[np.array([1+i*7, 2+i*7, 4+i*7, 6+i*7]) for i in range(3)], 
-            # activation_timeidx_eeg = np.array([0, 30, 60]), 
-            # activation_timeidx_meg=np.array([0, 30, 60]) + 10, 
-            # activation_timeidx_fmri=np.array([0, 30, 60]) + 50):
-            activation_timeidx_eeg = np.array([0, 0, 0]), 
-            activation_timeidx_meg=np.array([0, 0, 0]), 
-            activation_timeidx_fmri=np.array([0, 0, 0])):
+            activation_timeidx_eeg = np.array([0, 30, 60]), 
+            activation_timeidx_meg=np.array([0, 30, 60]) + 10, 
+            activation_timeidx_fmri=np.array([0, 30, 60]) + 50):
+            # activation_timeidx_eeg = np.array([0, 0, 0]), 
+            # activation_timeidx_meg=np.array([0, 0, 0]), 
+            # activation_timeidx_fmri=np.array([0, 0, 0])):
     #seed 
     np.random.seed(numpySeed)
     torch.manual_seed(torchSeed)
