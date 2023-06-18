@@ -39,7 +39,8 @@ def loss_pr_archetype_plot(path="data/MMAA_results/multiple_runs/",savepath="MMA
                 # plot it
             plt.errorbar(archetypRange,means_train,yerr=stds_train,label=f"{modality}_train",color=color_dict[modality],linestyle="solid")
             # add to all train losses
-            all_train_losses.append(means_train)       
+            if modality != "fmri":
+                all_train_losses.append(means_train)       
 
         #plot summarized train loss
         # sum over modalities

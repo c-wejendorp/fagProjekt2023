@@ -16,7 +16,7 @@ def plotNMI(number_of_seeds = 10,mods = ["eeg", "meg", "fmri"],train=0,showPlot=
 
     colors = ["green", "red", "blue"]
 
-    archetypRange = np.arange(2,40+1,2)
+    archetypRange = np.arange(2,20+1,2)
 
     #path = f"data/MMAA_results/multiple_runs/{'-'.join(mods)}/"
     if train == 1:
