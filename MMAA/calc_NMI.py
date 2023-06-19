@@ -14,7 +14,8 @@ if __name__ == "__main__":
     seeds = arguments.get("seeds")    
 
     modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"],["eeg"], ["meg"], ["fmri"]]
-    
+    # just for fmri
+    #modalityCombs = [["fmri"]]
     #loop through all modalities combinations
     for modalityComb in modalityCombs:
          #check the folder exists        dir
@@ -30,7 +31,7 @@ if __name__ == "__main__":
                     os.makedirs(savepath)
 
                 # loop over all archetypes in correct stepSize
-                for numArcheTypes in range(2,40+1,2):
+                for numArcheTypes in range(2,20+1,2):
                 #for numArcheTypes in range(arguments.get("archeTypeIntevalStart"),arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSize")):
                     # load the average S matrix for each seed
                     S_matrices=[]

@@ -8,7 +8,7 @@
             ### name of job, output file and err
             #BSUB -J MMAA_train_split-1_arg_num-5
             #BSUB -o MMAA_train_split-1_arg_num-5_%J.out
-            #BSUB -e MMAA_train_split-1_arg_num-5_J.err
+            #BSUB -e MMAA_train_split-1_arg_num-5_%J.err
 
 
             ### number of cores

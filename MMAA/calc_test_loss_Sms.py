@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # here we do not include the one with only fmri 
     #modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"],["eeg"], ["meg"]]    
     
-    # for simple test of script. :
+    # define the modalities we want to use
     modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"]]
 
     #loop through all modalities combinations
@@ -53,7 +53,7 @@ if __name__ == "__main__":
                                 
 
                 # loop over all archetypes in correct stepSize
-                for numArcheTypes in range(2,40+1,2):
+                for numArcheTypes in range(2,20+1,2):
                 #for numArcheTypes in range(arguments.get("archeTypeIntevalStart"),arguments.get("archeTypeIntevalStop")+1, arguments.get("archeTypeStepSize")):
                     # create dict based on modalityComb in compressed form except if modaility is fmri
                     modalities_loss = {f"test_loss_{modality}": [] for modality in modalityComb if modality != "fmri"}

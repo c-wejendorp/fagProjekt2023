@@ -16,7 +16,7 @@ def plotNMI(number_of_seeds = 10,mods = ["eeg", "meg", "fmri"],train=0,showPlot=
 
     colors = ["green", "red", "blue"]
 
-    archetypRange = np.arange(2,40+1,2)
+    archetypRange = np.arange(2,20+1,2)
 
     #path = f"data/MMAA_results/multiple_runs/{'-'.join(mods)}/"
     if train == 1:
@@ -46,27 +46,32 @@ def plotNMI(number_of_seeds = 10,mods = ["eeg", "meg", "fmri"],train=0,showPlot=
         offset += 0.3
 
     # now for the best NMI across splits for EEG and MEG
+    # simple solution to not do this when mods is only fmri
+    if mods != ["fmri"]:
+    
+        path = f"data/MMAA_results/multiple_runs/"
 
-    path = f"data/MMAA_results/multiple_runs/"
-
-    offset = 0
-    for idx, modality in enumerate(["eeg", "meg"]):
-        NMI_best = []
-        #now over archetypes
-        for k in archetypRange:     
-  
-            NMI_best.append(max([np.load(f"data/MMAA_results/multiple_runs/{'-'.join(mods)}/split_{split}/NMI/NMI_{modality}_split-{split}_k-{k}.npy")[2] for split in [train, test]]))
-            #NMI_best.append(max([np.load(path + f"split_{split}/NMI/NMI_split-{split}_k-{k}_type-{modality}.npy")[2] for split in [train, test]]))
+        offset = 0
+        for idx, modality in enumerate(["eeg", "meg"]):
+            NMI_best = []
+            #now over archetypes
+            for k in archetypRange:     
+    
+                NMI_best.append(max([np.load(f"data/MMAA_results/multiple_runs/{'-'.join(mods)}/split_{split}/NMI/NMI_{modality}_split-{split}_k-{k}.npy")[2] for split in [train, test]]))
+                #NMI_best.append(max([np.load(path + f"split_{split}/NMI/NMI_split-{split}_k-{k}_type-{modality}.npy")[2] for split in [train, test]]))
 
 
-        # plot it as a dotted line
-        plt.plot(archetypRange+offset, NMI_best, '--', color=colors[idx], label=f"{modality}_best btw splits")
-        
-        offset += 0.3   
+            # plot it as a dotted line
+            plt.plot(archetypRange+offset, NMI_best, '--', color=colors[idx], label=f"{modality}_best btw splits")
+            
+            offset += 0.3   
 
-    plt.xticks(archetypRange)    
-
-    plt.legend()
+    #set the y axis ticks
+    plt.yticks(np.arange(0.2,1.1,0.1))
+    
+    plt.xticks(archetypRange)   
+    plt.legend(loc="lower right")
+    #plt.legend()
     plt.xlabel("Number of archetypes")
     plt.ylabel("NMI")
     plt.title(f"Normalized Mutual Information, model: {'-'.join(modalityComb)}, split: {split}")
@@ -77,7 +82,7 @@ def plotNMI(number_of_seeds = 10,mods = ["eeg", "meg", "fmri"],train=0,showPlot=
 
 if __name__ == "__main__":
     #modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"],["eeg"], ["meg"], ["fmri"]]
-    modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["eeg", "fmri"], ["meg", "fmri"],["eeg"], ["meg"], ["fmri"]]
+    modalityCombs = [["eeg", "meg", "fmri"],["eeg", "meg"], ["fmri"]]
     for modalityComb in modalityCombs:
         for split in [0,1]:
             plotNMI(mods=modalityComb,train=split,showPlot=False)

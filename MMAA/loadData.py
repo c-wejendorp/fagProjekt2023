@@ -41,13 +41,16 @@ class Real_Data:
             # some addtional preprocessing of FMRI data
             # for some reason for subject 15, the fMRI data is 1 time point longer.
             # we remove that time point
+
             if subject == "sub-15":
-                fMRI_data[idx] = fMRI_data[idx][:-1]          
+                #fMRI_data[idx] = fMRI_data[idx][:-1]        
+                fmri_temp = fmri_temp[:-1]  
            
             # for subject 10 the last fMRI run is 170 timesteps instead of 208
             # we extend the fMRI data with zeroes to make it the same length as the other runs
             if subject == "sub-10":
-                fMRI_data[idx] = np.concatenate((fMRI_data[idx], np.zeros((38, fMRI_data[idx].shape[1]))), axis=0)
+                fmri_temp = np.concatenate((fmri_temp, np.zeros((38, fmri_temp.shape[1]))), axis=0)
+                #fMRI_data[idx] = np.concatenate((fMRI_data[idx], np.zeros((38, fMRI_data[idx].shape[1]))), axis=0)
             
             t = fmri_temp.shape[0] // 3
             fmri_arr = np.concatenate([fmri_temp[:t], fmri_temp[t:2*t], fmri_temp[2*t:]], axis = 1)
@@ -67,7 +70,7 @@ class Real_Data:
         self.fMRI_data = self.fmri_data  
           
 if __name__ == "__main__":
-    X = Real_Data(subjects=range(1,3))
+    X = Real_Data(subjects=range(10,11))
     print(X.eeg_data.shape)
     print(X.meg_data.shape)
     print(X.fmri_data.shape)
