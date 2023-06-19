@@ -33,7 +33,7 @@ V = X[0].shape[2] #number of sources
 _, ax = plt.subplots(3)     
 
 #create dir to save plots
-plotpath = '/archeTypePlots'
+plotpath = 'MMAA/archeTypePlots'
 if not os.path.exists(plotpath):
     os.makedirs(plotpath)
 
