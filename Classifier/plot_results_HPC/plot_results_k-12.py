@@ -42,6 +42,9 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
             S = np.load(datapath + f"{'-'.join(modalityComb)}/split_{split}/Sms/Sms_split-{split}_k-{archetypes}_seed-{seed}.npy")
             
             # get S data
+            X_all = []
+            y_all = []
+            
             X_train = []
             y_train = []
 
@@ -60,6 +63,10 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
                 for t_subject in train_subjects_idx:
                     X_train.append(np.concatenate([S_cond[0,t_subject,:], S_cond[1,t_subject,:]], axis=0)) #X_train.append(np.concatenate([np.mean(np.array(eeg_train_cond), axis=0)@C, np.mean(np.array(meg_train_cond), axis=0)@C])) # append the archetypes
                 
+                for subject in range(len(subjects)):
+                    X_all.append(np.concatenate([S_cond[0,subject,:], S_cond[1,subject,:]], axis=0))
+                y_all.extend([condition]*len(subjects))
+                
                 y_train.extend([condition] * len(train_subjects))
     
                 X_test.append(np.concatenate([S_cond[0,test_subject_idx,:], S_cond[1,test_subject_idx,:]], axis=0))
@@ -68,13 +75,14 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
 
             X_train = np.array(X_train)
             X_test = np.array(X_test)
-            
+            X_all = np.array(X_all)
+            y_all = np.array(y_all)
             y_test = np.array(y_test)
             y_train = np.array(y_train)
             
             # pca
             if pca_data in ['True', 'both']:
-                X, y, i_var = pca(nr_subjects=train_subjects_idx, plot=False, verbose=False, split=split, X_train=np.concatenate([X_train,X_test]), y_train=np.concatenate([y_train,y_test]))
+                X, y, i_var = pca(nr_subjects=train_subjects_idx, plot=False, verbose=False, split=split, X_train=X_all, y_train=y_all)
 
                 X = X[:,:(i_var+1)]
                 X = X.reshape((len(subjects), 3, X.shape[1])) # 3 for nr number of conditions, let's hope this reshape is correct :))))))))))
