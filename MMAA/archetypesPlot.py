@@ -37,18 +37,40 @@ plotpath = 'MMAA/archeTypePlots'
 if not os.path.exists(plotpath):
     os.makedirs(plotpath)
 
+# plot the archetypes 
 #plot the different archetypes
-ax[0].set_title('Archetypes for EEG')
-ax[1].set_title('Archetypes for MEG')
-ax[2].set_title('Archetypes for fMRI')
+
+A_dict = {"A0": np.mean(X[0]@C, axis = 0),"A1": np.mean(X[1]@C, axis = 0),"A2": np.mean(X[2]@C, axis = 0)}
+
+for arch in tqdm(range(k)):
+    #plot archetypes
+    _, ax = plt.subplots(3) 
+    #plot the different archetypes
+    ax[0].set_title('Archetypes for EEG')
+    ax[1].set_title('Archetypes for MEG')
+    ax[2].set_title('Archetypes for fMRI') 
+    for m in tqdm(range(3)):
+        ax[m].plot(range(T[m]), A_dict[f"A{m}"][:, arch])      
+    # save for each archetype
+    plt.subplots_adjust(hspace=0.5)
+    plt.savefig(plotpath + f"/archetype_{arch}.png",dpi=300)
+    # clear plot
+    plt.clf()
+    plt.close()
+
+# close and destroy previous plot
+plt.clf()
+plt.close()
+
+#plot all archetypes
+_, ax = plt.subplots(3)      
+
 for m in tqdm(range(3)):
     A = np.mean(X[m]@C, axis = 0)    
     for arch in tqdm(range(k)):
         ax[m].plot(range(T[m]), A[:, arch])
         # save for eahc archetype
-        plt.savefig(plotpath + f"/archetype_{arch}_modality_{m}.png",dpi=300)
-
-    
+        #plt.savefig(plotpath + f"/archetype_{arch}_modality_{m}.png",dpi=300)
 
 # add space between plots
 plt.subplots_adjust(hspace=0.5)
