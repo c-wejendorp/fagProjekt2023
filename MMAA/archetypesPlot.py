@@ -6,8 +6,7 @@ from loadData_oldway import Real_Data_oldway
 from tqdm import tqdm
 
 
-datapath = ""
-datapath = "data/MMAA_results/multiple_runs/time_conc/eeg-meg-fmri/split_0"
+datapath = '/work3/s204090/data/MMAA_results/multiple_runs/time_conc/eeg-meg-fmri/split_0'
 # we have decided to use 16 archetypes
 
 Cs = []
@@ -40,5 +39,5 @@ for m in tqdm(range(3)):
     for arch in tqdm(range(k)):
         ax[m].plot(range(T[m]), A[:, arch])
 ax[-1].plot(range(V), C)
-plt.savefig("testArcheTypess.png")
+plt.savefig("testArcheTypes.png")
 #plt.show()
