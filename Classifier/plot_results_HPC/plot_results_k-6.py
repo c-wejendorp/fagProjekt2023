@@ -90,8 +90,6 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
                 
                 # LR_y_all_predicts.append(y_pred)
                 LR_general_err_all[reg_param].append(acc)
-                print(f"Done with: {reg_param}")
-                print(LR_general_err_all)
             
             
         # print(f"Generalization error split {split}: ", np.mean(LR_pca_general_err_split))
@@ -103,14 +101,17 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
     return reg_result_means, np.mean(baseline_general_err_all)
 
 
-def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "Classifier/plots/",modalityComb=["eeg", "meg", "fmri"], reg_params=None, inp_archetype=2):
+def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "Classifier/plots/",modalityComb=["eeg", "meg", "fmri"], reg_params=None, inp_archetype=2, savepath_res = "Classifier/plot_results_HPC/results_spatconc/"):
     
     #datapath = Path(datapath) / Path(f"/{'-'.join(modalityComb)}/split_0/C/")   
     S_datapath = datapath + f"{'-'.join(modalityComb)}/split_0/Sms/"   
-
+    
     # make save diractory
     if not os.path.exists(savepath):
         os.makedirs(savepath)
+        
+    if not os.path.exists(savepath_res):
+        os.makedirs(savepath_res)
         
     #open all files starting with eeg
     # Look, this looks stupid, but bear with me: LR_loss[Archetype][Reg_param][seed_result]   :)))  (sorry)
@@ -128,7 +129,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
         for reg_p, mean_res in reg_result_means.items(): 
             LR_reg_ploss[archetype][reg_p].append(mean_res)
         
-        f = open(f"Classifier/checkpoints_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
+        f = open(savepath_res + f"checkpoints_{'-'.join(modalityComb)}_k-{archetype}.txt", "a")
         print(f"____________Checkpoint archetype: {archetype}, seed: {seed}__________", file=f)
         print("***baseline_loss***", file=f)
         print(str(dict(baseline_loss)), file = f)
@@ -138,7 +139,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
         f.close()
     
     # idk why, I just randomly call it loss instead of accuracy all the time
-    f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{inp_archetype}.txt", "a")
+    f = open(savepath_res + f"results_{'-'.join(modalityComb)}_k-{inp_archetype}.txt", "a")
     print("****baseline_loss****", file=f)
     print(str(dict(baseline_loss)), file = f)
     print("*****LR_reg_ploss*****", file=f)
@@ -165,7 +166,7 @@ def createLossPlot1(datapath = "data/MMAA_results/multiple_runs/", savepath = "C
         LR_best[archetype][best_reg_param] = best_reg_result
         LR_best_loss[archetype].append(best_reg_result)
         LR_loss[archetype] = LR_reg_ploss[archetype][best_reg_param]
-    f = open(f"Classifier/results_{'-'.join(modalityComb)}_k-{inp_archetype}.txt", "a")
+    f = open(savepath_res + f"results_{'-'.join(modalityComb)}_k-{inp_archetype}.txt", "a")
     print("_________Best choice of regularization parameters and their results_________", file=f)
     print("LR_best = " + str(dict(LR_best)), file=f)
     print("LR_loss = "  + str(dict(LR_loss)), file=f)
