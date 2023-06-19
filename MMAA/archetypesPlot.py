@@ -31,13 +31,16 @@ V = X[0].shape[2] #number of sources
 
 
 #plot archetypes
-_, ax = plt.subplots(4)     
+_, ax = plt.subplots(3)     
 
 #plot the different archetypes
 for m in tqdm(range(3)):
     A = np.mean(X[m]@C, axis = 0)    
     for arch in tqdm(range(k)):
         ax[m].plot(range(T[m]), A[:, arch])
+
+# add space between plots
+plt.subplots_adjust(hspace=0.5)
 # add title and axis labels
 ax[0].set_title('Archetypes for EEG')
 ax[1].set_title('Archetypes for MEG')
