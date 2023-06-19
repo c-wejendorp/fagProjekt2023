@@ -46,11 +46,16 @@ for arch in tqdm(range(k)):
     #plot archetypes
     _, ax = plt.subplots(3) 
     #plot the different archetypes
-    ax[0].set_title('Archetypes for EEG')
-    ax[1].set_title('Archetypes for MEG')
-    ax[2].set_title('Archetypes for fMRI') 
+    ax[0].set_title(f'Archetype {k} for EEG')
+    ax[1].set_title(f'Archetype {k} for MEG')
+    ax[2].set_title(f'Archetype {k} forfMRI') 
+    # add horizontal line after each 180 time points
+    for i in range(3):
+        for j in range(1,3):
+            ax[i].axvline(x=180*j, color='grey', linestyle='--') 
+
     for m in tqdm(range(3)):
-        ax[m].plot(range(T[m]), A_dict[f"A{m}"][:, arch])      
+        ax[m].plot(range(T[m]), A_dict[f"A{m}"][:, arch],color='black')   
     # save for each archetype
     plt.subplots_adjust(hspace=0.5)
     plt.savefig(plotpath + f"/archetype_{arch}.png",dpi=300)
