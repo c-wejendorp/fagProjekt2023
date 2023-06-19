@@ -50,7 +50,7 @@ for arch in tqdm(range(k)):
     ax[1].set_title(f'Archetype {arch+1} for MEG')
     ax[2].set_title(f'Archetype {arch+1} for fMRI') 
     # add horizontal line after each 180 time points
-    for i in range(3):
+    for i in range(2):
         for j in range(1,3):
             ax[i].axvline(x=180*j, color='grey', linestyle='--') 
 
@@ -72,7 +72,7 @@ _, ax = plt.subplots(3)
 ax[0].set_title(f'All {k} Archetypes for EEG')
 ax[1].set_title(f'All {k} Archetypes for MEG')
 ax[2].set_title(f'All {k} Archetypes for fMRI')
-for i in range(3):
+for i in range(2):
     for j in range(1,3):
         ax[i].axvline(x=180*j, color='grey', linestyle='--') 
 
