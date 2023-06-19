@@ -32,19 +32,27 @@ V = X[0].shape[2] #number of sources
 #plot archetypes
 _, ax = plt.subplots(3)     
 
+#create dir to save plots
+plotpath = '/archeTypePlots'
+if not os.path.exists(plotpath):
+    os.makedirs(plotpath)
+
 #plot the different archetypes
+ax[0].set_title('Archetypes for EEG')
+ax[1].set_title('Archetypes for MEG')
+ax[2].set_title('Archetypes for fMRI')
 for m in tqdm(range(3)):
     A = np.mean(X[m]@C, axis = 0)    
     for arch in tqdm(range(k)):
         ax[m].plot(range(T[m]), A[:, arch])
+        # save for eahc archetype
+        plt.savefig(plotpath + f"/archetype_{arch}_modality_{m}.png",dpi=300)
+
     
 
 # add space between plots
 plt.subplots_adjust(hspace=0.5)
-# add title and axis labels
-ax[0].set_title('Archetypes for EEG')
-ax[1].set_title('Archetypes for MEG')
-ax[2].set_title('Archetypes for fMRI')
+# add title and axis labelsplt
 #ax[-1].plot(range(V), C)
-plt.savefig("testArcheTypes.png",dpi=300)
+plt.savefig(plotpath + "allArcheTypes.png",dpi=300)
 #plt.show()
