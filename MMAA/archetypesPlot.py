@@ -38,6 +38,10 @@ for m in tqdm(range(3)):
     A = np.mean(X[m]@C, axis = 0)    
     for arch in tqdm(range(k)):
         ax[m].plot(range(T[m]), A[:, arch])
-ax[-1].plot(range(V), C)
-plt.savefig("testArcheTypes.png")
+# add title and axis labels
+ax[0].set_title('Archetypes for EEG')
+ax[1].set_title('Archetypes for MEG')
+ax[2].set_title('Archetypes for fMRI')
+#ax[-1].plot(range(V), C)
+plt.savefig("testArcheTypes.png",dpi=300)
 #plt.show()
