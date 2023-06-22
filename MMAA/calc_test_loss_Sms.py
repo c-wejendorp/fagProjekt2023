@@ -2,6 +2,7 @@ import numpy as np
 import os
 import json
 from loadData import Real_Data
+from loadData_oldway import Real_Data_oldway
 import sys
 import torch
 
@@ -42,12 +43,16 @@ if __name__ == "__main__":
 
                 #notice that x train can be either split 0 or 1
                 if split == 0:
-                    X_train = Real_Data(subjects=arguments.get("subjects"),split=0)
-                    X_test = Real_Data(subjects=arguments.get("subjects"),split=1)
+                    #X_train = Real_Data(subjects=arguments.get("subjects"),split=0)
+                    X_train = Real_Data_oldway(subjects=arguments.get("subjects"),split=0)
+                    #X_test = Real_Data(subjects=arguments.get("subjects"),split=1)
+                    X_test = Real_Data_oldway(subjects=arguments.get("subjects"),split=1)
                     T = np.array([getattr(X_train, f"{m}_data").shape[1] for m in modalityComb])
-                else:
-                    X_train = Real_Data(subjects=arguments.get("subjects"),split=1)
-                    X_test = Real_Data(subjects=arguments.get("subjects"),split=0)
+                else:                    
+                    #X_train = Real_Data(subjects=arguments.get("subjects"),split=1)
+                    X_train = Real_Data_oldway(subjects=arguments.get("subjects"),split=1)
+                    #X_test = Real_Data(subjects=arguments.get("subjects"),split=0)
+                    X_test = Real_Data_oldway(subjects=arguments.get("subjects"),split=0)
                     T = np.array([getattr(X_train, f"{m}_data").shape[1] for m in modalityComb])
 
                                 
