@@ -3,6 +3,7 @@ import sys
 import getopt
 import sys
 from loadData import Real_Data
+from loadData_oldway import Real_Data_oldway
 from MMA_model_CUDA import MMAA, trainModel
 import ast
 import os
@@ -90,7 +91,11 @@ if __name__ == "__main__":
 
     modalities = arguments.get("modalities")
         #arguments.get("subjects")
-    X = Real_Data(subjects=range(1,17),split=split)
+
+    #X = Real_Data(subjects=range(1,17),split=split)
+
+    X = Real_Data_oldway(subjects=range(1,17),split=split)
+
     # loop over seeds    
     # save_path = f'data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/'
     # save_path_Cs = f'data/MMAA_results/multiple_runs/{"-".join(modalities)}/split_{split}/C/'
