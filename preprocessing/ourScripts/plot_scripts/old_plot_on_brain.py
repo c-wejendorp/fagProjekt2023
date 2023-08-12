@@ -2,18 +2,19 @@ from pathlib import Path
 import mne
 import numpy as np
 
-# 
 # this file is basically just notes on how to load the data and visualize it
 # the "orignal" can be found as notes_on_data in the folder JesperScripts
+# the file is called "old" because it plots the focis on the brain
+# instead of heat maps. it takes 10000 years to finish one plot, though
 
 #path to the freesurfer directory
 fs_dir = Path("data/freesurfer")
 
 #path to the data directory (JespersProcessed)
-#data_dir = Path("/mrhome/jesperdn/INN_JESPER/projects/facerecognition_dtu/data")
 data_dir = Path("data/JesperProcessed")
 subject = "sub-02"
 
+# assign paths
 subject_dir = data_dir / subject
 meg_dir = subject_dir / "ses-meg"
 fwd_dir = meg_dir / "stage-forward"
@@ -22,20 +23,6 @@ inv_dir = meg_dir / "stage-inverse"
 
 mri_dir = subject_dir / "ses-mri"
 fmri_dir = mri_dir / "func"
-
-# Read sensor space data
-# Epochs
-epo = mne.read_epochs(pre_dir / "task-facerecognition_proc-p_epo.fif")
-# epo["famous"] to get epochs for `famous` condition
-# also epo.plot(), epo.get_data()
-
-# ERP
-evo = mne.read_evokeds(pre_dir / "task-facerecognition_proc-p_cond-famous_split-0_evo.fif")
-evo = evo[0]
-# evo.plot(), evo.get_data()
-#_________________________________________________________________________________________________________________________________#
-# Vi skal bruge det allerede morphede M/EEG data, da disse har korrekt shape.
-# Vi skal lave nye morph objekter til fMRI data. Disse laves i fmriMorpher
 
 # indlæsning af  M/EEG data i fsaverage space er så simplet som: 
 MEGstc_morphed = mne.read_source_estimate(inv_dir / "task-facerecognition_space-fsaverage_cond-famous_fwd-mne_ch-eeg_split-0_stc")
@@ -51,10 +38,6 @@ FMRIstc_morphed=FMRImorph.apply(FMRIstc)
 #dobbelt check af shape
 print("The shape of the M/EEG data is: ", MEGstc_morphed.data.shape)
 print("The shape of the fMRI data is: ", FMRIstc_morphed.data.shape)
-
-# lille note i forhold visualisering af data
-# når man morpher direkte i scriptet, som der gøres her med FMRI, så skal subject ikke angives i plotfunktionen
-# men hvis man derimod henter et morph objekt fra en fil, så skal subject angives som "fsaverage" i plot funktionen
 
 #read labels for corpus callosum
 label_lh = mne.read_label(fs_dir / "fsaverage/label/lh.Medial_wall.label",subject=subject)

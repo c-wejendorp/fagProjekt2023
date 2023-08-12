@@ -3,7 +3,7 @@ import sys
 import getopt
 import sys
 from loadData import Real_Data
-from MMA_model_CUDA import MMAA, trainModel
+from MMAA_model_CUDA import MMAA, trainModel
 import ast
 import os
 import numpy as np

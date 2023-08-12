@@ -13,4 +13,3 @@ def checkPath():
             break
     if not exists:
         raise Exception("No valid path found")
-    # sys.path.insert(0,r"C:\Users\chwe\Desktop\projectModule")
