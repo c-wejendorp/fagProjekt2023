@@ -61,7 +61,7 @@ def train_archetypes(numArcheTypes):
 
 if __name__ == "__main__":  
     
-    # get the split and  argumentNum (which argument file to read) from from the command line
+    # get the split and argumentNum (which argument file to read) from from the command line
     # if these two are not given the program will stop
 
     # for the real train model: 

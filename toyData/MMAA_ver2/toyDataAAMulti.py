@@ -344,7 +344,7 @@ def toyDataAA(numArchetypes=25,
         plt.savefig(r"toyData\plots\reconstruction.png")
         plt.show()
         
-    return loss_Adam
+    return loss_Adam # , np.mean(torch.nn.functional.softmax(model.Sms, dim = -2, dtype = torch.double).detach().numpy(), axis = 0)
 
 if __name__ == "__main__":
     toyDataAA(numArchetypes=3, torchSeed=0, plotDistributions=True, loss_type='mle_rob')

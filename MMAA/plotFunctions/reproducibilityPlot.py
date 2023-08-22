@@ -1,8 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.special import softmax
-#from loadData import Real_Data
-#from nmi import nmi
 import os
 
 # for split 0 we want to plot the average NMI with error bars for each modality for each number of archetypes.
