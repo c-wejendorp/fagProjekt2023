@@ -2,6 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def loss_pr_archetype_plot(path = "data/MMAA_results/multiple_runs/", savepath="MMAA/plots/", modalityComb=["eeg","meg","fmri"]):
+    """plots the training and test loss per modality as well as the sum of the three.
+    
+    path (str): path to retrieve loss data
+    savepath (str): path to save the plots to
+    modalityComb (list of str): which modalities were included in the analysis
+    """
+    
     # define paths
     folder = path + f'{"-".join(modalityComb)}/'
     savepath = savepath + f'{"-".join(modalityComb)}/'

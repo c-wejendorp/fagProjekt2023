@@ -2,6 +2,9 @@ from pathlib import Path
 import mne
 import numpy as np
 
+# this file differs from plot_matrix_on_brain by NOT plotting conditions
+# but just the modality and an archetype's data on the brain surface
+
 #path to the freesurfer directory
 fs_dir = Path("data/freesurfer")
 subject = "sub-01"
@@ -75,12 +78,17 @@ def plot_s_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/fr
     #average s matrix across all seeds
     data = np.mean(np.asarray(data), axis = 0)
     if mean:
-        #average across 
+        #average across subjects
         data = np.mean(data, axis = 1)
     elif std:
+        # std across subjects
         data = np.std(data, axis = 1)
     elif subject is not None:
         data = data[:, subject, :, :]
+    else:
+        raise Exception("you have chosen to neither use the mean, the standard deviation " + 
+                        "nor have you chosen data from a single subject. the code " +
+                        "needs one of the three to be fulfilled")
     
     for m in range(data.shape[0]):
         data_mod = data[m].T
@@ -130,7 +138,7 @@ if __name__ == "__main__":
     #plot mean value for subjects on the brain
     #plot_s_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10), mean = True)
     #plot ªstd value for subjects on the brain
-    plot_s_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10), std = True)
+    plot_s_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10))
     
     # #plot s matrix for one subject
     # plot_s_on_brain(trimodal_path, split = split, k = k, seed = range(0, 100, 10), mean = True, subject = 0)

@@ -4,7 +4,7 @@ from nmi import nmi
 import os
 
 # this script and calc_test_loss_Sms could easily be fused
-# as they have almost identical structure. i guess they've
+# as they have almost identical format. i guess they've
 # been kept separate for the sake of structure
 
 if __name__ == "__main__":
@@ -20,10 +20,10 @@ if __name__ == "__main__":
     # loop through all desired modality combinations
     for modalityComb in modalityCombs:
         
-        #TODO: multicondition case + path
+        #TODO: multicondition case
         
         # check the folder exists dir
-        path = f'/work3/s204090/data/MMAA_results/multiple_runs/{"-".join(modalityComb)}/'
+        path = f'data/MMAA_results/multiple_runs/{"-".join(modalityComb)}/'
         if os.path.exists(path): 
             
             # loop over split 
@@ -43,7 +43,14 @@ if __name__ == "__main__":
                             np.load(datapath + f"S/S_split-{split}_k-{numArcheTypes}_seed-{seed}_sub-avg.npy"))         
                     
                     # calculate the NMI for S1 and S2, S2 and S3, etc and last S10 and S1 for each modality
-
+                    
+                    # TODO: as stated in reproducibilityPlot.py, miscommunication occured
+                    # when discussing the nmi plot. this file therefore lacks the nmi between splits
+                    # a measure should be chosen to find "which" data from split 0 and 1 should be
+                    # chosen. perhaps smallest loss?
+                    
+                    # TODO: multiconditional case. S matrices are now condition-specific
+                    
                     # create dict based on modalityCom 
                     NMIS = {f"NMI_{modality}": [] for modality in modalityComb}
 

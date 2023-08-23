@@ -2,6 +2,9 @@ from pathlib import Path
 import mne
 import numpy as np
 
+# this file differs from plot_mod_on_brain by plotting the conditions 
+# each brain plot is therefore a modality, a condition and an archetype
+
 #path to the freesurfer directory
 fs_dir = Path("data/freesurfer")
 subject = "sub-01"
@@ -15,7 +18,16 @@ label_both = np.concatenate((label_lh.vertices, label_rh.vertices + 10242))
 dipoles = np.arange(20484) 
 dipoles = np.delete(dipoles, label_both) 
 
-def plot_c_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/freesurfer")):
+def plot_c_on_brain(path, split, seed, k, fs_dir = Path("data/freesurfer")):
+    """function that displays (no_of_conditions * no_of_archetypes) plots
+    of the chosen source coefficients defining the k'th archetype
+    as heat maps on the brain hemisphere.
+    
+    path (str): path to the analysis with the data from split 0 and 1
+    split (int): whether you want to evaluate data from split 0 or 1
+    seed (list of int): which seed value(s) to load data from
+    fs_dir (Path obj): uses"""
+    
     #load data
     split_path = path + f"/split_{split}"
     matrix_path = split_path + f"/C"
@@ -77,12 +89,17 @@ def plot_s_on_brain(path, split, seed, k, thresh = 10e-5, fs_dir = Path("data/fr
     #average s matrix across all seeds
     data = np.mean(np.asarray(data), axis = 0)
     if mean:
-        #average across 
+        #average across subjects
         data = np.mean(data, axis = 1)
     elif std:
+        #std across subjects
         data = np.std(data, axis = 1)
     elif subject is not None:
         data = data[:, subject, :, :]
+    else:
+        raise Exception("you have chosen to neither use the mean, the standard deviation " + 
+                        "nor have you chosen data from a single subject. the code " +
+                        "needs one of the three to be fulfilled")
     
     for m in range(data.shape[0]):
         data_mod = data[m].T
