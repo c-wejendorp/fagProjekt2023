@@ -1,0 +1,124 @@
+import numpy as np
+from sklearn.decomposition import PCA
+from pathlib import Path
+from matplotlib import pyplot as plt
+from scipy.linalg import svd
+#import seaborn as sns
+#from loadData import Real_Data
+
+def pca(nr_subjects, plot = False, verbose = False, split=0, X_train=None, y_train=None, X_test=None):
+    
+    #load data
+    subjects = nr_subjects
+    conditions = ["famous", "scrambled", "unfamiliar"]
+    
+    #standardize
+    mu_train = np.mean(X_train,axis=0,dtype=np.float64) 
+    std_train = np.std(X_train,axis=0,dtype=np.float64)
+    
+    X_train_final = (X_train - mu_train)
+    X_test_final = (X_test - mu_train)
+    
+    n = len(X_train_final)
+    pca = PCA(n_components=n)
+
+    #find the number of components need to exceed 95% variance for each subject
+    X_train_pca = pca.fit_transform(X_train_final)
+    X_test_pca = pca.transform(X_test_final)
+    
+    pca.explained_variance_ratio_.cumsum()
+    
+
+    for i, var in enumerate(pca.explained_variance_ratio_.cumsum()):
+        if var >= 0.95:
+            i_var = i
+            if verbose:
+                print(f"explained variance exceeded 95% at {var} for {i + 1} components")
+            break
+
+    if plot:
+        #plot ERP's as an average over the subjects
+        # fig, ax = plt.subplots(3, sharex = True)
+        # fig.suptitle("Centered ERP's for each condition")
+        # ax[0].plot(np.mean(X_train_final[np.arange(0, len(subjects)*len(conditions), 3),:], axis = 0), alpha = 0.3, color = "red", label = "famous")
+        # ax[1].plot(np.mean(X_train_final[np.arange(1, len(subjects)*len(conditions), 3),:], axis = 0), alpha = 0.3, color = "green", label = "scrambled")
+        # ax[2].plot(np.mean(X_train_final[np.arange(2, len(subjects)*len(conditions), 3),:], axis = 0), alpha = 0.3, color = "purple", label = "nonfamous")
+        # ax[0].set_ylim([-0.0006, 0.0006])
+        # ax[1].set_ylim([-0.0006, 0.0006])
+        # ax[2].set_ylim([-0.0006, 0.0006])
+        # ax[0].legend(loc = "upper right")
+        # ax[1].legend(loc = "upper right")
+        # ax[2].legend(loc = "upper right")
+        # ax[0].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
+        # ax[1].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
+        # ax[2].vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.003, ymax = 0.003, linestyle = "dashed", color = "gainsboro")
+        # plt.show()
+        
+        #plot how the first principal component looks
+        # fig = plt.figure()
+        # plt.plot(np.arange(X_train_final.shape[1]), pca.components_[0,:], alpha = 0.5, color = "lightblue", label = "pc1")
+        # plt.ylim([-0.1, 0.1])
+        # plt.legend(loc = "upper right")
+        # plt.vlines(x = np.arange(0, X_train_final.shape[1], 180), ymin = -0.06, ymax = 0.06, linestyle = "dashed", color = "gainsboro")
+        # plt.show()
+        
+        #plot how the observations are being projected
+        _, ax = plt.subplots()
+        for i, (color, condition) in enumerate(zip(['tab:blue', 'tab:orange', 'tab:green'], ["famous", "unfamous", "scrambled"])):
+            x = [np.arange(X_train_pca.shape[1]) for _ in range(len(subjects))]
+            y = X_train_pca[np.arange(i, len(subjects)*len(conditions), 3),:]
+
+            plt.scatter(x, y, c=color, label=condition,
+                    alpha=0.8, edgecolors='none')
+            #plt.plot(x, y)
+
+        ax.legend()
+        plt.show()
+        
+        #plot explained variance:
+        _ = plt.figure()
+        ax = plt.axes()
+        ax.set_title("Explained variance")
+        
+        plt.plot(np.arange(n), pca.explained_variance_ratio_.cumsum(), marker='o', linestyle='-', color='pink')
+        plt.ylim(0.0,1.1)
+        plt.xlabel('Number of Principal Components')
+        plt.xticks(np.arange(n, step=1)) 
+        plt.ylabel('Cumulative variance (%)')
+        
+        plt.axhline(y=0.95, color='grey', linestyle='--')
+        plt.text(1.1, 1, '95% threshold', color = 'black', fontsize=16)
+
+        ax.grid(axis='x')
+        plt.tight_layout()
+        
+        plt.show()
+
+        #plot datapoints on first three pc's
+        _ = plt.figure()
+        ax = plt.axes(projection = "3d")
+
+        ax.set_title('Plotting on 3 PCs')
+
+        # Set axes label
+        ax.set_xlabel('pc1', labelpad=20)
+        ax.set_ylabel('pc2', labelpad=20)
+        ax.set_zlabel('pc3', labelpad=20)
+        
+        color = ["red", "blue", "green"]
+        for i in range(len(conditions)):
+            x = X_train_pca[np.arange(i, len(subjects)*len(conditions), 3), 0]
+            y = X_train_pca[np.arange(i, len(subjects)*len(conditions), 3), 1]
+            z = X_train_pca[np.arange(i, len(subjects)*len(conditions), 3), 2]
+
+            ax.scatter(x, y, z, c = color[i])
+        plt.show()
+
+    return X_train_pca, X_test_pca, y_train, i_var
+
+if __name__ == "__main__":
+    trainPath = Path("data/trainingDataSubset")
+    subjects = range(1,3)
+    C = np.load("data/MMAA_results/multiple_runs/eeg-meg-fmri/split_0/C/C_split-0_k-2_seed-0.npy")
+    
+    pca(trainPath, subjects, C, plot = True, verbose=True)

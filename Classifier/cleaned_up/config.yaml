@@ -1,0 +1,23 @@
+
+
+model_type: multiconditional # spatial_concatenation / multiconditional  
+
+# Archetypes to run
+lowest_nr_archetypes: 2
+max_nr_archetypes: 4
+increment_step_size: 2
+
+# Input and output paths
+data_input_path: data/MMAA_results/multiple_runs/
+raw_output_path: Classifier/cleaned_up/test_results/
+plot_results_path: 
+
+complexity_reducer: pca # pca / regularization / both 
+modality_combination: [eeg, meg, fmri] # [eeg, meg, fmri]
+regularization_parameters: [1,10] # [10, 5, 1, 1e-1, 1e-2, 1e-3, 1e-4]
+
+# seed parameter
+random_state: 0
+
+# Subjects to include for multiconditional classification
+subjects: [1,2,3] # all / [1,2,3,4,8,10]
