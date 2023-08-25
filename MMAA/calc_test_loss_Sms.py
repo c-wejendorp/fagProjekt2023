@@ -12,7 +12,7 @@ if __name__ == "__main__":
     
     # we assume that all models are trained with the same seeds and splits and stepsize
     with open('MMAA/HPC/arguments/arguments0.json') as f:
-            arguments = json.load(f)  
+        arguments = json.load(f)  
 
     seeds = arguments.get("seeds")    
 
