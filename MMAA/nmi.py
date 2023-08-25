@@ -2,7 +2,7 @@ import numpy as np
 # from toyDataAAMulti import toyDataAA
 
 def pdd(S1, S2, k1, k2):
-    """calculates the joint probability of two archetypes from
+    """calculates the joint probability of two archetypes (k1, k2) from
     two S-matrices"""
     
     #p(d,d') = ∑_n p(d|n)*p(d'|n)*p(n) (#p(d|n) = s[d,n], p(n) = 1/n)
@@ -28,6 +28,7 @@ def i(S1, S2):
 def nmi(S1, S2):
     """calculates the normalized mutual information between two S-matrices.
     the S-matrices are an "averaged" subject and therefore lacks that dimension
+    
     S1 (k x V): S matrix for one modality
     S2 (k x V): S matrix for same modality but different seed"""
     
