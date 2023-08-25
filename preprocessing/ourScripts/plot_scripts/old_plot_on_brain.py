@@ -6,6 +6,7 @@ import numpy as np
 # the "orignal" can be found as notes_on_data in the folder JesperScripts
 # the file is called "old" because it plots the focis on the brain
 # instead of heat maps. it takes 10000 years to finish one plot, though
+# so consider moving it to deprecated scripts
 
 #path to the freesurfer directory
 fs_dir = Path("data/freesurfer")
