@@ -86,6 +86,7 @@ class Real_Data:
         self.fMRI_data = self.fmri_data  
         
         self.concatenation_type = concatenation_type
+        
 if __name__ == "__main__":
     X = Real_Data(concatenation_type="spatial", subjects=range(10,16), split=0)
     print(X.eeg_data.shape)
