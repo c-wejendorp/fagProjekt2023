@@ -10,9 +10,8 @@ increment_step_size: 2
 # Input and output paths
 data_input_path: data/MMAA_results/multiple_runs/
 raw_output_path: Classifier/cleaned_up/test_results/
-plot_results_path: 
 
-complexity_reducer: pca # pca / regularization / both 
+complexity_reducer: both # pca / regularization / both 
 modality_combination: [eeg, meg, fmri] # [eeg, meg, fmri]
 regularization_parameters: [1,10] # [10, 5, 1, 1e-1, 1e-2, 1e-3, 1e-4]
 

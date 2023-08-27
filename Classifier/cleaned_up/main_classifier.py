@@ -1,8 +1,6 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 import re
-import sys
 from collections import defaultdict
 import yaml
 import json
@@ -14,6 +12,7 @@ from sklearn.linear_model import LogisticRegression
 import multiprocessing as mp
 from datetime import datetime
 
+from classification_evaluator import Performance_evaluator
 #NOTE: (multicond) should fmri be included in the training data for classification? It only really only adds noise no?
 
 
@@ -115,7 +114,7 @@ def train_all(archetypes=2, seed=0,modalityComb=["eeg", "meg", "fmri"], reg_para
                     # X_train.extend(np.concatenate([np.array(eeg_train_cond)@C, np.array(meg_train_cond)@C], axis=1)) 
                     # X_test.extend(np.concatenate([np.array(eeg_test_cond)@C, np.array(meg_test_cond)@C], axis=1))
                     
-                    ## Debugging purposes
+                    ## Debugging purposes when stuck with spatconc C-matrices
                     X_train.extend(np.concatenate([np.array(eeg_train_cond)@C[C.shape[0] // 3: 2 * C.shape[0] // 3, :], np.array(meg_train_cond)@C[C.shape[0] // 3: 2 * C.shape[0] // 3, :]], axis=1)) 
                     X_test.extend(np.concatenate([np.array(eeg_test_cond)@C[C.shape[0] // 3: 2 * C.shape[0] // 3, :], np.array(meg_test_cond)@C[C.shape[0] // 3: 2 * C.shape[0] // 3, :]], axis=1))
                     
@@ -202,9 +201,9 @@ def get_classifier_results(datapath = "data/MMAA_results/multiple_runs/", modali
     
     
     # Look, this looks stupid, but bear with me: LR_loss[Archetype][Reg_param][seed](([classification_acc_list_indx])) :>
-    LR_reg_ploss = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: [])))  # .... sorry :^)
-    LR_pca_loss = defaultdict(lambda: defaultdict(lambda: [])) # LR_loss[Archetype][seed](([classification_acc_list_indx]))
-    baseline_loss = defaultdict(lambda: defaultdict(lambda: [])) 
+    LR_reg_pacc = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: [])))  # .... sorry :^)
+    LR_pca_acc = defaultdict(lambda: defaultdict(lambda: [])) # LR_loss[Archetype][seed](([classification_acc_list_indx]))
+    baseline_acc = defaultdict(lambda: defaultdict(lambda: [])) 
 
     for file in tqdm(os.listdir(matrix_datapath)): # I'm just going to assume that split_0 and split_1 have the same seeds and archetypes, if not, fight me >:(
         split, archetype, seed = re.findall(r'\d+', file)
@@ -219,49 +218,28 @@ def get_classifier_results(datapath = "data/MMAA_results/multiple_runs/", modali
                                                                        random_state=random_state, 
                                                                        model_type=model_type, 
                                                                        subjects=subjects)
-        LR_pca_loss[archetype][seed].append(LR_pca_gen_acc)
-        baseline_loss[archetype][seed].append(baseline_gen_acc)
+        LR_pca_acc[archetype][seed].append(LR_pca_gen_acc)
+        baseline_acc[archetype][seed].append(baseline_gen_acc)
         
         if complexity_reducer in ['regularization', 'both']:
             for reg_p, mean_res in reg_result_means.items(): 
-                LR_reg_ploss[archetype][reg_p][seed].append(mean_res)
+                LR_reg_pacc[archetype][reg_p][seed].append(mean_res)
         
         
         # Ever wanted a list in a dictionairy in a dictionairy in a dictionairy in ANOTHER dictionairy? Too bad!
-        json_output = {"LR_pca_loss": LR_pca_loss, "baseline_loss": baseline_loss, "LR_reg_ploss": LR_reg_ploss}
+        json_output = {"LR_pca_acc": LR_pca_acc, "baseline_acc": baseline_acc, "LR_reg_pacc": LR_reg_pacc}
         
-        # This is just a failsafe so everything can be extracted
-        with open(output_path + f"checkpoints_{'-'.join(modalityComb)}_k-{archetype}.txt", "a") as f:
+        # This is just a failsafe in case result gets corrupted midway
+        with open(output_path + f"checkpoints_k-{archetype}.json", "a") as f:
             json.dump(json_output, f, indent=4) 
     
         # Write final results to json
-        with open(output_path + f"result{'-'.join(modalityComb)}_k-{archetype}.txt", "w") as f:
+        with open(output_path + f"result_k-{archetype}.json", "w") as f:
             json.dump(json_output, f, indent=4) 
-
     
-    
-    # # calculate the mean and std for each number of archetypes 
-    # LR_pca_mean = np.array([[archetype, np.mean(loss)] for archetype, loss in LR_pca_loss.items()], dtype="float64")
-    # LR_pca_std = np.array([np.std(loss) for archetype, loss in LR_pca_loss.items()])
-    
-    # LR_mean = np.array([[archetype, np.mean(loss)] for archetype, loss in LR_loss.items()], dtype="float64")
-    # LR_std = np.array([np.std(loss) for archetype, loss in LR_loss.items()])
-    
-    # #plot the mean values with std
-    # plt.errorbar(LR_pca_mean[:,0], LR_pca_mean[:,1], yerr = LR_pca_std, label = "LR_pca")
-    # plt.errorbar(LR_mean[:,0], LR_mean[:,1], yerr = LR_std, label = "LR")
-    # plt.legend()
-    # # make the x ticks integers 
-    # plt.xticks(LR_pca_mean[:,0])
-    # plt.title("Final classification loss for different number of archetypes training data")
-    # plt.xlabel("Number of archetypes")
-    # plt.ylabel("Final loss")
-    # plt.savefig(savepath + f"class_error__{'-'.join(modalityComb)}.txt.png")    
-    # #plt.show()     
 
 # Multiprocess Pool class does not accept default arguments, so I'm making this dumb overlay function >:(
 def parallization_overlay(CONFIG, output_path, inp_archetype):
-    
     try:
         get_classifier_results(datapath=CONFIG['data_input_path'], 
                         modalityComb=CONFIG['modality_combination'], 
@@ -299,7 +277,7 @@ def parallization_overlay(CONFIG, output_path, inp_archetype):
 
 
 if __name__ == "__main__":
-    #TODO: inserting system arguments changes the config file
+    #TODO: running file with arguments changes the config file
     
     # Load classification configs
     BASE_DIR = os.path.dirname(__file__)
@@ -312,17 +290,21 @@ if __name__ == "__main__":
          
     output_path = CONFIG['raw_output_path']
     model_type = CONFIG['model_type']
+
     # make output directory such that results_path/model_type/$run-number_$date/
+    modalityComb = CONFIG['modality_combination']
     output_path += model_type + "/"
     date = datetime.now().strftime("%m-%d-%Y")
-    if not os.path.exists(output_path):
-        output_path += "1_" + date + "/"
+    if not os.path.exists(output_path) or len(os.listdir(output_path)) == 0:
+        output_path += f"1_{date}_{'-'.join(modalityComb)}/"
     else:
-        output_path += str(len(os.listdir(output_path)) + 1) + "_" + date + "/" # why am I like this...
+        #runnr = str(len(os.listdir(output_path)) + 1)
+        runnr = int(os.listdir(output_path)[-1].split("_")[0]) + 1 # assumes that your OS sorts the folders...
+        output_path += f"{runnr}_{date}_{'-'.join(modalityComb)}/"
     os.makedirs(output_path)
 
 
-    # Prep list of input archetypes
+    # Prepare list of input archetypes
     if max_nr_archetypes % increment_step_size == 0:
         list_of_input_archetypes = range(lowest_nr_archetypes, max_nr_archetypes + increment_step_size, increment_step_size)
     else: 
@@ -331,12 +313,20 @@ if __name__ == "__main__":
     list_of_input_archetypes = map(str, list_of_input_archetypes)
     
     
+    # create new yaml file to save the run's used configs
+    with open(os.path.join(output_path, "used_configs.yaml"), "w") as f:
+        yaml.dump(CONFIG, f, default_flow_style=False)
+    
     # parallelization with a multiple processes over archetype inputs, using all the cpu cores available. Can be further parallelized during the CV subjects
     pool = mp.Pool(mp.cpu_count())
     success_log = [pool.apply(parallization_overlay, args=(CONFIG, output_path, inp_archetype)) for inp_archetype in list_of_input_archetypes]
     
+    with open(os.path.join(output_path, 'success_log.txt'), 'w') as f:
+        for line in success_log:
+            f.write(f"{line}\n")
     print("Classification results done!")
     
-    # datapath = "data/MMAA_results/multiple_runs/"
-    # data_path_HPC = "/work3/s204090/data/MMAA_results/multiple_runs/"
+    # Visualize raw results
+    Performance_evaluator.plot_results(output_path,True)
+    print("Plotting done!")
 
