@@ -2,31 +2,35 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.collections as mcol
-from matplotlib.cm import get_cmap
-from matplotlib.legend_handler import HandlerLineCollection, HandlerTuple
+from matplotlib.legend_handler import HandlerLineCollection
 from matplotlib.lines import Line2D
+from generate_data_outlier import Synthetic_Data 
 
-from generate_data_outlier import Synthetic_Data #initializeVoxelss
-
+# the following class is for plotting purposes only
 class HandlerDashedLines(HandlerLineCollection):
     """
     Custom Handler for LineCollection instances. See Matplotlib Demos
     """
+    
     def create_artists(self, legend, orig_handle,
                        xdescent, ydescent, width, height, fontsize, trans):
+        
         # figure out how many lines there are
         numlines = len(orig_handle.get_segments())
         xdata, xdata_marker = self.get_xdata(legend, xdescent, ydescent,
                                              width, height, fontsize)
         leglines = []
+        
         # divide the vertical space where the lines will go
         # into equal parts based on the number of lines
         ydata = np.full_like(xdata, height / (numlines + 1))
+        
         # for each line, create the line at the proper location
         # and set the dash pattern
         for i in range(numlines):
             legline = Line2D(xdata, ydata * (numlines - i) - ydescent)
             self.update_prop(legline, orig_handle, legend)
+            
             # set color, dash pattern, and linewidth to that
             # of the lines in linecollection
             try:
@@ -50,21 +54,20 @@ class HandlerDashedLines(HandlerLineCollection):
         return leglines
     
 class MMAA(torch.nn.Module):
+    """performs the multimodal, multisubject archetypes analysis
+    """
+    
     def __init__(self, V, T, k, X:Synthetic_Data, numSubjects = 1, numModalities = 1, loss_type = 'normal_mle'): #k is number of archetypes
         super(MMAA, self).__init__()
-        
-        #For toydataset purposes:
-            #k = 10, modalities = 3, subjects = 6, T = 100, V = 5,
-        
-        #C is universal for all subjects/modalities. S(ms) and A(ms) are unique though
-        #so we need to create a list for each subject's data for each modality
-        self.C = torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((V, k), dtype=torch.float))) #softmax upon initialization
-
-        # here Sms has the shape of (m, s, k, V)
+       
+        # create the C and S matrices as parameters (#softmax upon initialization)
+        self.C = torch.nn.Parameter(torch.nn.Softmax(dim = 0)(torch.rand((V, k), dtype=torch.float))) 
         self.Sms = torch.nn.Parameter(torch.nn.Softmax(dim = -2)(torch.rand((numModalities, numSubjects, k, V), dtype = torch.float)))
 
+        # the X@C matrix. stored for nicer looking matrix multiplication later
         self.A = 0
         
+        # different values of the robustness factor depending on which loss to use
         if loss_type == 'mle_rob':
             self.epsilon = 1e-3
         else:
@@ -79,36 +82,41 @@ class MMAA(torch.nn.Module):
         self.loss_type = loss_type
 
     def forward(self):
-        #vectorize it later
-        XCSms = [[0]*self.numSubjects for modality in range(self.numModalities)]
-        
-        #find the unique reconstruction for each modality for each subject
+
         loss = 0
         mle_loss_rob = 0
         mle_loss = 0
+        
         for m in range(self.numModalities):
 
-            #X - Xrecon (via MMAA)
+            # X - Xrecon (via MMAA)
             # A = XC
+            # find the loss per subject
             self.A = self.X[m]@torch.nn.functional.softmax(self.C, dim = 0, dtype = torch.double)
             loss_per_sub = torch.linalg.matrix_norm(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double))**2
             
+            # loss_type = squared error. sum the loss for each modality
             loss += torch.sum(loss_per_sub)
+            
+            # loss_type = maximum likelihood estimate prior to deriving the robustness term. 
             mle_loss += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.sum(torch.log(torch.add(loss_per_sub, self.epsilon)))
                                           - torch.log(torch.tensor(self.T[m])) + 1)
 
-            # mle_loss_rob += -self.T[m] / 2 * (torch.log(torch.tensor(2 * torch.pi)) + torch.log(torch.sum(loss_per_sub)/self.T[m] + self.epsilon)) - torch.sum(loss_per_sub)/(2 * (torch.sum(loss_per_sub)/self.T[m] + 1))
+            # loss_type = maximum likelihood estimate after deriving the robustness term
+            # beta value for gamma distribution loss
+            beta = 3/2 * self.epsilon
             
-            beta  = 1/(self.V) * self.epsilon
-
-            alpha = 1 + self.T[2]/2 - self.T[m]/2
+            # find the highest number of time points across all modalities 
+            max_T = np.max(self.T)
+            
+            # make sure first factor of the final loss is consistent across all modalities
+            alpha = 1 + max_T/2  - self.T[m]/2
+            
+            # compute loss
             mle_loss_rob_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.sum(torch.log(torch.add(loss_per_sub, 2 * beta)))
             mle_loss_rob += mle_loss_rob_m
-            if torch.sum(loss_per_sub) == 0:
-                print("Hit it")
-            # if mle_loss_rob_m > 0:
-            #     print("negative loss???")
-                
+        
+        # return negative loss (minimize neg log likelihood)      
         if self.loss_type == 'normal_mle': return -mle_loss
         elif self.loss_type == 'mle_rob': return -mle_loss_rob
         elif self.loss_type == 'squared_err': return loss
@@ -129,33 +137,16 @@ def toyDataAA(numArchetypes=25,
               nr_sources=25, 
               arg_eeg_sources=[np.arange(0,4), np.arange(7,11), np.arange(14,18)], 
               arg_meg_sources=[np.array([0+i*7, 1+i*7, 4+i*7, 5+i*7]) for i in range(3)], 
-              arg_fmri_sources=[np.array([1+i*7, 2+i*7, 4+i*7, 6+i*7]) for i in range(3)] + [np.array([24])], 
+              arg_fmri_sources=[np.array([1+i*7, 2+i*7, 4+i*7, 6+i*7]) for i in range(3)] + [np.array([24])], # 24 defines the outlier
               activation_timeidx_eeg = np.array([0, 30, 60]), 
               activation_timeidx_meg=np.array([0, 30, 60]) + 10, 
-              activation_timeidx_fmri=np.array([0, 30, 60, -10]) + 50):
-    #seed 
+              activation_timeidx_fmri=np.array([0, 30, 60, -10]) + 50): #-10 defines the outlier
+    
+    # seed 
     np.random.seed(numpySeed)
     torch.manual_seed(torchSeed)
     
-    #activation times
-    # initialize voxels
-
-    #def initializeVoxels(V, T, means):
-    #    """initializes however many voxels we want"""
-    #    #initialize "empty" voxels
-    #    voxels = []
-    #    for i in range(numVoxels):
-    #        voxels.append(np.zeros(T))        
-#
-    #    timestamps = np.array_split(list(range(T)), V)
-    #    for i in range(len(voxels)): 
-    #        voxels[i][timestamps[i]] = np.random.normal(means[i], 0.01, size = len(timestamps[i]))
-    #    
-    #    return voxels
-    #
-    #
-    # voxels = initializeVoxels(V, T, [0.1, 0.5, 0.9])
-
+    # retrieve synthetic dataset
     X = Synthetic_Data(T_eeg=T_eeg, 
                        T_meg=T_meg, 
                        T_fmri=T_fmri, 
@@ -168,27 +159,15 @@ def toyDataAA(numArchetypes=25,
                        activation_timeidx_meg=activation_timeidx_meg, 
                        activation_timeidx_fmri=activation_timeidx_fmri)
     
-    ###dim
+    # define dimensions
     V = X.nr_sources
     T = np.array([np.shape(X.X_eeg)[1], np.shape(X.X_meg)[1], np.shape(X.X_fmri)[1]])
     k = numArchetypes
 
     model = MMAA(V, T, k, X, numModalities=3, numSubjects=nr_subjects, loss_type=loss_type)
 
-    ###initialize the a three-dimensional array for each modality (subject, time, voxel)
-    #meg = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
-    #eeg = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
-    #fmri = np.array([np.array([[voxels[v][t] for v in range(numVoxels)] for t in range(T)]) for _ in range(numSubjects)]) 
-    
-    #if plotDistributions:        
-    #    for sub in range(meg.shape[0]):
-    #        _, ax = plt.subplots(3)
-    #        for voxel in range(V):
-    #            ax[0].plot(np.arange(T), meg[sub, :, voxel], '-', alpha=0.5)
-    #            ax[1].plot(np.arange(T), eeg[sub, :, voxel], '-', alpha=0.5)
-    #            ax[2].plot(np.arange(T), fmri[sub, :, voxel], '-', alpha=0.5)
-    #        plt.show()
-    
+    # plots the source activation for all sources for all modalities
+    # over the course of the time span given
     if plotDistributions: 
 
         #there is 100% a smarter way to do this, but I'm lazy and this is only for toydata
@@ -199,7 +178,6 @@ def toyDataAA(numArchetypes=25,
         arg_eeg_sources_concat = np.concatenate([area for area in arg_eeg_sources])
         arg_meg_sources_concat = np.concatenate([area for area in arg_meg_sources])
         arg_fmri_sources_concat = np.concatenate([area for area in arg_fmri_sources])
-
 
         source_eeg_fmri = []
         source_eeg_meg = []
@@ -232,9 +210,8 @@ def toyDataAA(numArchetypes=25,
 
                 # Finally, the legend (that maybe you'll customize differently)
                 line = [[(0, 0)]]
+                
                 # set up the proxy artist
-
-
                 lc_eeg_meg = mcol.LineCollection(len(source_eeg_meg) * line, linestyles=['solid' for i in range(len(source_eeg_meg))], colors=source_colors[source_eeg_meg])
                 lc_eeg_fmri = mcol.LineCollection(len(source_eeg_fmri) * line, linestyles=['solid' for i in range(len(source_eeg_fmri))], colors=source_colors[source_eeg_fmri])
                 lc_meg_fmri = mcol.LineCollection(len(source_meg_fmri) * line, linestyles=['solid' for i in range(len(source_meg_fmri))], colors=source_colors[source_meg_fmri])
@@ -243,68 +220,56 @@ def toyDataAA(numArchetypes=25,
                 # create the legend
                 fig.legend([lc_eeg_meg,lc_eeg_fmri,lc_meg_fmri,lc_all], ['EEG+MEG shared', 'EEG+fMRI shared', 'MEG+fMRI shared', 'All shared'], handler_map={type(lc_all): HandlerDashedLines()},
                         handlelength=2.5, handleheight=3, title="Shared source activations", loc = "upper right", bbox_to_anchor=(1.15,1))
-                # fig.legend(lines, labels, loc='right')
                 fig.tight_layout()
                 fig.subplots_adjust()
                 plt.savefig(r"toyData\plots\distribution.png", bbox_inches="tight")
                 plt.show()
             
-
-    ###create X matrix dependent on modality and subject
-    # modality x subject x time x voxel
-    #Xms = np.zeros((3, numSubjects, T, V))
-    #
-    #mod_list = [meg, eeg, fmri]
-    #for idx_modality, data in enumerate(mod_list):        
-    #    Xms[idx_modality, :, :, :] = data #This works but if time: just concanate it all along some axis
-
-    #Xms = torch.tensor(Xms, dtype = torch.double)
-
-
-    #hyperparameters
+    # hyperparameters and optimizer
     lr = learningRate
     n_iter = numIterations
-
-    #loss function
-    # lossCriterion = torch.nn.MSELoss(reduction = "sum")
     optimizer = torch.optim.Adam(model.parameters(), lr = lr)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 10) # patience = 10 is default
-
-    # Creating Dataloader object
+    
+    # optimze until no further improvement
     loss_Adam = []
     lr_change = []
     tol = 1e-6
     for i in range(n_iter):
         # zeroing gradients after each iteration
         optimizer.zero_grad()
+        
         # making a prediction in forward pass
         loss = model.forward()
-        # update learning rate
-        # scheduler.step(loss)
+        
         # backward pass for computing the gradients of the loss w.r.t to learnable parameters
         loss.backward()
+        
         # updating the parameters after each iteration
         optimizer.step()
 
         # store loss into list
         loss_Adam.append(loss.item())
         
+        # run for at least 500 iterations and stop when loss doesn't improve significantly
         if i > 500 and np.abs(loss_Adam[-2] - loss_Adam[-1])/np.abs(loss_Adam[-2]) < tol:
             break
-        lr_change.append(optimizer.param_groups[0]["lr"])
-
-        
-    #print("loss list ", loss_Adam) 
+   
     print("final loss: ", loss_Adam[-1])
+    
+    # plot archetypes
     if plotDistributions: 
-        #plot archetypes
+
         fig, ax = plt.subplots(4)     
 
-        #plot the different archetypes
+        # plot the different archetypes for each modality
         for m in range(3):
+            # retrieve archetype matrix
             A = np.mean((model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
+            
+            # plot each archetype in the given modality time span
             for arch in range(k):
                 ax[m].plot(range(T[m]), A[:, arch])
+                
         ax[0].set_title("EEG", fontsize="medium")
         ax[1].set_title("MEG", fontsize="medium")
         ax[2].set_title("fMRI", fontsize="medium")
@@ -326,13 +291,14 @@ def toyDataAA(numArchetypes=25,
         plt.savefig(r"toyData\plots\archetypes.png", bbox_inches="tight")
         plt.show()
 
-        ### plot reconstruction
-        #m x t x v (averaged over subjects)
-
+        # plot reconstruction (average over subjects)
         fig, ax = plt.subplots(3)
         for m in range(3):
+            # find the reconstruction averaged over subjects
             A = np.mean((model.X[m]@torch.nn.functional.softmax(model.C, dim = 0, dtype = torch.double)).detach().numpy(), axis = 0)
             Xrecon = A@np.mean(torch.nn.functional.softmax(model.Sms[m], dim = -2, dtype = torch.double).detach().numpy(), axis = 0)
+            
+            # plot each reconstructed source for the given modality
             for voxel in range(V):
                 ax[m].plot(np.arange(T[m]), Xrecon[:, voxel], '-', alpha=0.5)
 
@@ -344,6 +310,7 @@ def toyDataAA(numArchetypes=25,
         plt.savefig(r"toyData\plots\reconstruction.png")
         plt.show()    
 
+    # return loss
     return loss_Adam
 
 if __name__ == "__main__":
