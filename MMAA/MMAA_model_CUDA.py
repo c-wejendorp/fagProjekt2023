@@ -83,16 +83,16 @@ class MMAA(torch.nn.Module):
                 loss_per_sub = torch.linalg.matrix_norm(torch.sum(self.X[m]-self.A@torch.nn.functional.softmax(self.Sms[m], dim = -2, dtype = torch.double),axis=1))**2
             
             if self.loss_robust:
-                #beta value for gamma distribution loss
-                beta  = 3/2 * self.epsilon
+                # beta value for gamma distribution loss
+                beta = 3/2 * self.epsilon
                 
                 # find the highest number of time points across all modalities               
                 max_T = np.max(self.T)
                 
-                #make sure first factor of the final loss is consistent across all modalities
+                # make sure first factor of the final loss is consistent across all modalities
                 alpha = 1 + max_T/2  - self.T[m]/2
                 
-                #compute loss
+                # compute loss
                 mle_loss_m = - (2 * (alpha + 1) + self.T[m])/2 * torch.sum(torch.log(torch.add(loss_per_sub, 2 * beta)))
                     
             else: 
