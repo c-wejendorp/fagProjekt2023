@@ -3,20 +3,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def toyDataAA(numSamples=100,sampleDim=2,numArchetypes=3,numpySeed=32,torchSeed=0,plotDistributions=False,learningRate=1e-3,numIterations=10000):
-    #seed 
+    # seed 
     np.random.seed(numpySeed)
     torch.manual_seed(torchSeed)
 
-    ###dim
+    # define dimensions
     V = numSamples
     T = sampleDim
     k = numArchetypes
 
-    ###initialize three normal distributions (mean, std)
+    # initialize three normal distributions (mean, std)
     norm1 = np.random.multivariate_normal([5, 0], [[1, 1], [1, 2]], size = V)
     norm2 = np.random.multivariate_normal([17, 0], [[3, -1], [-1, 7]], size = V)
     norm3 = np.random.multivariate_normal([15, 10], [[10, 0.2], [0.2, 5]], size = V)
 
+    # plot how the data looks
     if plotDistributions:
         plt.plot(norm1[:,0], norm1[:,1], '.', alpha=0.5)
         plt.plot(norm2[:,0], norm2[:,1], '.', alpha=0.5)
@@ -24,13 +25,11 @@ def toyDataAA(numSamples=100,sampleDim=2,numArchetypes=3,numpySeed=32,torchSeed=
         plt.axis()
         plt.grid()  
 
-    ###create x
+    # create x
     X = np.vstack([norm1, norm2, norm3]).T
     X = torch.tensor(X)
 
-    ###optimize
-
-    #create model
+    # create model class
     class MatrixMult(torch.nn.Module):
         def __init__(self, V, T, k, X):
             super(MatrixMult, self).__init__()
@@ -52,28 +51,33 @@ def toyDataAA(numSamples=100,sampleDim=2,numArchetypes=3,numpySeed=32,torchSeed=
             XCS = torch.matmul(XC, self.soft_fun(self.S))
             return XCS
 
-    #hyperparameters
+    # hyperparameters
     lr = learningRate
     n_iter = numIterations
 
-    #loss function
+    # define model, loss function and optimzer
     model = MatrixMult(V, T, k, X)
     lossCriterion = torch.nn.MSELoss(reduction = "sum")
     optimizer = torch.optim.Adam(model.parameters(), lr = lr)
 
-    # Creating Dataloader object
+    # optimze for n iterations
     loss_Adam = []
-    for i in range(n_iter):
+    for _ in range(n_iter):
         # zeroing gradients after each iteration
         optimizer.zero_grad()
+        
         # making a prediction in forward pass
         Xrecon = model.forward()
+        
         # calculating the loss between original and predicted data points
         loss = lossCriterion(Xrecon, X)
+        
         # backward pass for computing the gradients of the loss w.r.t to learnable parameters
         loss.backward()
+        
         # updating the parameters after each iteration
         optimizer.step()
+        
         # store loss into list
         loss_Adam.append(loss.item())
 
@@ -83,11 +87,12 @@ def toyDataAA(numSamples=100,sampleDim=2,numArchetypes=3,numpySeed=32,torchSeed=
         #plot archetype points as x's
         A = model.A.detach().numpy()
         print("archetype coordinates: \n", A)
+        
         plt.plot(A[0,:], A[1,:], 'x', alpha=1)
         plt.fill(A[0,:], A[1,:], facecolor='none', edgecolor='purple', linewidth=1)
         plt.show()
     
-    data=np.vstack([norm1, norm2, norm3]).T
+    data = np.vstack([norm1, norm2, norm3]).T
     archeTypes = model.A.detach().numpy()    
 
-    return data,archeTypes,loss_Adam
+    return data, archeTypes, loss_Adam
