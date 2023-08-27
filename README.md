@@ -8,13 +8,13 @@ preprocessing: Here you will find two folders: JesperScripts and ourScripts.
 
 - ourScripts provides the dataset creation with additional preprocessing steps (frobenius norm, highpass-filtering etc) prior to saving the data in an easy-to-read structure. checkPath is used to save the data to the correct directories. ourScripts also provde a plot_scripts subfolder which is used for manual plotting of the brain surface (after analysis has been performed). plot_matrix_on_brain is used for the spatial concatenation and the plot_mod_on_brain is used for plotting only modality-differences (ignoring conditions)
 
-toyData: Presents how MMAA works on a synthetic dataset (Clean-up still in the works) Here you will find several iterations of the toyData process.
+toyData: Presents how MMAA works on a synthetic dataset. Here you will find several iterations of the toyData process.
 
-- toyDataAA.py is used for the simplest case in which there is no multi-anything.
+- toyDataAA.py is used for the simplest case in which there is no multi-anything. Neither does the data resemble a time series. It simply shows how AA works on data in general. Likewise toyDataPlots simply plots the convex hull from the AA-toydata
     
-- MMAA_ver2 was used most
+- MMAA_ver2 is generally where you want to be when looking at the toydata. It creates synthetic data as a time series, runs the MMAA and plots the archetypes and reconstructions
 
-- MMAA_verOutlier generates a single source acting as "noise" in the data. Ideally, it should show that outliers are downweighted in the optimized solution with a robust loss
+- MMAA_verOutlier generates a single source acting as "noise" in the data. Ideally, it should show that outliers are downweighted in the optimized solution with a robust loss. The entire folder is almost identical to the of MMAA_ver2 but has this single outlier
 
 MMAA: This is the main folder for the analysis itself and all later analysis-work and plotting.
 
