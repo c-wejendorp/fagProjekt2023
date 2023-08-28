@@ -40,8 +40,7 @@ MMAA: This is the main folder for the analysis itself and all later analysis-wor
 - All the other sh files?
 
 Classifier: All code used for the classification part of the project.
-
-I'll let you explain all the clean-up you did, Danina <3
+For now: see [`README.md`](./Classifier/cleaned_up/README.md) 
 
 deprecated_scripts: This folder contains scripts either used for the time-concatenation analysis or files that may be of use later should anything go horribly wrong. They have been kept in case we made a mistake during clean-up.
 
